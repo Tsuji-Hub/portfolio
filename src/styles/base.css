@@ -338,6 +338,124 @@ a.card:hover .arrow { color: var(--accent); }
   margin-left: 0.5rem;
 }
 
+/* Homelab architecture diagram */
+.diagram {
+  margin: 1.5rem 0 0;
+}
+.diagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.host-box {
+  fill: none;
+  stroke: var(--border);
+}
+.host-label,
+.node-title,
+.node-sub,
+.vpn-label,
+.vpn-sub,
+.storage-title,
+.storage-sub {
+  font-family: var(--font-mono);
+}
+.host-label {
+  fill: var(--muted);
+  font-size: 12px;
+}
+.node-box,
+.storage-box {
+  fill: var(--bg-raised);
+  stroke: var(--border);
+  stroke-width: 1;
+  transition: stroke var(--speed) ease;
+}
+.node-title,
+.storage-title {
+  fill: var(--text);
+  font-size: 13px;
+}
+.node-sub,
+.storage-sub {
+  fill: var(--muted);
+  font-size: 10.5px;
+}
+.node {
+  cursor: pointer;
+}
+.node:focus {
+  outline: none;
+}
+.node:hover .node-box,
+.node:focus-visible .node-box {
+  stroke: var(--accent);
+}
+.node.active .node-box {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.vpn-box {
+  fill: none;
+  stroke: var(--accent);
+  stroke-dasharray: 4 3;
+  opacity: 0.85;
+}
+.vpn-label {
+  fill: var(--accent);
+  font-size: 11px;
+}
+.vpn-sub {
+  fill: var(--muted);
+  font-size: 10px;
+}
+.node-hint {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.85rem;
+}
+.diagram:not(.is-interactive) .node-hint {
+  display: none;
+}
+.node-panel {
+  display: none;
+  margin-top: 1.25rem;
+  padding: 1.1rem 1.3rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  min-height: 4.5rem;
+}
+.node-panel h3 {
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+}
+.node-panel p {
+  margin: 0;
+  color: var(--muted);
+}
+.diagram.is-interactive .node-panel {
+  display: block;
+}
+.node-descriptions {
+  margin-top: 1.5rem;
+  display: grid;
+  gap: 1rem;
+}
+.node-descriptions article h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+.node-descriptions article p {
+  margin: 0;
+  color: var(--muted);
+}
+.diagram.is-interactive .node-descriptions {
+  display: none;
+}
+
 /* Definition rows (about) */
 .facts {
   margin: 0;

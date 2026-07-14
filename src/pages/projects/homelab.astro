@@ -52,5 +52,136 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     backups, and Discord webhook alerting round it out.
   </p>
 
-  {/* Phase 4: interactive architecture diagram (inline SVG) goes here. */}
+  <h2>Architecture</h2>
+  <p>
+    Select a component to see what it runs and one design decision behind it.
+    With scripting off, every description is listed below the diagram.
+  </p>
+
+  <div class="diagram" data-diagram>
+    <svg viewBox="0 0 700 380" role="group" aria-label="Homelab architecture diagram" xmlns="http://www.w3.org/2000/svg">
+      <g class="node" data-node="hypervisor" role="button" tabindex="0" aria-label="Hypervisor, Proxmox VE">
+        <rect class="host-box" x="10" y="30" width="680" height="336" rx="10"></rect>
+        <text class="host-label" x="24" y="52">Hypervisor · Proxmox VE</text>
+      </g>
+
+      <g class="node" data-node="media" role="button" tabindex="0" aria-label="Media VM, GPU passthrough">
+        <rect class="node-box" x="28" y="74" width="150" height="58" rx="7"></rect>
+        <text class="node-title" x="103" y="99" text-anchor="middle">Media VM</text>
+        <text class="node-sub" x="103" y="118" text-anchor="middle">GPU passthrough</text>
+      </g>
+
+      <g class="node" data-node="proxy" role="button" tabindex="0" aria-label="Proxy VM, Caddy">
+        <rect class="node-box" x="196" y="74" width="150" height="58" rx="7"></rect>
+        <text class="node-title" x="271" y="99" text-anchor="middle">Proxy VM</text>
+        <text class="node-sub" x="271" y="118" text-anchor="middle">Caddy · TLS</text>
+      </g>
+
+      <g class="node" data-node="requests" role="button" tabindex="0" aria-label="Requests LXC">
+        <rect class="node-box" x="364" y="74" width="150" height="58" rx="7"></rect>
+        <text class="node-title" x="439" y="99" text-anchor="middle">Requests LXC</text>
+        <text class="node-sub" x="439" y="118" text-anchor="middle">media requests</text>
+      </g>
+
+      <g class="node" data-node="dashboard" role="button" tabindex="0" aria-label="Dashboard LXC">
+        <rect class="node-box" x="532" y="74" width="150" height="58" rx="7"></rect>
+        <text class="node-title" x="607" y="99" text-anchor="middle">Dashboard LXC</text>
+        <text class="node-sub" x="607" y="118" text-anchor="middle">stack overview</text>
+      </g>
+
+      <g class="node" data-node="docker" role="button" tabindex="0" aria-label="Docker LXC with VPN namespace">
+        <rect class="node-box" x="28" y="150" width="318" height="100" rx="7"></rect>
+        <text class="node-title" x="44" y="172" text-anchor="start">Docker LXC</text>
+        <rect class="vpn-box" x="44" y="184" width="286" height="52" rx="5"></rect>
+        <text class="vpn-label" x="187" y="206" text-anchor="middle">VPN namespace · gluetun</text>
+        <text class="vpn-sub" x="187" y="222" text-anchor="middle">download + indexer apps</text>
+      </g>
+
+      <g class="node" data-node="monitoring" role="button" tabindex="0" aria-label="Monitoring, Netdata">
+        <rect class="node-box" x="364" y="150" width="150" height="58" rx="7"></rect>
+        <text class="node-title" x="439" y="175" text-anchor="middle">Monitoring</text>
+        <text class="node-sub" x="439" y="194" text-anchor="middle">Netdata · MCP</text>
+      </g>
+
+      <g class="node" data-node="storage" role="button" tabindex="0" aria-label="ZFS storage, mirrored vdevs">
+        <rect class="storage-box" x="28" y="286" width="654" height="52" rx="7"></rect>
+        <text class="storage-title" x="44" y="309" text-anchor="start">ZFS storage</text>
+        <text class="storage-sub" x="44" y="326" text-anchor="start">mirrored vdevs · nightly restore-tested backups</text>
+      </g>
+    </svg>
+
+    <p class="node-hint">Tip: click a box, or focus it and press Enter.</p>
+
+    <div class="node-panel" data-panel aria-live="polite"></div>
+
+    <div class="node-descriptions">
+      <article data-desc="hypervisor">
+        <h3>Hypervisor · Proxmox VE</h3>
+        <p>
+          The single host everything runs on, carved into VMs and LXC
+          containers. Each guest carries its own default-deny firewall, so the
+          host isn't the only thing standing between services and the network,
+          and guests stay portable.
+        </p>
+      </article>
+      <article data-desc="media">
+        <h3>Media VM · GPU passthrough</h3>
+        <p>
+          Runs media playback and transcoding with an RTX 3070 passed through
+          for NVENC. The GPU belongs to this VM alone, so transcoding never has
+          to fight the rest of the stack for it.
+        </p>
+      </article>
+      <article data-desc="proxy">
+        <h3>Proxy VM · Caddy</h3>
+        <p>
+          All TLS terminates here and every service sits behind it. Nothing is
+          exposed to the network directly, so there's one front door to harden
+          instead of a dozen.
+        </p>
+      </article>
+      <article data-desc="requests">
+        <h3>Requests LXC</h3>
+        <p>
+          The front door for "add this to the library" requests, kept separate
+          from the apps that actually fetch and organize media. A blast-radius
+          decision: the public-facing piece can't reach the tooling directly.
+        </p>
+      </article>
+      <article data-desc="dashboard">
+        <h3>Dashboard LXC</h3>
+        <p>
+          A single overview of the stack's health and quick links, so checking
+          on things doesn't mean remembering ports and addresses.
+        </p>
+      </article>
+      <article data-desc="docker">
+        <h3>Docker LXC · VPN namespace</h3>
+        <p>
+          Runs the download and indexer apps. Their outbound traffic is locked
+          into a VPN network namespace (gluetun), so the apps have no route that
+          bypasses the tunnel. It's structural: there's nothing for them to
+          misconfigure around.
+        </p>
+      </article>
+      <article data-desc="monitoring">
+        <h3>Monitoring · Netdata</h3>
+        <p>
+          Per-second metrics across the node, wired into LLM tooling over MCP. I
+          can ask about the infrastructure's health in plain English and get
+          real numbers back instead of guessing.
+        </p>
+      </article>
+      <article data-desc="storage">
+        <h3>ZFS storage · mirrored vdevs</h3>
+        <p>
+          Mirrored vdevs rather than RAIDZ: expansion by matched pairs and
+          faster resilvering. Backups run nightly and get restore-tested,
+          because a backup that's never been restored is a hope, not a backup.
+        </p>
+      </article>
+    </div>
+  </div>
+
+  <script is:inline src="/js/homelab-diagram.js" defer></script>
 </ProjectLayout>

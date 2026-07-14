@@ -1,16 +1,41 @@
 ---
 import Base from '../layouts/Base.astro';
+import { projects } from '../data/projects.js';
 ---
 
 <Base title="Ethan Justice — Cloud Security Analyst" path="/">
-  <div class="wrap prose">
-    <h1>Ethan Justice</h1>
-    <p class="muted">
-      Cloud security analyst. I govern cloud environments for a Fortune 500
-      insurer by day, and run my own infrastructure like production by night.
-    </p>
-    <p class="mono muted" style="font-size:0.85rem;">
-      walking skeleton · deploy proof · content lands in phase 2
-    </p>
+  <div class="wrap">
+    <section class="hero prose">
+      <h1>Ethan Justice</h1>
+      <p class="lede">
+        Cloud security analyst. I govern cloud environments for a Fortune 500
+        insurer by day, and run my own infrastructure like production by night.
+      </p>
+    </section>
+
+    <ul class="stats" aria-label="At a glance">
+      <li><strong>1,100+</strong> GCP projects brought under governance</li>
+      <li><strong>11</strong> releases of my Android fork shipped</li>
+      <li><strong>13-container</strong> stack, restore-tested backups</li>
+      <li><strong>5th of 160</strong> — DOE CyberForce</li>
+    </ul>
+
+    <p class="section-label">projects</p>
+    <div class="project-grid">
+      {
+        projects.map((p) => (
+          <a class="card" href={`/projects/${p.slug}/`}>
+            <h3>{p.title}</h3>
+            <p>{p.blurb}</p>
+            <ul class="tags" aria-label="Stack">
+              {p.tags.map((t) => (
+                <li>{t}</li>
+              ))}
+            </ul>
+            <span class="arrow">read →</span>
+          </a>
+        ))
+      }
+    </div>
   </div>
 </Base>

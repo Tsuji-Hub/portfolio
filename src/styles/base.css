@@ -167,3 +167,128 @@ main { padding-block: clamp(2rem, 6vw, 4rem); }
 .brand {
   transition: color var(--speed) ease;
 }
+
+/* Hero */
+.hero {
+  padding-block: clamp(1rem, 4vw, 2.5rem) 0;
+}
+.hero h1 {
+  font-size: clamp(2rem, 6vw, 2.75rem);
+}
+.lede {
+  font-size: var(--step-1);
+  color: var(--text);
+  max-width: 60ch;
+}
+
+/* Stat row (mono) */
+.stats {
+  list-style: none;
+  margin: 2.5rem 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.stats li {
+  background: var(--bg);
+  padding: 1rem 1.15rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+.stats strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Project grid + cards */
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: var(--muted);
+  margin: 3rem 0 1rem;
+}
+.project-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--speed) ease, transform var(--speed) ease;
+}
+a.card:hover {
+  border-color: var(--accent);
+  text-decoration: none;
+}
+.card h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+.card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.card .arrow {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+a.card:hover .arrow { color: var(--accent); }
+
+/* Tags */
+.tags {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.2rem 0 0;
+  padding: 0;
+}
+.tags li {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+}
+
+/* Definition rows (about) */
+.facts {
+  margin: 0;
+  display: grid;
+  gap: 0.75rem 1.5rem;
+}
+.fact {
+  border-left: 2px solid var(--border);
+  padding-left: 1rem;
+}
+.fact dt {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.15rem;
+}
+.fact dd {
+  margin: 0;
+}
+.fact dd + dd { margin-top: 0.15rem; }

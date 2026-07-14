@@ -1,0 +1,90 @@
+---
+import '../styles/tokens.css';
+import '../styles/base.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  path?: string;
+}
+
+const {
+  title,
+  description = 'Ethan Justice — cloud security analyst. Governs cloud environments for a Fortune 500 insurer and runs a production-grade homelab.',
+  path = '/',
+} = Astro.props;
+
+const site = Astro.site?.toString().replace(/\/$/, '') ?? '';
+const canonical = site + path;
+
+const nav = [
+  { href: '/', label: 'home' },
+  { href: '/projects/makimono/', label: 'makimono' },
+  { href: '/projects/jarvis/', label: 'jarvis' },
+  { href: '/projects/homelab/', label: 'homelab' },
+  { href: '/projects/mealie/', label: 'mealie' },
+  { href: '/projects/cloud-security/', label: 'cloud-security' },
+  { href: '/about/', label: 'about' },
+];
+
+const current = path;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="color-scheme" content="dark light" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="/">ethan justice</a>
+        <nav class="nav" aria-label="Primary">
+          {
+            nav
+              .filter((item) => item.href !== '/')
+              .map((item) => (
+                <a
+                  href={item.href}
+                  aria-current={current === item.href ? 'page' : undefined}
+                >
+                  {item.label}
+                </a>
+              ))
+          }
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <a href="https://github.com/Tsuji-Hub">GitHub</a>
+        <a href="https://www.linkedin.com/in/ethan-justice">LinkedIn</a>
+        <a href="mailto:justice.ethan04@gmail.com">Email</a>
+        <span class="footer-note">
+          Static site, no trackers, CSP enforced.
+          <a href="https://github.com/Tsuji-Hub/portfolio">View source.</a>
+        </span>
+      </div>
+    </footer>
+  </body>
+</html>

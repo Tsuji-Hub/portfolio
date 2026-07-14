@@ -1,0 +1,45 @@
+/* Design tokens — dark default, light via prefers-color-scheme only. No toggle, no JS. */
+
+:root {
+  /* Color — dark (default) */
+  --bg: #0e1116;
+  --bg-raised: #161b22;
+  --border: #21262d;
+  --text: #e2e6ea;
+  --muted: #8b949e;
+  --accent: #4fd1c5; /* swap this one var to re-theme */
+  --accent-ink: #0e1116; /* text on an accent fill */
+
+  /* Type */
+  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --step-0: 1.0625rem;   /* body ~17px */
+  --step-1: 1.25rem;
+  --step-2: 1.5rem;
+  --step-3: 2rem;
+  --step-4: 2.5rem;
+
+  --leading-body: 1.65;
+  --leading-tight: 1.25;
+
+  /* Space */
+  --measure: 70ch;
+  --gutter: clamp(1.25rem, 4vw, 2.5rem);
+  --stack: 1.5rem;
+
+  --radius: 8px;
+  --speed: 120ms;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #ffffff;
+    --bg-raised: #f6f8fa;
+    --border: #d0d7de;
+    --text: #1f2328;
+    --muted: #59636e;
+    --accent: #0f9488;
+    --accent-ink: #ffffff;
+  }
+}

@@ -1,0 +1,14 @@
+# build output
+dist/
+# dependencies
+node_modules/
+# astro
+.astro/
+# env
+.env
+.env.production
+# editor / os
+.DS_Store
+Thumbs.db
+# cowork handoff (working file, not tracked)
+.claude/cowork-notes.md

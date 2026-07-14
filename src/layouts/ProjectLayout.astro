@@ -1,0 +1,62 @@
+---
+import Base from './Base.astro';
+
+interface LinkItem {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  title: string;
+  path: string;
+  description: string;
+  lede: string;
+  tags: string[];
+  status?: string;
+  demonstrates?: string;
+  links?: LinkItem[];
+}
+
+const { title, path, description, lede, tags, status, demonstrates, links } =
+  Astro.props;
+---
+
+<Base title={`${title} — Ethan Justice`} path={path} description={description}>
+  <div class="wrap prose">
+    <div class="project-head">
+      <h1>
+        {title}
+        {status && <span class="status-pill">{status}</span>}
+      </h1>
+      <p class="lede">{lede}</p>
+      <ul class="tags stack-row" aria-label="Stack">
+        {tags.map((t) => <li>{t}</li>)}
+      </ul>
+    </div>
+
+    <slot />
+
+    {
+      demonstrates && (
+        <div class="demonstrates">
+          <p class="label">what it demonstrates</p>
+          <p>{demonstrates}</p>
+        </div>
+      )
+    }
+
+    {
+      links && links.length > 0 && (
+        <div class="project-links">
+          {links.map((l) => (
+            <a href={l.href}>{l.label} →</a>
+          ))}
+        </div>
+      )
+    }
+
+    <p style="margin-top:3rem;">
+      <a href="/">← all projects</a>
+    </p>
+  </div>
+</Base>

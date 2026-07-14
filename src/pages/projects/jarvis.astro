@@ -1,0 +1,59 @@
+---
+import ProjectLayout from '../../layouts/ProjectLayout.astro';
+---
+
+<ProjectLayout
+  title="Jarvis"
+  path="/projects/jarvis/"
+  description="An always-on, self-hosted voice assistant. Two architecturally isolated brains: a private one that runs my infrastructure, a public one that's safe for strangers."
+  lede="An always-on, self-hosted voice assistant. A Home Assistant pipeline handles in-browser wake word, speech-to-text, an LLM control brain with tool access to my infrastructure, and text-to-speech, plus a Discord voice interface for friends."
+  tags={['LLM tooling', 'Home Assistant', 'Whisper', 'Threat modeling', 'Python']}
+  status="In build"
+  demonstrates="LLM tool integration, a full speech pipeline, threat modeling for AI agents, prompt-injection-resistant design, and cost engineering (the whole thing runs on hardware I already owned)."
+>
+  <h2>Why it exists</h2>
+  <p>
+    I wanted a voice assistant that answers to me, not to a vendor's cloud, and
+    that can actually do things: check the homelab, answer questions, control
+    the house. The interesting problem wasn't wiring the speech pipeline. It was
+    letting friends talk to it too, without handing strangers a microphone into
+    my infrastructure.
+  </p>
+
+  <h2>What I built</h2>
+  <ul>
+    <li>In-browser wake word ("Hey Jarvis"), no always-on cloud mic.</li>
+    <li>Whisper speech-to-text on a CUDA GPU.</li>
+    <li>An LLM control brain with tool access to my infrastructure APIs.</li>
+    <li>Piper text-to-speech for the voice.</li>
+    <li>
+      A Discord voice interface built on per-user audio streams, so it can hear
+      individual people in a call.
+    </li>
+  </ul>
+
+  <div class="callout">
+    <h2>Two Jarvises</h2>
+    <p>
+      There are two assistants by design, and they are isolated at the
+      architecture level, not by politeness.
+    </p>
+    <p>
+      The private one knows my infrastructure and can act on it. The public one,
+      which friends talk to through Discord, has zero infrastructure knowledge,
+      zero personal context, and exactly three whitelisted capabilities.
+    </p>
+    <p>
+      The isolation is structural, not textual. A system prompt that says "don't
+      reveal X" fails the first time someone types "ignore your instructions".
+      The only prompt-injection defense that holds is an agent that does not
+      possess the information or the capability in the first place.
+    </p>
+    <p>
+      Version 1 got this wrong. The public bot reached my infrastructure through
+      a shared integration layer and inherited context it should never have had.
+      It was caught in review and redesigned so the public bot talks only to its
+      own three tools, with no path back to anything that matters.
+    </p>
+  </div>
+</ProjectLayout>

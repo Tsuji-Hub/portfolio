@@ -1,0 +1,56 @@
+---
+import ProjectLayout from '../../layouts/ProjectLayout.astro';
+---
+
+<ProjectLayout
+  title="Homelab"
+  path="/projects/homelab/"
+  description="A Proxmox VE node run with production discipline: restore-tested backups, network segmentation, VPN-namespaced traffic, self-healing services."
+  lede="A Proxmox VE node run with production discipline. Not a pile of containers that happen to work, but infrastructure with backups that get restored, traffic that can't leak, and services that heal themselves after a reboot."
+  tags={['Proxmox', 'ZFS', 'nftables', 'Docker', 'Caddy', 'Linux ops']}
+  demonstrates="Virtualization, storage design, network segmentation, backup discipline, Linux operations, and AI-augmented operations. Same control mindset as the day job, applied at home."
+>
+  <h2>Design decisions</h2>
+  <p>
+    Each of these was a choice with a reason, not a default I inherited.
+  </p>
+  <ul>
+    <li>
+      <strong>Mirrored ZFS vdevs over RAIDZ.</strong> Expansion by matched
+      pairs and faster resilver, which matters more to me than raw capacity
+      efficiency.
+    </li>
+    <li>
+      <strong>Backups are restore-tested.</strong> A backup that has never been
+      restored is a hope, not a backup.
+    </li>
+    <li>
+      <strong>Default-deny nftables inside each guest</strong> instead of the
+      cluster firewall. One landmine avoided, and the guests stay portable.
+    </li>
+    <li>
+      <strong>Download and indexer traffic runs in a VPN network namespace.</strong>
+      The apps cannot leak around the tunnel because they have no route that
+      bypasses it. It's structural, not a setting they could ignore.
+    </li>
+    <li>
+      <strong>TLS terminates at a dedicated reverse proxy.</strong> Services are
+      never exposed directly.
+    </li>
+    <li>
+      <strong>systemd recovery units,</strong> so a reboot heals the stack
+      without a human in the loop.
+    </li>
+    <li>
+      <strong>Netdata monitoring wired into LLM tooling over MCP.</strong> The
+      infrastructure is queryable in plain English.
+    </li>
+  </ul>
+
+  <p>
+    GPU passthrough (an RTX 3070 for NVENC transcoding), nightly image-based
+    backups, and Discord webhook alerting round it out.
+  </p>
+
+  {/* Phase 4: interactive architecture diagram (inline SVG) goes here. */}
+</ProjectLayout>

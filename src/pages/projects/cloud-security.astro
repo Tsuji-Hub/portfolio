@@ -1,0 +1,50 @@
+---
+import ProjectLayout from '../../layouts/ProjectLayout.astro';
+---
+
+<ProjectLayout
+  title="Cloud security"
+  path="/projects/cloud-security/"
+  description="Sanitized case studies from cloud security work at a Fortune 500 insurer. No employer name, no environment details beyond the tool names."
+  lede="Case studies from cloud security work at a Fortune 500 insurer. Sanitized: no employer name, and no environment details beyond the tool names."
+  tags={['GCP', 'CSPM', 'SOAR', 'Governance', 'Wiz', 'Torq / Tines']}
+  demonstrates="Cloud governance at scale, security automation, and a bias toward prevention: closing gaps at the source and turning findings into policy instead of an endless ticket queue."
+>
+  <h2>Container supply chain</h2>
+  <p>
+    Unapproved, unhardened images were making their way toward production, with
+    no gate to stop them. I coordinated between vendors and internal teams and
+    stood up a formal image approval process, so images are vetted before they
+    can ship rather than caught afterward. The gap got closed at the source
+    instead of being patched downstream every time it recurred.
+  </p>
+
+  <h2>Cloud asset governance</h2>
+  <p>
+    More than 1,100 GCP projects existed with no reliable link to the business
+    applications they belonged to, so remediation had nowhere to route. I
+    validated the projects and tied them to their applications in the CMDB,
+    creating eight new service entries in the process. Now a finding routes to
+    an actual owner instead of landing in a shared mailbox and going stale.
+  </p>
+
+  <h2>SOAR proof of concept</h2>
+  <p>
+    Cloud vulnerability alerts were landing without context, so every one meant
+    manual enrichment before anyone could act. I evaluated no-code automation
+    platforms (Torq, Tines) and built workflows that auto-enrich those alerts as
+    they arrive. I presented the results to leadership with an adoption roadmap,
+    turning a repetitive manual step into something the tooling handles on its
+    own.
+  </p>
+
+  <h2>Prevention over reaction</h2>
+  <p>
+    CSPM findings (Wiz) told us what was already misconfigured, which is useful
+    but always after the fact. I turned recurring findings into GCP Organization
+    Policy constraints that block the risky configurations before they can be
+    created, and automated the weekly metrics reporting that used to take hours
+    down to minutes. Less cleanup, fewer bad configs reaching the environment at
+    all.
+  </p>
+</ProjectLayout>

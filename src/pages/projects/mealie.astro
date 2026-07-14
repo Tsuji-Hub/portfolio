@@ -1,0 +1,62 @@
+---
+import ProjectLayout from '../../layouts/ProjectLayout.astro';
+---
+
+<ProjectLayout
+  title="Mealie fork"
+  path="/projects/mealie/"
+  description="A fork of Mealie, the self-hosted recipe manager, that I build, deploy, and extend for a nutrition-tracking pipeline. Plus an upstream fix for poisoned schema.org data."
+  lede="A fork of Mealie, the self-hosted recipe manager (12.7k stars upstream), that I build, deploy, and extend for a nutrition-tracking pipeline. I ship the images, run them in the homelab, and send the generic fixes back upstream."
+  tags={['CI/CD', 'Docker', 'GHCR', 'Python', 'Vue', 'Open source']}
+  demonstrates="CI/CD surgery, Docker and GHCR pipelines, Python and Vue across the full stack, upstream open-source contribution, and the discipline of running what you build."
+  links={[
+    { label: 'Upstream PR #7881', href: 'https://github.com/mealie-recipes/mealie/pull/7881' },
+  ]}
+>
+  <h2>Why it exists</h2>
+  <p>
+    I wanted nutrition data as a first-class part of my recipe workflow, and I
+    wanted to run my own build rather than wait on a release. Forking meant I
+    also had to make the upstream CI actually work for someone who isn't the
+    upstream maintainer.
+  </p>
+
+  <h2>What I built</h2>
+  <ul>
+    <li>
+      <strong>Repaired the fork's CI.</strong> Upstream's pipeline was
+      hard-gated to its own repo, built on a paid service I don't have, and
+      pushed to a namespace I can't write to. I rewrote it: stock buildx, GHCR
+      publishing, a lowercased namespace, and a dispatch trigger.
+    </li>
+    <li>
+      <strong>Nightly images to ghcr.io,</strong> deployed to the homelab
+      through Portainer.
+    </li>
+    <li>
+      <strong>Backend.</strong> Added nutrition to the recipe list schema with a
+      batched eager-load instead of an N+1 query.
+    </li>
+    <li>
+      <strong>Frontend.</strong> A full editorial redesign of the recipe UI:
+      image-forward tiles, a real typographic hierarchy, colored taxonomy tags,
+      dark and light.
+    </li>
+    <li>
+      <strong>Upstream fix (PR #7881).</strong> The recipe yield display emitted
+      "0.0" into the schema.org JSON-LD for servings-only recipes, poisoning
+      per-serving data for anything that consumed it. I fixed it and added
+      parametrized tests.
+    </li>
+  </ul>
+
+  <div class="callout">
+    <h2>The discipline</h2>
+    <p>
+      Upstream the generic, fork-carry the opinionated. Generic fixes go
+      upstream so they're maintained forever at no cost to me. Opinionated
+      features stay small and rebasable, so pulling in upstream changes never
+      turns into a merge fight.
+    </p>
+  </div>
+</ProjectLayout>

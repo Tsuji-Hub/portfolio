@@ -272,6 +272,72 @@ a.card:hover .arrow { color: var(--accent); }
   padding: 0.15rem 0.6rem;
 }
 
+/* Project page */
+.project-head .lede {
+  margin-top: 0.5rem;
+}
+.stack-row {
+  margin: 1.25rem 0 0;
+}
+.prose ul {
+  padding-left: 1.2rem;
+}
+.prose li {
+  margin-bottom: 0.5rem;
+}
+.callout {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  padding: 1.25rem 1.5rem;
+  margin: 2rem 0;
+}
+.callout h2 {
+  margin-top: 0;
+}
+.callout > :last-child {
+  margin-bottom: 0;
+}
+.demonstrates {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  padding: 1.25rem 1.5rem;
+  margin: 2.5rem 0 0;
+}
+.demonstrates .label {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: var(--muted);
+  margin: 0 0 0.4rem;
+}
+.demonstrates p:last-child {
+  margin-bottom: 0;
+}
+.project-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-top: 2rem;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+.status-pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+}
+
 /* Definition rows (about) */
 .facts {
   margin: 0;

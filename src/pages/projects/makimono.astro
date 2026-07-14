@@ -1,0 +1,64 @@
+---
+import ProjectLayout from '../../layouts/ProjectLayout.astro';
+---
+
+<ProjectLayout
+  title="Makimono"
+  path="/projects/makimono/"
+  description="A feature-driven fork of Mihon, the open-source Android manga reader. 11 releases, real users, self-updating."
+  lede="A feature-driven fork of Mihon, the open-source Android manga reader written in Kotlin. It installs alongside the stock app, updates itself, and has shipped 11 releases to real users."
+  tags={['Kotlin', 'Android', 'Compose', 'Release engineering', 'API integration']}
+  demonstrates="Kotlin and Android at feature scale, release engineering (signed APKs, a self-update channel, changelogs), API integration across five services, and maintaining a fork against an active upstream without falling behind it."
+  links={[
+    { label: 'Releases', href: 'https://github.com/Tsuji-Hub/makimono/releases' },
+  ]}
+>
+  <h2>Why it exists</h2>
+  <p>
+    I read a lot of manga, and the reader I used every day was missing things I
+    wanted. Rather than file feature requests and wait, I forked it. The rule I
+    set: it has to stay installable next to the original and update itself, so
+    using it never feels like running a science project.
+  </p>
+
+  <h2>What I built</h2>
+  <ul>
+    <li>
+      <strong>Webtoon auto-scroll engine.</strong> A floating controller with
+      volume-key speed control, a two-finger toggle, auto pause and resume on
+      touch, and clean handling at chapter boundaries.
+    </li>
+    <li>
+      <strong>Similar titles.</strong> Recommendations merged from five sources
+      (AniList, MyAnimeList, MangaUpdates, MangaDex, Comick), ranked by
+      cross-source agreement, with filters and a hidden-gems mode.
+    </li>
+    <li>
+      <strong>Discover.</strong> AniList catalog browsing with include and
+      exclude tag combinations.
+    </li>
+    <li>
+      <strong>For You.</strong> A personalized feed built from your own tracked
+      library, rotated weekly.
+    </li>
+    <li>
+      <strong>Reader comments</strong> pulled live from three platforms,
+      read-only.
+    </li>
+    <li>
+      <strong>Bulk AniList tracking</strong> with a match-review screen before
+      anything is written back.
+    </li>
+    <li>
+      Fold-aware reader margins, backup restore fixes, and six icon variants.
+    </li>
+    <li>
+      A signed release channel with an in-app updater, so updates never mean
+      sideloading by hand again.
+    </li>
+  </ul>
+
+  <p class="muted" style="font-size:0.92rem;">
+    The source is a private fork; the releases and the users are public.
+  </p>
+</ProjectLayout>

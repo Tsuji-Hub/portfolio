@@ -409,17 +409,17 @@ a.card:hover .arrow { color: var(--accent); }
   fill: var(--muted);
   font-size: 10px;
 }
+/* Interactive layout is the DEFAULT (panel shown, descriptions hidden), so the
+   deferred script causes no post-load reflow -> zero layout shift. For no-JS
+   users, /noscript.css (loaded via <noscript>) flips it back. */
 .node-hint {
   font-family: var(--font-mono);
   font-size: 0.8rem;
   color: var(--muted);
   margin-top: 0.85rem;
 }
-.diagram:not(.is-interactive) .node-hint {
-  display: none;
-}
 .node-panel {
-  display: none;
+  display: block;
   margin-top: 1.25rem;
   padding: 1.1rem 1.3rem;
   border: 1px solid var(--border);
@@ -436,12 +436,9 @@ a.card:hover .arrow { color: var(--accent); }
   margin: 0;
   color: var(--muted);
 }
-.diagram.is-interactive .node-panel {
-  display: block;
-}
 .node-descriptions {
+  display: none;
   margin-top: 1.5rem;
-  display: grid;
   gap: 1rem;
 }
 .node-descriptions article h3 {
@@ -451,9 +448,6 @@ a.card:hover .arrow { color: var(--accent); }
 .node-descriptions article p {
   margin: 0;
   color: var(--muted);
-}
-.diagram.is-interactive .node-descriptions {
-  display: none;
 }
 
 /* Definition rows (about) */

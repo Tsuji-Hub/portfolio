@@ -33,8 +33,4 @@
       select(n.dataset.node);
     }
   });
-
-  panel.innerHTML =
-    '<p>Select a component to see what it runs and one design decision.</p>';
-  wrap.classList.add('is-interactive');
 })();

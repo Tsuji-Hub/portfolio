@@ -1,0 +1,9 @@
+/* Loaded only via <noscript>. Reverts the diagram to its static, no-JS layout:
+   all descriptions visible, the interactive panel and hint hidden. */
+.node-descriptions {
+  display: grid !important;
+}
+.node-panel,
+.node-hint {
+  display: none !important;
+}

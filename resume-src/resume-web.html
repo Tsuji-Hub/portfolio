@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Ethan Justice — Resume</title>
+<style>
+  @font-face { font-family:'Inter'; font-weight:400; src:url('file:///E:/CLAUDE%20COWORK/PROJECTS/portfolio/public/fonts/inter-latin-400-normal.woff2') format('woff2'); }
+  @font-face { font-family:'Inter'; font-weight:500; src:url('file:///E:/CLAUDE%20COWORK/PROJECTS/portfolio/public/fonts/inter-latin-500-normal.woff2') format('woff2'); }
+  @font-face { font-family:'Inter'; font-weight:600; src:url('file:///E:/CLAUDE%20COWORK/PROJECTS/portfolio/public/fonts/inter-latin-600-normal.woff2') format('woff2'); }
+
+  @page { size: Letter; margin: 0.42in 0.5in; }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 8.7pt;
+    line-height: 1.28;
+    color: #111;
+  }
+  header { text-align: center; margin-bottom: 7pt; }
+  h1 { font-size: 17.5pt; font-weight: 600; letter-spacing: 0.02em; }
+  .headline { font-size: 8.9pt; font-weight: 600; margin-top: 1.5pt; }
+  .contact { font-size: 8.3pt; color: #444; margin-top: 2.5pt; }
+  h2 {
+    font-size: 8.3pt; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.05em; border-bottom: 0.8pt solid #333;
+    padding-bottom: 1.2pt; margin: 6pt 0 3pt;
+  }
+  .org { font-weight: 600; font-size: 8.9pt; margin-top: 2pt; }
+  .role { display: flex; justify-content: space-between; gap: 10pt; margin-top: 2pt; }
+  .role .t { font-weight: 600; }
+  .role .d { color: #444; white-space: nowrap; }
+  ul { margin: 1.5pt 0 0; padding-left: 11pt; }
+  li { margin-bottom: 1pt; }
+  p { margin-bottom: 2pt; }
+  .proj { margin-bottom: 2.5pt; }
+  .proj b { font-weight: 600; }
+  .skills p { margin-bottom: 1pt; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>ETHAN JUSTICE</h1>
+    <div class="headline">Cloud Security Analyst | Cloud Governance, Risk and Compliance (GRC) | Security Automation</div>
+    <div class="contact">Chicago area | Justice.ethan04@gmail.com | linkedin.com/in/justice-ethan | github.com/Tsuji-Hub</div>
+  </header>
+
+  <h2>Summary</h2>
+  <p>Cloud Security Analyst at a Fortune 500 insurer working across cloud governance and security operations on Google Cloud Platform (GCP). Brought 1,100+ GCP projects under CMDB governance, cut weekly security metrics reporting from hours to minutes, and led a no-code SOAR proof of concept. Off the clock: a Proxmox homelab with production-grade controls and side projects with real users.</p>
+
+  <h2>Experience</h2>
+  <div class="org">A Fortune 500 insurer</div>
+
+  <div class="role"><span class="t">Cloud Security Analyst</span><span class="d">Apr 2026 - Present</span></div>
+  <ul>
+    <li>Caught unapproved hardened Docker images moving toward production; coordinated vendors and internal teams to stand up a formal image approval process, closing a container supply chain gap.</li>
+    <li>Led a proof of concept of no-code Security Orchestration, Automation and Response (SOAR) platforms (Torq, Tines): built workflows that auto-enrich cloud vulnerability alerts; demoed to leadership with an adoption roadmap.</li>
+    <li>Integrated Wiz Cloud Security Posture Management (CSPM) findings with ServiceNow so incident tickets arrive pre-filled with asset ownership and context.</li>
+    <li>Facilitate annual cloud control reviews; governance docs stay audit-ready via CI/CD-driven updates.</li>
+  </ul>
+
+  <div class="role"><span class="t">IT Security Rotational Program</span><span class="d">Jun 2024 - Apr 2026</span></div>
+  <ul>
+    <li>Validated metadata for 1,100+ GCP projects and linked each to its business application in the ServiceNow Configuration Management Database (CMDB); created 8 Technical Service entries to establish ownership.</li>
+    <li>Defined the container security operating model: a RACI matrix across 46 controls, agreed with Cloud Engineering, Networking, and AppSec.</li>
+    <li>Shifted misconfiguration handling from reactive fixes to prevention by recommending GCP Organization Policy constraints that block risky configurations at the source.</li>
+    <li>Co-built the ServiceNow intake process for cloud security requests and routed Wiz CSPM findings into vulnerability ticketing for tracked remediation.</li>
+    <li>Automated weekly security metrics reporting with scripts and macros, cutting a multi-hour manual process to minutes.</li>
+    <li>First rotation (8 months): security risk remediation and issue tracking in ServiceNow GRC.</li>
+  </ul>
+
+  <div class="role"><span class="t">Security Advisor Intern</span><span class="d">Jun 2023 - Aug 2023</span></div>
+  <ul>
+    <li>Ran browser extension governance with Active Directory; risk exception process in ServiceNow and ZenGRC.</li>
+  </ul>
+
+  <h2>Projects</h2>
+  <div class="proj"><b>Makimono, custom Android manga reader (Kotlin):</b> maintained fork of the open-source Mihon app with a webtoon auto-scroll engine, AniList-powered recommendations and bulk tracking, fold-aware rendering, and a signed self-update release channel. Shipped to real users.</div>
+  <div class="proj"><b>Jarvis, self-hosted voice assistant (in progress):</b> Home Assistant pipeline with on-device wake word, GPU-accelerated Whisper speech-to-text, an LLM control brain with tool access to infrastructure APIs, and a Discord voice interface.</div>
+  <div class="proj"><b>Homelab, Proxmox VE run like production:</b> GPU passthrough, mirrored ZFS with restore-tested nightly backups, default-deny nftables firewalls, VPN network namespaces for egress control, Caddy TLS reverse proxy, and Netdata monitoring wired into LLM tooling via Model Context Protocol (MCP).</div>
+
+  <h2>Competitions</h2>
+  <p>Department of Energy CyberForce: 5th of 160 teams (2022), 10th of 120 (2021). Lewis Cyber Flyer CTF: 1st place (2021). National Collegiate Cyber Defense Competition (CCDC) competitor. Tools: Splunk, Snort, Sysmon, OpenVAS, Nmap.</p>
+
+  <h2>Skills</h2>
+  <div class="skills">
+    <p><b>Cloud:</b> Google Cloud Platform (GCP), IAM, Organization Policy; AWS (working knowledge)</p>
+    <p><b>Security tooling:</b> Wiz (CSPM), Torq, Tines (SOAR), AquaSec, Splunk, ServiceNow, ZenGRC</p>
+    <p><b>Systems and code:</b> Linux, Docker, ZFS, nftables, systemd, Active Directory, Python, Kotlin, Bash, SQL</p>
+    <p><b>Practice areas:</b> cloud governance, container security, vulnerability management, audit readiness, NIST CSF</p>
+  </div>
+
+  <h2>Education &amp; Certifications</h2>
+  <p>M.S. Cybersecurity, 2025 (GPA 3.9) and B.S. Cybersecurity, 2024 (GPA 3.8, Dean's List), Lewis University 4+1.</p>
+  <p>Google Cloud Digital Leader | ISC2 Certified in Cybersecurity (CC) | PADI scuba certification</p>
+</body>
+</html>

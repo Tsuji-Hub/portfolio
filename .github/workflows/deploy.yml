@@ -1,0 +1,41 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Runs astro build + the sanitization gate. If a forbidden token
+      # (employer name, phone, private IP, hostname) reaches dist/, the gate
+      # exits non-zero and the deploy never happens.
+      - run: npm run build
+
+      - name: Deploy
+        if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name portfolio --branch main
+
+      - name: Deploy skipped (no API token)
+        if: ${{ secrets.CLOUDFLARE_API_TOKEN == '' }}
+        run: |
+          echo "::warning::Build and sanitize gate passed, but CLOUDFLARE_API_TOKEN is not set, so nothing was deployed."
+          echo "Add it under Settings > Secrets and variables > Actions to enable auto-deploy on push."

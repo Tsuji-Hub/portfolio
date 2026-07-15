@@ -46,9 +46,51 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
       <strong>Upstream fix (PR #7881).</strong> The recipe yield display emitted
       "0.0" into the schema.org JSON-LD for servings-only recipes, poisoning
       per-serving data for anything that consumed it. I fixed it and added
-      parametrized tests.
+      parametrized tests. (Demonstrated above.)
     </li>
   </ul>
+
+  <script is:inline src="/js/mealie-demo.js" defer></script>
+
+  <h2>The upstream bug, PR #7881</h2>
+  <p>
+    Mealie emits schema.org JSON-LD for every recipe, which is how any consumer
+    (search engines, importers, my own nutrition pipeline) reads it. For recipes
+    whose yield is a plain serving count, the yield display emitted
+    <code>"0.0"</code>. Not missing. Zero.
+  </p>
+  <p>
+    That number is the denominator for anything per-serving. Flip between the
+    builds and watch what a downstream consumer computes.
+  </p>
+
+  <div class="jsonld-demo bleed" data-jsonld>
+    <div class="map-controls">
+      <span class="ctl-label">build</span>
+      <button class="map-btn" type="button" data-fix="before" aria-pressed="true">before #7881</button>
+      <button class="map-btn" type="button" data-fix="after" aria-pressed="false">after #7881</button>
+      <span class="sep"></span>
+      <span class="ctl-label">yield</span>
+      <button class="map-btn" type="button" data-ytype="servings" aria-pressed="true">servings</button>
+      <button class="map-btn" type="button" data-ytype="text" aria-pressed="false">text ("2 loaves")</button>
+    </div>
+
+    <div class="map-controls" data-servings-wrap>
+      <label class="ctl-label" for="servings">count</label>
+      <input id="servings" type="range" data-servings min="1" max="12" step="1" value="4" />
+      <output class="ctl-out" data-servings-out>4</output>
+    </div>
+
+    <pre class="code-out" data-json aria-label="emitted schema.org JSON-LD"></pre>
+    <div class="consumer" data-consumer aria-live="polite"></div>
+
+    <p class="sample-note">
+      Switch yield to text and the bug vanishes. That is why it survived: it
+      only manifested for servings-only recipes, and only in the emitted
+      metadata, where nobody looks. The fix came with parametrized tests
+      covering both shapes.
+    </p>
+  </div>
 
   <div class="callout">
     <h2>The discipline</h2>

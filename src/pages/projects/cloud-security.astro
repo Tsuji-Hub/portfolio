@@ -47,4 +47,30 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     down to minutes. Less cleanup, fewer bad configs reaching the environment at
     all.
   </p>
+  <p>
+    Two levers decide how much a single bad config costs you. Try to deploy one
+    and watch the exposure window change.
+  </p>
+
+  <div class="prevent-demo bleed" data-prevent>
+    <div class="map-controls">
+      <button class="map-btn" type="button" data-policy aria-pressed="false">org policy: not enforced</button>
+      <button class="map-btn" type="button" data-cmdb aria-pressed="true">cmdb owner: mapped</button>
+      <span class="sep"></span>
+      <button class="map-btn" type="button" data-deploy>deploy public bucket →</button>
+    </div>
+
+    <ol class="timeline" data-timeline></ol>
+    <p class="outcome" data-outcome hidden></p>
+
+    <p class="sample-note">
+      Illustrative timings, real mechanics. The constraint evaluates at
+      creation, so there is no window to measure. Without it, the best case
+      still costs you the detection lag plus however long routing and
+      remediation take, which is exactly why project-to-owner mapping was worth
+      1,100+ projects of tedium.
+    </p>
+  </div>
+
+  <script is:inline src="/js/prevent-demo.js" defer></script>
 </ProjectLayout>

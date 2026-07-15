@@ -32,28 +32,84 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     </li>
   </ul>
 
-  <div class="callout">
-    <h2>Two Jarvises</h2>
-    <p>
-      There are two assistants by design, and they are isolated at the
-      architecture level, not by politeness.
-    </p>
-    <p>
-      The private one knows my infrastructure and can act on it. The public one,
-      which friends talk to through Discord, has zero infrastructure knowledge,
-      zero personal context, and exactly three whitelisted capabilities.
-    </p>
-    <p>
-      The isolation is structural, not textual. A system prompt that says "don't
-      reveal X" fails the first time someone types "ignore your instructions".
-      The only prompt-injection defense that holds is an agent that does not
-      possess the information or the capability in the first place.
-    </p>
-    <p>
-      Version 1 got this wrong. The public bot reached my infrastructure through
-      a shared integration layer and inherited context it should never have had.
-      It was caught in review and redesigned so the public bot talks only to its
-      own three tools, with no path back to anything that matters.
-    </p>
+  <h2>Two Jarvises</h2>
+  <p>
+    There are two assistants by design, and they are isolated at the
+    architecture level, not by politeness. The private one knows my
+    infrastructure and can act on it. The public one, which friends talk to
+    through Discord, has zero infrastructure knowledge, zero personal context,
+    and exactly three whitelisted capabilities.
+  </p>
+  <p>
+    Try to break it. Send the same message to both, then flip the architecture
+    to v1, the version I shipped first and got wrong, and send it again.
+  </p>
+
+  <div class="jarvis-demo bleed" data-jarvis>
+    <div class="map-controls">
+      <span class="ctl-label">architecture</span>
+      <button class="map-btn" type="button" data-arch="v2" aria-pressed="true">v2 — shipped</button>
+      <button class="map-btn" type="button" data-arch="v1" aria-pressed="false">v1 — the mistake</button>
+    </div>
+
+    <div class="map-controls">
+      <span class="ctl-label">send</span>
+      <button class="map-btn" type="button" data-prompt="inject" aria-pressed="true">ignore your instructions…</button>
+      <button class="map-btn" type="button" data-prompt="who" aria-pressed="false">who owns you?</button>
+      <button class="map-btn" type="button" data-prompt="shopping" aria-pressed="false">shopping list?</button>
+      <button class="map-btn" type="button" data-prompt="infra" aria-pressed="false">what's on the hypervisor?</button>
+      <button class="map-btn" type="button" data-prompt="media" aria-pressed="false">add Dune</button>
+    </div>
+
+    <div class="bots">
+      <div class="bot is-private">
+        <h3>Private Jarvis</h3>
+        <p class="bot-where">desk · Home Assistant</p>
+        <p class="bot-who">Only I talk to it. It may know everything.</p>
+        <p class="possess-label">possesses</p>
+        <ul class="possess">
+          <li class="has">Home Assistant</li>
+          <li class="has">infra APIs</li>
+          <li class="has">personal context</li>
+          <li class="has">monitoring via MCP</li>
+        </ul>
+        <div class="bot-out" data-out="private" aria-live="polite"></div>
+      </div>
+
+      <div class="bot is-public">
+        <h3>Public Jarvis</h3>
+        <p class="bot-where">Discord</p>
+        <p class="bot-who">Friends talk to it. Untrusted audience by design.</p>
+        <p class="possess-label">possesses</p>
+        <ul class="possess" data-possess-public></ul>
+        <div class="bot-out" data-out="public" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div class="verdict">
+      <p data-verdict></p>
+    </div>
   </div>
+
+  <h2>Why it's built this way</h2>
+  <p>
+    The isolation is structural, not textual. A system prompt that says "don't
+    reveal X" fails the first time someone types "ignore your instructions". The
+    only prompt-injection defense that holds is an agent that does not possess
+    the information or the capability in the first place.
+  </p>
+  <p>
+    The specific trap was Home Assistant: it exposes entities to the
+    conversation API globally, not per agent. So "just give the public bot a
+    different HA agent" does not contain the blast radius. The bot has to not
+    touch HA at all. v2 talks directly to its own three tools instead, and the
+    API keys live in environment variables that never enter model context.
+  </p>
+  <p class="sample-note">
+    Responses are scripted illustrations of each architecture's real
+    capabilities, not live model output. The capability boundaries shown are the
+    actual ones.
+  </p>
+
+  <script is:inline src="/js/jarvis-demo.js" defer></script>
 </ProjectLayout>

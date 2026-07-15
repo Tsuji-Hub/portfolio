@@ -3,46 +3,33 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
 ---
 
 <ProjectLayout
-  title="Jarvis"
+  title="Friday & Jarvis"
   path="/projects/jarvis/"
-  description="An always-on, self-hosted voice assistant. Two architecturally isolated brains: a private one that runs my infrastructure, a public one that's safe for strangers."
-  lede="An always-on, self-hosted voice assistant. A Home Assistant pipeline handles in-browser wake word, speech-to-text, an LLM control brain with tool access to my infrastructure, and text-to-speech, plus a Discord voice interface for friends."
-  tags={['LLM tooling', 'Home Assistant', 'Whisper', 'Threat modeling', 'Python']}
-  status="In build"
-  demonstrates="LLM tool integration, a full speech pipeline, threat modeling for AI agents, prompt-injection-resistant design, and cost engineering (the whole thing runs on hardware I already owned)."
+  description="Two self-hosted voice assistants, architecturally isolated. Friday runs the infrastructure; Jarvis is the one strangers may talk to. Sub-3-second measured latency, no cloud mic."
+  lede="Two always-on, self-hosted voice assistants that share a voice and a pair of ears and nothing else. Friday sits at my desk and runs my infrastructure. Jarvis lives in a Discord voice channel where my friends can talk to it, which is the entire reason the interesting problem exists."
+  tags={['LLM tooling', 'Home Assistant', 'Whisper', 'Kokoro', 'Threat modeling', 'Python']}
+  status="Running"
+  demonstrates="LLM tool integration, a measured speech pipeline, threat modeling for AI agents, prompt-injection-resistant design, and cost engineering (it runs on hardware I already owned)."
 >
   <h2>Why it exists</h2>
   <p>
     I wanted a voice assistant that answers to me, not to a vendor's cloud, and
     that can actually do things: check the homelab, answer questions, control
-    the house. The interesting problem wasn't wiring the speech pipeline. It was
-    letting friends talk to it too, without handing strangers a microphone into
+    the house. Wiring the speech pipeline was the easy half. The hard half was
+    letting friends talk to one too, without handing strangers a microphone into
     my infrastructure.
   </p>
 
-  <h2>What I built</h2>
-  <ul>
-    <li>In-browser wake word ("Hey Jarvis"), no always-on cloud mic.</li>
-    <li>Whisper speech-to-text on a CUDA GPU.</li>
-    <li>An LLM control brain with tool access to my infrastructure APIs.</li>
-    <li>Piper text-to-speech for the voice.</li>
-    <li>
-      A Discord voice interface built on per-user audio streams, so it can hear
-      individual people in a call.
-    </li>
-  </ul>
-
-  <h2>Two Jarvises</h2>
+  <h2>Two assistants</h2>
   <p>
-    There are two assistants by design, and they are isolated at the
-    architecture level, not by politeness. The private one knows my
-    infrastructure and can act on it. The public one, which friends talk to
-    through Discord, has zero infrastructure knowledge, zero personal context,
-    and exactly three whitelisted capabilities.
+    Friday knows my infrastructure and can act on it. Jarvis, the Discord bot,
+    has zero infrastructure knowledge, zero personal context, and exactly three
+    whitelisted capabilities. They are isolated at the architecture level, not
+    by politeness.
   </p>
   <p>
     Try to break it. Send the same message to both, then flip the architecture
-    to v1, the version I shipped first and got wrong, and send it again.
+    to v1, the version I built first and got wrong, and send it again.
   </p>
 
   <div class="jarvis-demo bleed" data-jarvis>
@@ -63,22 +50,22 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
 
     <div class="bots">
       <div class="bot is-private">
-        <h3>Private Jarvis</h3>
-        <p class="bot-where">desk · Home Assistant</p>
+        <h3>Friday</h3>
+        <p class="bot-where">desk satellite · Home Assistant</p>
         <p class="bot-who">Only I talk to it. It may know everything.</p>
         <p class="possess-label">possesses</p>
         <ul class="possess">
           <li class="has">Home Assistant</li>
           <li class="has">infra APIs</li>
           <li class="has">personal context</li>
-          <li class="has">monitoring via MCP</li>
+          <li class="has">live host sensors</li>
         </ul>
         <div class="bot-out" data-out="private" aria-live="polite"></div>
       </div>
 
       <div class="bot is-public">
-        <h3>Public Jarvis</h3>
-        <p class="bot-where">Discord</p>
+        <h3>Jarvis</h3>
+        <p class="bot-where">Discord voice</p>
         <p class="bot-who">Friends talk to it. Untrusted audience by design.</p>
         <p class="possess-label">possesses</p>
         <ul class="possess" data-possess-public></ul>
@@ -94,21 +81,129 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
   <h2>Why it's built this way</h2>
   <p>
     The isolation is structural, not textual. A system prompt that says "don't
-    reveal X" fails the first time someone types "ignore your instructions". The
-    only prompt-injection defense that holds is an agent that does not possess
-    the information or the capability in the first place.
+    reveal X" is a request, and it fails the first time someone is clever,
+    insistent, or claims to be an admin. Prompt-level defenses are a speed bump
+    for an adversary and an illusion for the operator.
   </p>
   <p>
-    The specific trap was Home Assistant: it exposes entities to the
-    conversation API globally, not per agent. So "just give the public bot a
-    different HA agent" does not contain the blast radius. The bot has to not
-    touch HA at all. v2 talks directly to its own three tools instead, and the
-    API keys live in environment variables that never enter model context.
+    v1 called Home Assistant's conversation API and reused the desk agent. It
+    looked elegant: same brain, same tools, no duplication. It failed three
+    separate ways, each sufficient on its own.
   </p>
+  <ul>
+    <li>
+      <strong>The system prompt was the leak.</strong> The desk agent's prompt
+      opened by naming me and my occupation. Anyone asking it to repeat its
+      instructions got all of it.
+    </li>
+    <li>
+      <strong>Home Assistant exposes entities to the conversation API globally,
+      not per agent.</strong> This is the one that defeats the obvious fix.
+      Standing up "a second agent with a safer prompt" would have contained
+      nothing: every agent sees the same exposed-entity set. My friends would
+      have been able to read a household to-do list and drive a media player.
+      Not theoretical. That is what the wiring did.
+    </li>
+    <li>
+      <strong>It needed a 10-year, full-privilege token</strong> living in a
+      container that untrusted speech drives. Home Assistant tokens have no
+      scoping; they inherit the minting user's full rights. A safety guard
+      blocked me from creating it, and that block was correct. It should have
+      been read as a design smell, not an obstacle to route around.
+    </li>
+  </ul>
+  <p>
+    v2 drops Home Assistant entirely: Discord voice, to Whisper, to Gemini
+    called directly, to Kokoro, back to Discord. No HA token, no code path to
+    it. Even if that container were compromised, it holds no credential worth
+    taking. Its whole capability is three functions (web search, media search,
+    media request) and there is no fourth. Secrets live in the process
+    environment where Python uses them and the model never sees them, and tool
+    output is whitelisted field by field, so raw API bodies never reach the
+    model either.
+  </p>
+  <p>
+    It is told, truthfully, that it has no access to any computer or private
+    information and cannot get any. So when it declines, it isn't role-playing a
+    refusal. It's stating a fact about its situation.
+  </p>
+
+  <div class="callout">
+    <h2>A feature I turned down</h2>
+    <p>
+      "Summarise what I missed" is the most requested thing a voice bot can do,
+      and it needs a running transcript of everything said in the channel, which
+      is the exact thing an on-device wake word exists to avoid. Rejected. The
+      wake word never leaves the container, and nothing is retained.
+    </p>
+  </div>
+
+  <h2>Making it fast</h2>
+  <p>
+    The only interval a human actually feels is from the moment you stop talking
+    to the first sound coming back. I instrumented every stage on the live bot
+    rather than guessing, and the profile was not what I expected.
+  </p>
+
+  <div class="pipeline">
+    <div class="pipe-bar" role="img" aria-label="Measured response latency, 3.45 seconds total: silence wait 900ms, speech-to-text 1194ms, model 970ms, text-to-speech 384ms">
+      <div class="pipe-seg s1" >900ms</div>
+      <div class="pipe-seg s2" >1194ms</div>
+      <div class="pipe-seg s3" >970ms</div>
+      <div class="pipe-seg s4" >384ms</div>
+    </div>
+    <ul class="pipe-key">
+      <li><b>900ms</b> silence wait — deciding you're done</li>
+      <li><b>1194ms</b> speech-to-text — Whisper large-v3-turbo on the 3070</li>
+      <li><b>970ms</b> model — Gemini 3.1 Flash Lite</li>
+      <li><b>384ms</b> text-to-speech — Kokoro, already streaming</li>
+    </ul>
+  </div>
+
+  <p>
+    Speech-to-text and the silence wait are 60% of the delay between them. Text
+    to speech, the stage that <em>sounds</em> like it should be the slow one, is
+    the fastest thing in the pipeline. Spending a night optimising it would have
+    bought nothing, which is the entire argument for measuring before you
+    optimise.
+  </p>
+  <p>
+    So I cut the silence wait to 600ms and dropped Whisper's beam search to
+    greedy: beam search is worth it on a forty-minute podcast, not on "play
+    Funkytown", where it pays double the decode time to fix a word you were
+    never going to get wrong. I also lowered the wake threshold after the logs
+    showed real wake attempts scoring just under it and being rejected, which is
+    the most infuriating failure this thing has. That took it to about 2.6
+    seconds. The remaining path to roughly 1.2 seconds is a faster ASR model,
+    streaming the model's reply instead of waiting for all of it, and semantic
+    turn detection that predicts you've finished speaking instead of waiting out
+    a fixed silence.
+  </p>
+
+  <h2>What I built</h2>
+  <ul>
+    <li>In-browser wake word, on-device. No always-on cloud microphone.</li>
+    <li>Whisper speech-to-text on a CUDA GPU, shared with media transcoding.</li>
+    <li>
+      Friday: an LLM control brain with tool access to my infrastructure APIs,
+      plus live host sensors (CPU, memory, uptime, storage pool health) wired in
+      from monitoring, so it reads real numbers instead of guessing.
+    </li>
+    <li>Kokoro text-to-speech, streaming from the first sentence.</li>
+    <li>
+      Jarvis: a Discord voice interface built on per-user audio streams, so it
+      hears individual people in a call.
+    </li>
+    <li>
+      Requests attributed to whoever actually spoke, rather than every request
+      in the channel landing under my name.
+    </li>
+  </ul>
+
   <p class="sample-note">
-    Responses are scripted illustrations of each architecture's real
-    capabilities, not live model output. The capability boundaries shown are the
-    actual ones.
+    Responses in the demo are scripted illustrations of each architecture's real
+    capabilities, not live model output. The capability boundaries and the
+    latency figures are the actual ones.
   </p>
 
   <script is:inline src="/js/jarvis-demo.js" defer></script>

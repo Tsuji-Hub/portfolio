@@ -13,9 +13,9 @@ export const projects = [
   },
   {
     slug: 'jarvis',
-    title: 'Jarvis',
+    title: 'Friday & Jarvis',
     blurb:
-      'A self-hosted voice assistant with two architecturally isolated brains: one runs my infrastructure, one is safe for strangers to talk to.',
+      'Two self-hosted voice assistants, architecturally isolated. Friday runs my infrastructure. Jarvis is the one strangers are allowed to talk to.',
     tags: ['LLM tooling', 'Home Assistant', 'Threat modeling'],
     demo: 'try to break it',
   },

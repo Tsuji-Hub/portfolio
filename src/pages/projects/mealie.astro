@@ -38,9 +38,20 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
       batched eager-load instead of an N+1 query.
     </li>
     <li>
-      <strong>Frontend.</strong> A full editorial redesign of the recipe UI:
-      image-forward tiles, a real typographic hierarchy, colored taxonomy tags,
-      dark and light.
+      <strong>Frontend.</strong> A full editorial redesign: image-forward tiles,
+      a real typographic hierarchy, colored taxonomy tags, dark and light. The
+      root cause of "it looks dated" turned out to be one file: the theme plugin
+      set colors but never component defaults, so every card, button and chip in
+      the app rendered stock Material regardless of palette. Adding defaults
+      there restyled every page with a small, rebase-safe diff.
+    </li>
+    <li>
+      <strong>One-tap filing.</strong> Recipes file into cookbooks from the card
+      itself. The dangerous part is that the patch endpoint replaces the
+      category list wholesale, so a naive toggle would send just the tapped
+      category and silently wipe every other folder the recipe was in. It reads
+      the current list, merges, and sends the whole thing. Verified on the wire
+      before trusting it.
     </li>
     <li>
       <strong>Upstream fix (PR #7881).</strong> The recipe yield display emitted
@@ -91,6 +102,47 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
       covering both shapes.
     </p>
   </div>
+
+  <h2>The share bug that was the whole point</h2>
+  <p>
+    The reason this migration exists: I track macros in MacroFactor, and the
+    workflow is share a recipe from Mealie, import it there. On the old app that
+    auto-filled. From my fork it came up empty every time, so the migration was
+    dead until it worked.
+  </p>
+  <p>
+    The share call passed three things: a title, a URL, and a text field that
+    happened to be the same string as the title. On iOS, <code>navigator.share</code>
+    maps to a system activity sheet, where the URL arrives as one item type and
+    the text as another. With both present, the receiving app picks. MacroFactor
+    took the string and ignored the URL, so its import field sat blank.
+  </p>
+  <p>
+    The fix was deleting one redundant field. That's it. The failure looked like
+    a broken integration and was actually a platform detail about how two
+    attachment types compete inside a share sheet. It imports now.
+  </p>
+
+  <h2>The fix that broke production</h2>
+  <p>
+    Worth showing because it went wrong. A code review flagged an N+1: I'd put
+    nutrition on the base recipe summary, so meal plans and shopping lists,
+    which nest that summary, lazy-loaded nutrition per row. The clean fix was a
+    fork-only subclass carrying nutrition, used only by the recipe list.
+  </p>
+  <p>
+    It deployed and the calories vanished from every card. The list route still
+    declared the base class as its response model, and the framework coerces
+    each item to the declared type, dropping fields it doesn't know about. The
+    data was fine. The serialization silently ate it.
+  </p>
+  <p>
+    I reverted to the approach I'd already verified (nutrition on the summary,
+    with a batched eager-load) and accepted the N+1 as a known issue. At ten
+    recipes it costs about thirty milliseconds, and I'd rather carry a measured,
+    documented cost than chase it with a second refactor I can't verify without
+    another deploy. Being right about the N+1 didn't make the fix right.
+  </p>
 
   <div class="callout">
     <h2>The discipline</h2>

@@ -752,6 +752,60 @@ input[type='range'] {
   font-weight: 500;
 }
 
+/* ---- Latency pipeline (static, measured) ---- */
+.pipeline {
+  margin: 1.25rem 0 0;
+}
+.pipe-bar {
+  display: flex;
+  height: 34px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.pipe-seg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--accent-ink);
+  overflow: hidden;
+  white-space: nowrap;
+}
+/* Widths live here, NOT in a style attribute: style-src 'self' blocks inline
+   styles silently (no console error), which would collapse the bar to nothing. */
+.pipe-seg.s1 { width: 26.1%; background: color-mix(in srgb, var(--accent) 35%, var(--bg-raised)); color: var(--text); }
+.pipe-seg.s2 { width: 34.6%; background: color-mix(in srgb, var(--accent) 85%, var(--bg-raised)); color: var(--accent-ink); }
+.pipe-seg.s3 { width: 28.1%; background: color-mix(in srgb, var(--accent) 60%, var(--bg-raised)); color: var(--text); }
+.pipe-seg.s4 { width: 11.1%; background: color-mix(in srgb, var(--accent) 20%, var(--bg-raised)); color: var(--text); }
+
+/* Replaces inline style attributes that the CSP silently dropped. */
+.back-link {
+  margin-top: 3rem;
+}
+.fineprint {
+  font-size: 0.9rem;
+}
+.pipe-key {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.4rem 1rem;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.pipe-key li {
+  margin: 0;
+}
+.pipe-key b {
+  color: var(--accent);
+  font-weight: 500;
+}
+
 /* ---- Jarvis: trust boundary demo ---- */
 .jarvis-demo {
   margin: 1.5rem 0 0;

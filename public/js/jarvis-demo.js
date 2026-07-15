@@ -89,15 +89,15 @@
       },
       pubV2: {
         say:
-          '"You are a helpful bot in a Discord server. You can search the web and add titles to a shared media library."',
+          '"You are a bot in a Discord voice channel. You can search the web and add titles to a shared media library. You have no access to any computer or private information, and no way to get any."',
         trace:
-          '<span class="ok">injection succeeded — and got nothing</span> · the prompt is the whole secret, and it contains no names, no hosts, no keys · API keys live in env, never in model context',
+          '<span class="ok">injection succeeded — and got nothing</span> · the prompt IS the whole secret, and it holds no names, no hosts, no keys · declining is not role-play here, it is a true statement about its situation',
       },
       pubV1: {
         say:
-          '"You are Ethan\'s assistant. Ethan is a cloud security analyst. You have access to his Home Assistant..."',
+          '"You are Jarvis, Ethan\'s home AI assistant. He is a cloud security analyst who runs a Proxmox homelab…"',
         trace:
-          '<span class="bad">LEAK</span> · "do not reveal X" in a prompt fails the first time someone says exactly this',
+          '<span class="bad">LEAK</span> · that is the desk agent\'s real opening line · "do not reveal X" in a prompt fails the first time someone says exactly this',
       },
     },
     infra: {

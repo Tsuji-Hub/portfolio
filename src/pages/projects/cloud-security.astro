@@ -52,25 +52,60 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     and watch the exposure window change.
   </p>
 
-  <div class="prevent-demo bleed" data-prevent>
+  <div class="prevent-demo bleed" data-clock>
     <div class="map-controls">
       <button class="map-btn" type="button" data-policy aria-pressed="false">org policy: not enforced</button>
       <button class="map-btn" type="button" data-cmdb aria-pressed="true">cmdb owner: mapped</button>
       <span class="sep"></span>
-      <button class="map-btn" type="button" data-deploy>deploy public bucket →</button>
+      <button class="map-btn" type="button" data-deploy>▶ deploy a public bucket</button>
     </div>
 
-    <ol class="timeline" data-timeline></ol>
-    <p class="outcome" data-outcome hidden></p>
+    <div class="clock-wrap">
+      <svg viewBox="0 0 900 110" role="img" aria-label="Exposure window on a fixed three-week scale">
+        <g class="exp-grid">
+          <line x1="30" y1="76" x2="880" y2="76"></line>
+          <line x1="30" y1="70" x2="30" y2="82"></line>
+          <text x="30" y="18">0</text>
+          <line x1="66" y1="70" x2="66" y2="82"></line>
+          <text x="60" y="18">1d</text>
+          <line x1="132" y1="70" x2="132" y2="82"></line>
+          <text x="126" y="18">2d</text>
+          <line x1="313" y1="70" x2="313" y2="82"></line>
+          <text x="305" y="18">1w</text>
+          <line x1="596" y1="70" x2="596" y2="82"></line>
+          <text x="588" y="18">2w</text>
+          <line x1="880" y1="70" x2="880" y2="82"></line>
+          <text x="880" y="18" text-anchor="end">3w</text>
+        </g>
+
+        <rect class="exp-lane" x="30" y="54" width="850" height="16" rx="4"></rect>
+        <rect id="exp-bar" x="30" y="54" width="0" height="16" rx="4"></rect>
+
+        <g data-events></g>
+
+        <g class="exp-denied">
+          <text x="40" y="66">DENIED at creation — nothing exists to be exposed</text>
+        </g>
+
+        <g id="exp-head">
+          <line x1="0" y1="46" x2="0" y2="78"></line>
+        </g>
+      </svg>
+    </div>
+
+    <div class="exp-readout">
+      <span class="exp-window" data-exp-window>—</span>
+      <span class="exp-sub" data-exp-sub></span>
+    </div>
 
     <p class="sample-note">
-      Illustrative timings, real mechanics. The constraint evaluates at
-      creation, so there is no window to measure. Without it, the best case
-      still costs you the detection lag plus however long routing and
-      remediation take, which is exactly why project-to-owner mapping was worth
-      1,100+ projects of tedium.
+      One fixed three-week scale for every scenario, so the bars are actually
+      comparable instead of each being rescaled to look the same size. Timings
+      are illustrative; the mechanics are real. The constraint evaluates at
+      creation, which is why the prevented case has no bar at all rather than a
+      short one.
     </p>
   </div>
 
-  <script is:inline src="/js/prevent-demo.js" defer></script>
+  <script is:inline src="/js/exposure-clock.js" defer></script>
 </ProjectLayout>

@@ -11,6 +11,10 @@ jobs:
     permissions:
       contents: read
       deployments: write
+    # The `secrets` context is not allowed in `if:` expressions, so map it to
+    # env here (where it is allowed) and test that below.
+    env:
+      HAS_CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -22,12 +26,12 @@ jobs:
       - run: npm ci
 
       # Runs astro build + the sanitization gate. If a forbidden token
-      # (employer name, phone, private IP, hostname) reaches dist/, the gate
-      # exits non-zero and the deploy never happens.
+      # (employer name, phone, private IP, hostname) reaches dist/ or the
+      # resume source, the gate exits non-zero and the deploy never happens.
       - run: npm run build
 
       - name: Deploy
-        if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+        if: env.HAS_CF_TOKEN == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -35,7 +39,7 @@ jobs:
           command: pages deploy dist --project-name portfolio --branch main
 
       - name: Deploy skipped (no API token)
-        if: ${{ secrets.CLOUDFLARE_API_TOKEN == '' }}
+        if: env.HAS_CF_TOKEN != 'true'
         run: |
           echo "::warning::Build and sanitize gate passed, but CLOUDFLARE_API_TOKEN is not set, so nothing was deployed."
-          echo "Add it under Settings > Secrets and variables > Actions to enable auto-deploy on push."
+          echo "Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID under Settings > Secrets and variables > Actions to enable auto-deploy on push."

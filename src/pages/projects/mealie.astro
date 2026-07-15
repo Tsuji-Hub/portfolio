@@ -83,11 +83,7 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     </li>
     <li>
       <strong>One-tap filing.</strong> Recipes file into cookbooks from the card
-      itself. The dangerous part is that the patch endpoint replaces the
-      category list wholesale, so a naive toggle would send just the tapped
-      category and silently wipe every other folder the recipe was in. It reads
-      the current list, merges, and sends the whole thing. Verified on the wire
-      before trusting it.
+      itself. It has one genuinely dangerous edge, demonstrated below.
     </li>
     <li>
       <strong>Upstream fix (PR #7881).</strong> The recipe yield display emitted
@@ -234,5 +230,67 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     </p>
   </div>
 
+  <h2>The one that could quietly destroy his library</h2>
+  <p>
+    Tapping the pill on a card files the recipe into a cookbook. Recipes are
+    multi-membership on purpose: one can live in Dinner and DELICIOUS and
+    Quickies at once. The trap is that the patch endpoint <strong>replaces</strong>
+    the category list with exactly what you send it.
+  </p>
+  <p>
+    So the obvious implementation, send the category the user just tapped, is
+    catastrophic and completely silent. Tap a category below and watch the
+    shelf.
+  </p>
+
+  <div class="wipe-demo bleed" data-wipe>
+    <div class="map-controls">
+      <span class="ctl-label">a toggle sends</span>
+      <button class="map-btn" type="button" data-mode="naive" aria-pressed="true">just the tapped category</button>
+      <button class="map-btn" type="button" data-mode="additive" aria-pressed="false">read, merge, send all</button>
+      <span class="sep"></span>
+      <button class="map-btn" type="button" data-reset>reset the recipe</button>
+    </div>
+
+    <div class="wipe-grid">
+      <div>
+        <div class="rcard">
+          <div class="rcard-photo">
+            <span class="rcard-cat"><i class="dot"></i><span data-pill>Dinner</span><i class="caret">▾</i></span>
+            <span class="rcard-kcal">412 kcal</span>
+          </div>
+          <div class="rcard-body">
+            <h3 class="rcard-title">Cheeseburger Baked Potato Boats</h3>
+          </div>
+        </div>
+
+        <div class="menu">
+          <p class="menu-head">file into…</p>
+          <ul class="menu-list" data-menu></ul>
+        </div>
+      </div>
+
+      <div>
+        <p class="possess-label">cookbooks this recipe is actually in</p>
+        <ul class="shelf" data-shelf></ul>
+        <pre class="code-out" data-wire aria-label="the PATCH request this toggle sends"></pre>
+      </div>
+    </div>
+
+    <p class="wipe-damage" data-damage></p>
+
+    <p class="sample-note">
+      His real cookbook set, minus one whose name I am not putting on a
+      portfolio. The read-modify-write is the whole fix and it is four lines,
+      which is exactly why it is the kind of thing that ships wrong: the naive
+      version works perfectly on any recipe that is only in one folder, and
+      every test you would write by hand starts with a recipe in one folder.
+      Verified on the wire before I trusted it: toggling DELICIOUS onto a recipe
+      already in Dinner has to come back <code>[Dinner, DELICIOUS]</code>, not
+      <code>[DELICIOUS]</code>.
+    </p>
+  </div>
+
   <script is:inline src="/js/mealie-demo.js" defer></script>
+  <script is:inline src="/js/wipe-demo.js" defer></script>
 </ProjectLayout>

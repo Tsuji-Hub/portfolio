@@ -338,7 +338,16 @@ a.card:hover .arrow { color: var(--accent); }
   margin-left: 0.5rem;
 }
 
-/* Homelab architecture diagram */
+/* Homelab architecture map */
+
+/* Breaks the map out of the ~70ch prose measure without leaving the page grid. */
+.bleed {
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(62rem, calc(100vw - 2 * var(--gutter)));
+}
+
 .diagram {
   margin: 1.5rem 0 0;
 }
@@ -346,6 +355,104 @@ a.card:hover .arrow { color: var(--accent); }
   width: 100%;
   height: auto;
   display: block;
+}
+
+/* Controls */
+.map-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+  align-items: center;
+}
+.map-btn {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  transition: color var(--speed) ease, border-color var(--speed) ease;
+}
+.map-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+.map-btn[aria-pressed='true'] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.map-btn[data-toggle][aria-pressed='true'] {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+.map-controls .sep {
+  flex: 1 1 auto;
+}
+
+/* Routes + packet */
+.route {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0; /* failure-state routes stay hidden until triggered */
+}
+/* Real topology: always visible, so the map answers "where does traffic go"
+   with no interaction. Tracing lights an existing path, it doesn't reveal it. */
+.route.route-base {
+  opacity: 0.2;
+  stroke-width: 2;
+}
+.route.is-live {
+  opacity: 1;
+  stroke-width: 2.5;
+}
+.route.is-blocked {
+  stroke: var(--danger);
+}
+.route-ghost {
+  fill: none;
+  stroke: var(--danger);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 5;
+  opacity: 0;
+}
+.route-ghost.is-live {
+  opacity: 0.45;
+}
+#packet {
+  fill: var(--accent);
+  transform-box: view-box;
+  transform-origin: 0 0;
+  opacity: 0;
+}
+#packet.is-live {
+  opacity: 1;
+}
+#packet.is-blocked {
+  fill: var(--danger);
+}
+#block-mark {
+  opacity: 0;
+  transform-box: view-box;
+  transform-origin: center;
+}
+#block-mark.is-live {
+  opacity: 1;
+}
+#block-mark line {
+  stroke: var(--danger);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+#block-mark circle {
+  fill: var(--bg);
+  stroke: var(--danger);
+  stroke-width: 1.5;
 }
 .host-box {
   fill: none;
@@ -394,6 +501,10 @@ a.card:hover .arrow { color: var(--accent); }
 .node.active .node-box {
   stroke: var(--accent);
   stroke-width: 2;
+}
+.node.down .node-box {
+  stroke: var(--danger);
+  stroke-dasharray: 4 3;
 }
 .vpn-box {
   fill: none;

@@ -12,7 +12,7 @@
   var panel = root.querySelector('[data-panel]');
   var packet = root.querySelector('#packet');
   var blockMark = root.querySelector('#block-mark');
-  var ghost = root.querySelector('#ghost-bypass');
+  var ghosts = root.querySelectorAll('.route-ghost');
   var nodes = root.querySelectorAll('.node');
   var traceBtns = root.querySelectorAll('[data-trace]');
   var tunnelBtn = root.querySelector('[data-toggle="tunnel"]');
@@ -44,19 +44,28 @@
     isolatedDown: {
       route: 'route-tunneldown',
       blocked: true,
-      blockAt: [235, 334],
+      blockAt: [233, 388],
       title: 'Tunnel down: fail-closed',
       body:
         'With the tunnel down, the workloads lose the internet entirely. They do not fall back to the LAN gateway, because inside the namespace there is no other interface and no default route to fall back to. Losing connectivity is the correct failure. It holds because of the topology, not because of a rule someone remembered to write.',
     },
     bypass: {
       route: 'route-bypass',
-      ghost: true,
+      ghost: 'ghost-bypass',
       blocked: true,
-      blockAt: [382, 378],
+      blockAt: [382, 422],
       title: 'Bypass attempt: no route',
       body:
         'A workload trying to reach the LAN gateway directly gets nowhere. No interface inside this namespace is attached to the LAN, and no route points at it, so the packet has nowhere to be sent. Blocking this took no firewall rule. The path was simply never built.',
+    },
+    trust: {
+      route: 'route-trust',
+      ghost: 'ghost-trust',
+      blocked: true,
+      blockAt: [398, 486],
+      title: 'Public bot → Friday: nothing to travel on',
+      body:
+        'The Discord bot my friends talk to sits on this host, a few centimetres from an assistant that can read my calendar and drive my house. It cannot reach it. It holds no Home Assistant token and has no code path to one, so this is not a firewall decision that could be misconfigured — the credential and the route simply do not exist in that container. Compromise it completely and it still has nothing worth taking. That is the same principle as the tunnel above: absence, not permission.',
     },
   };
 
@@ -75,7 +84,9 @@
       p.style.strokeDasharray = '';
       p.style.strokeDashoffset = '';
     });
-    ghost.classList.remove('is-live');
+    ghosts.forEach(function (g) {
+      g.classList.remove('is-live');
+    });
     packet.classList.remove('is-live', 'is-blocked');
     blockMark.classList.remove('is-live');
     nodes.forEach(function (n) {
@@ -101,7 +112,10 @@
     panel.querySelector('h3').textContent = t.title;
     panel.querySelector('p').textContent = t.body;
 
-    if (t.ghost) ghost.classList.add('is-live');
+    if (t.ghost) {
+      var g = root.querySelector('#' + t.ghost);
+      if (g) g.classList.add('is-live');
+    }
     path.classList.add('is-live');
     packet.classList.add('is-live');
     if (t.blocked) packet.classList.add('is-blocked');

@@ -4,6 +4,40 @@
 // give it a text yield and the output is fine. Flip yield type to see it.
 //
 // CSP: external file, script-src 'self'. No eval, no inline handlers.
+/* ---- Stock Material vs the redesign ---- */
+(function () {
+  var root = document.querySelector('[data-ui]');
+  if (!root) return;
+
+  var stage = root.querySelector('[data-ui-stage]');
+  var note = root.querySelector('[data-ui-note]');
+  var btns = root.querySelectorAll('[data-ui-mode]');
+
+  var NOTE = {
+    stock:
+      'Palette set, component defaults never set. This is what the app rendered regardless of what colors I gave it: elevation shadow, 4px radius, filled chips, and the stock orange-teal-maroon on one screen. Recoloring this cannot fix it.',
+    editorial:
+      'Same component tree, same data, one file changed. Defaults alongside the palette: flat card, real radius, hairline border, tinted taxonomy tags, coral used sparingly. Approximated here in the site\'s own fonts to show shape and color, not to copy the app pixel for pixel.',
+  };
+
+  function set(mode) {
+    stage.className = 'ui-stage ' + mode;
+    note.textContent = NOTE[mode];
+    btns.forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.uiMode === mode));
+    });
+  }
+
+  btns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      set(b.dataset.uiMode);
+    });
+  });
+
+  set('stock');
+})();
+
+/* ---- PR #7881: yield poisoning the JSON-LD ---- */
 (function () {
   var root = document.querySelector('[data-jsonld]');
   if (!root) return;

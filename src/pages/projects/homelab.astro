@@ -12,9 +12,15 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
 >
   <h2>Architecture</h2>
   <p>
+    This is what actually runs on it. <a href="/projects/jarvis/">Friday and
+    Jarvis</a> live here, one trusted and one deliberately not, and so does my
+    <a href="/projects/mealie/">Mealie fork</a>. The GPU does double duty:
+    NVENC transcoding for playback and CUDA for the assistants' speech stack.
+  </p>
+  <p>
     Click any component for what it runs and the decision behind it. Or drive
-    traffic through the system: trace an egress path, then try to break the
-    isolation.
+    traffic through it: trace an egress path, then try to break the isolation
+    two different ways.
   </p>
 
   <div class="diagram bleed" data-map>
@@ -28,116 +34,160 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
       <button class="map-btn" type="button" data-trace="bypass" aria-pressed="false">
         attempt bypass
       </button>
+      <button class="map-btn" type="button" data-trace="trust" aria-pressed="false">
+        public bot → Friday?
+      </button>
       <span class="sep"></span>
       <button class="map-btn" type="button" data-toggle="tunnel" aria-pressed="false">
         tunnel: up
       </button>
     </div>
 
-    <svg viewBox="0 0 880 570" role="group" aria-label="Homelab architecture map" xmlns="http://www.w3.org/2000/svg">
-      <!-- Attempted-bypass ghost route (drawn faint, never completes) -->
+    <svg viewBox="0 0 980 630" role="group" aria-label="Homelab architecture map" xmlns="http://www.w3.org/2000/svg">
+      <!-- Ghost routes: paths something wants to take and cannot. Never complete. -->
       <path
         id="ghost-bypass"
         class="route-ghost"
-        d="M 362 378 H 430 V 176 C 430 154 600 146 695 146"
+        d="M 366 422 H 410 V 200 C 410 168 700 144 805 144"
+      ></path>
+      <path
+        id="ghost-trust"
+        class="route-ghost"
+        d="M 382 486 H 415 V 270 H 690 V 286"
       ></path>
 
-      <!-- Live routes -->
+      <!-- Real topology, always visible -->
       <path
         id="route-normal"
         class="route route-base"
-        d="M 530 300 V 180 C 530 158 620 146 695 146 V 60 Q 695 39 674 39 H 535"
+        d="M 535 320 V 290 H 490 V 180 C 490 158 700 144 805 144 V 56 Q 805 36 784 36 H 585"
       ></path>
       <path
         id="route-isolated"
         class="route route-base"
-        d="M 235 356 V 172 Q 235 146 209 146 H 185 V 60 Q 185 39 206 39 H 345"
+        d="M 233 402 V 170 Q 233 144 207 144 H 175 V 56 Q 175 36 196 36 H 395"
       ></path>
-      <path id="route-bypass" class="route is-blocked" d="M 362 378 H 382"></path>
-      <path id="route-tunneldown" class="route is-blocked" d="M 235 356 V 334"></path>
+
+      <!-- Failure-state routes -->
+      <path id="route-bypass" class="route is-blocked" d="M 366 422 H 382"></path>
+      <path id="route-tunneldown" class="route is-blocked" d="M 233 402 V 388"></path>
+      <path id="route-trust" class="route is-blocked" d="M 382 486 H 398"></path>
 
       <!-- Off-host -->
       <g class="node" data-node="internet" role="button" tabindex="0">
-        <rect class="node-box" x="345" y="18" width="190" height="42" rx="8"></rect>
-        <text class="node-title" x="440" y="45" text-anchor="middle">Internet</text>
+        <rect class="node-box" x="395" y="16" width="190" height="40" rx="8"></rect>
+        <text class="node-title" x="490" y="42" text-anchor="middle">Internet</text>
       </g>
 
       <g class="node" data-node="vpn-endpoint" role="button" tabindex="0">
-        <rect class="node-box" x="80" y="104" width="210" height="42" rx="8"></rect>
-        <text class="node-title" x="185" y="123" text-anchor="middle">VPN provider endpoint</text>
-        <text class="node-sub" x="185" y="139" text-anchor="middle">sole egress path</text>
+        <rect class="node-box" x="70" y="100" width="210" height="44" rx="8"></rect>
+        <text class="node-title" x="175" y="120" text-anchor="middle">VPN provider endpoint</text>
+        <text class="node-sub" x="175" y="136" text-anchor="middle">sole egress path</text>
       </g>
 
       <g class="node" data-node="gateway" role="button" tabindex="0">
-        <rect class="node-box" x="590" y="104" width="210" height="42" rx="8"></rect>
-        <text class="node-title" x="695" y="123" text-anchor="middle">LAN gateway</text>
-        <text class="node-sub" x="695" y="139" text-anchor="middle">no route from namespace</text>
+        <rect class="node-box" x="700" y="100" width="210" height="44" rx="8"></rect>
+        <text class="node-title" x="805" y="120" text-anchor="middle">LAN gateway</text>
+        <text class="node-sub" x="805" y="136" text-anchor="middle">no route from namespace</text>
       </g>
 
       <!-- Host -->
       <g class="node" data-node="hypervisor" role="button" tabindex="0">
-        <rect class="host-box" x="40" y="186" width="800" height="350" rx="10"></rect>
-        <text class="host-label" x="56" y="208">Hypervisor · Proxmox VE</text>
+        <rect class="host-box" x="40" y="180" width="900" height="430" rx="10"></rect>
+        <text class="host-label" x="56" y="202">Hypervisor · Proxmox VE</text>
       </g>
 
-      <!-- Container host + isolated namespace -->
+      <g class="node" data-node="proxy" role="button" tabindex="0">
+        <rect class="node-box" x="390" y="212" width="200" height="46" rx="7"></rect>
+        <text class="node-title" x="490" y="232" text-anchor="middle">Proxy VM</text>
+        <text class="node-sub" x="490" y="248" text-anchor="middle">Caddy · TLS terminates here</text>
+      </g>
+
+      <!-- Container host: isolated namespace + the apps -->
       <g class="node" data-node="container-host" role="button" tabindex="0">
-        <rect class="node-box" x="70" y="228" width="330" height="210" rx="7"></rect>
-        <text class="node-title" x="86" y="250" text-anchor="start">Container host (LXC)</text>
+        <rect class="node-box" x="68" y="286" width="330" height="248" rx="7"></rect>
+        <text class="node-title" x="84" y="308" text-anchor="start">Container host (LXC)</text>
       </g>
 
-      <rect class="vpn-box" x="88" y="262" width="294" height="160" rx="6"></rect>
-      <text class="vpn-label" x="235" y="281" text-anchor="middle">egress-controlled namespace</text>
+      <rect class="vpn-box" x="84" y="320" width="298" height="132" rx="6"></rect>
+      <text class="vpn-label" x="233" y="338" text-anchor="middle">egress-controlled namespace</text>
 
       <g class="node" data-node="tunnel" role="button" tabindex="0">
-        <rect class="node-box" x="108" y="292" width="254" height="40" rx="6"></rect>
-        <text class="node-title" x="235" y="317" text-anchor="middle">VPN tunnel</text>
+        <rect class="node-box" x="100" y="350" width="266" height="36" rx="6"></rect>
+        <text class="node-title" x="233" y="373" text-anchor="middle">VPN tunnel</text>
       </g>
 
       <g class="node" data-node="workloads" role="button" tabindex="0">
-        <rect class="node-box" x="108" y="356" width="254" height="44" rx="6"></rect>
-        <text class="node-title" x="235" y="374" text-anchor="middle">Isolated workloads</text>
-        <text class="node-sub" x="235" y="391" text-anchor="middle">no default route</text>
+        <rect class="node-box" x="100" y="402" width="266" height="40" rx="6"></rect>
+        <text class="node-title" x="233" y="419" text-anchor="middle">Isolated workloads</text>
+        <text class="node-sub" x="233" y="435" text-anchor="middle">no default route</text>
       </g>
 
-      <!-- Services -->
-      <g class="node" data-node="proxy" role="button" tabindex="0">
-        <rect class="node-box" x="440" y="228" width="180" height="52" rx="7"></rect>
-        <text class="node-title" x="530" y="250" text-anchor="middle">Proxy VM</text>
-        <text class="node-sub" x="530" y="267" text-anchor="middle">Caddy · TLS</text>
+      <g class="node" data-node="mealie" role="button" tabindex="0">
+        <rect class="node-box" x="84" y="462" width="142" height="48" rx="6"></rect>
+        <text class="node-title" x="155" y="482" text-anchor="middle">Mealie</text>
+        <text class="node-sub" x="155" y="498" text-anchor="middle">my fork, own CI</text>
+      </g>
+
+      <g class="node" data-node="jarvis" role="button" tabindex="0">
+        <rect class="node-box" x="240" y="462" width="142" height="48" rx="6"></rect>
+        <text class="node-title" x="311" y="482" text-anchor="middle">Jarvis</text>
+        <text class="node-sub" x="311" y="498" text-anchor="middle">public bot · no HA</text>
+      </g>
+
+      <!-- Media VM: GPU does double duty -->
+      <g class="node" data-node="media" role="button" tabindex="0">
+        <rect class="node-box" x="420" y="286" width="230" height="200" rx="7"></rect>
+        <text class="node-title" x="436" y="308" text-anchor="start">Media VM</text>
+        <text class="node-sub" x="436" y="324" text-anchor="start">RTX 3070 passed through</text>
+      </g>
+
+      <g class="node" data-node="jellyfin" role="button" tabindex="0">
+        <rect class="node-box" x="436" y="338" width="198" height="44" rx="6"></rect>
+        <text class="node-title" x="535" y="357" text-anchor="middle">Playback</text>
+        <text class="node-sub" x="535" y="373" text-anchor="middle">NVENC transcoding</text>
+      </g>
+
+      <g class="node" data-node="voice" role="button" tabindex="0">
+        <rect class="node-box" x="436" y="398" width="198" height="50" rx="6"></rect>
+        <text class="node-title" x="535" y="418" text-anchor="middle">Voice stack</text>
+        <text class="node-sub" x="535" y="434" text-anchor="middle">Whisper · Kokoro</text>
+      </g>
+
+      <text class="node-sub" x="535" y="470" text-anchor="middle">one GPU, both jobs</text>
+
+      <!-- Right column -->
+      <g class="node" data-node="friday" role="button" tabindex="0">
+        <rect class="node-box" x="672" y="286" width="248" height="52" rx="7"></rect>
+        <text class="node-title" x="796" y="308" text-anchor="middle">Friday</text>
+        <text class="node-sub" x="796" y="325" text-anchor="middle">Home Assistant · private assistant</text>
       </g>
 
       <g class="node" data-node="requests" role="button" tabindex="0">
-        <rect class="node-box" x="640" y="228" width="180" height="52" rx="7"></rect>
-        <text class="node-title" x="730" y="250" text-anchor="middle">Requests LXC</text>
-        <text class="node-sub" x="730" y="267" text-anchor="middle">user-facing intake</text>
-      </g>
-
-      <g class="node" data-node="media" role="button" tabindex="0">
-        <rect class="node-box" x="440" y="300" width="180" height="52" rx="7"></rect>
-        <text class="node-title" x="530" y="322" text-anchor="middle">Media VM</text>
-        <text class="node-sub" x="530" y="339" text-anchor="middle">GPU passthrough</text>
+        <rect class="node-box" x="672" y="356" width="248" height="48" rx="7"></rect>
+        <text class="node-title" x="796" y="376" text-anchor="middle">Requests</text>
+        <text class="node-sub" x="796" y="392" text-anchor="middle">user-facing intake</text>
       </g>
 
       <g class="node" data-node="dashboard" role="button" tabindex="0">
-        <rect class="node-box" x="640" y="300" width="180" height="52" rx="7"></rect>
-        <text class="node-title" x="730" y="322" text-anchor="middle">Dashboard LXC</text>
-        <text class="node-sub" x="730" y="339" text-anchor="middle">stack overview</text>
+        <rect class="node-box" x="672" y="422" width="248" height="48" rx="7"></rect>
+        <text class="node-title" x="796" y="442" text-anchor="middle">Dashboard</text>
+        <text class="node-sub" x="796" y="458" text-anchor="middle">stack overview</text>
       </g>
 
       <g class="node" data-node="monitoring" role="button" tabindex="0">
-        <rect class="node-box" x="440" y="372" width="180" height="52" rx="7"></rect>
-        <text class="node-title" x="530" y="394" text-anchor="middle">Monitoring</text>
-        <text class="node-sub" x="530" y="411" text-anchor="middle">Netdata · MCP</text>
+        <rect class="node-box" x="672" y="488" width="248" height="48" rx="7"></rect>
+        <text class="node-title" x="796" y="508" text-anchor="middle">Monitoring</text>
+        <text class="node-sub" x="796" y="524" text-anchor="middle">Netdata → Friday over MCP</text>
       </g>
 
       <g class="node" data-node="storage" role="button" tabindex="0">
-        <rect class="storage-box" x="70" y="462" width="750" height="52" rx="7"></rect>
-        <text class="storage-title" x="86" y="485" text-anchor="start">ZFS storage</text>
-        <text class="storage-sub" x="86" y="502" text-anchor="start">mirrored vdevs · nightly restore-tested backups</text>
+        <rect class="storage-box" x="68" y="548" width="852" height="48" rx="7"></rect>
+        <text class="storage-title" x="84" y="569" text-anchor="start">ZFS storage</text>
+        <text class="storage-sub" x="84" y="585" text-anchor="start">mirrored vdevs · nightly restore-tested backups</text>
       </g>
 
-      <!-- Animated packet + block marker (kept last so they paint on top) -->
+      <!-- Animated packet + block marker (last, so they paint on top) -->
       <circle id="packet" r="5" cx="0" cy="0"></circle>
       <g id="block-mark">
         <circle cx="0" cy="0" r="9"></circle>
@@ -233,9 +283,52 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
       <article data-desc="media">
         <h3>Media VM · GPU passthrough</h3>
         <p>
-          Runs playback and transcoding with an RTX 3070 passed through for
-          NVENC. The GPU belongs to this VM alone, so transcoding never fights
-          the rest of the stack for it. Ordinary egress, through the gateway.
+          The RTX 3070 is passed through to this VM alone, and it does two jobs
+          at once: NVENC transcoding for playback, and CUDA for the voice
+          assistants' speech stack. One card, two workloads, no contention in
+          practice because they peak at different times.
+        </p>
+      </article>
+      <article data-desc="jellyfin">
+        <h3>Playback · NVENC</h3>
+        <p>
+          Hardware transcoding on the 3070. This is the workload the GPU was
+          bought for; the voice stack moved in later and fits alongside it.
+        </p>
+      </article>
+      <article data-desc="voice">
+        <h3>Voice stack · Whisper + Kokoro</h3>
+        <p>
+          Speech-to-text and the synthesized voice for both assistants, sharing
+          the same GPU as transcoding. Measuring this pipeline is what showed
+          that text-to-speech, the stage that sounds like it should be slow, is
+          the fastest part of a response.
+        </p>
+      </article>
+      <article data-desc="friday">
+        <h3>Friday · the private assistant</h3>
+        <p>
+          Runs on Home Assistant in its own container. It knows the
+          infrastructure, can act on it, and reads live host sensors from
+          monitoring rather than guessing at them. Only I talk to it, which is
+          exactly why it's allowed to know all of this.
+        </p>
+      </article>
+      <article data-desc="jarvis">
+        <h3>Jarvis · the public bot</h3>
+        <p>
+          The Discord bot my friends talk to. It runs here on the container
+          host, holds no Home Assistant token, and has no code path to Friday.
+          Its entire capability is three functions. It cannot leak a homelab it
+          was never told about.
+        </p>
+      </article>
+      <article data-desc="mealie">
+        <h3>Mealie · my fork</h3>
+        <p>
+          A fork of the recipe manager I build in my own CI and deploy here as
+          nightly images. Running what I build is the point: every regression I
+          ship lands on the machine I use at dinner.
         </p>
       </article>
       <article data-desc="dashboard">

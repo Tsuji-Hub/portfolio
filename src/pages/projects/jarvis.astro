@@ -147,16 +147,16 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
 
   <div class="pipeline">
     <div class="pipe-bar" role="img" aria-label="Measured response latency, 3.45 seconds total: silence wait 900ms, speech-to-text 1194ms, model 970ms, text-to-speech 384ms">
-      <div class="pipe-seg s1" >900ms</div>
-      <div class="pipe-seg s2" >1194ms</div>
-      <div class="pipe-seg s3" >970ms</div>
-      <div class="pipe-seg s4" >384ms</div>
+      <div class="pipe-seg s1"></div>
+      <div class="pipe-seg s2"></div>
+      <div class="pipe-seg s3"></div>
+      <div class="pipe-seg s4"></div>
     </div>
     <ul class="pipe-key">
-      <li><b>900ms</b> silence wait — deciding you're done</li>
-      <li><b>1194ms</b> speech-to-text — Whisper large-v3-turbo on the 3070</li>
-      <li><b>970ms</b> model — Gemini 3.1 Flash Lite</li>
-      <li><b>384ms</b> text-to-speech — Kokoro, already streaming</li>
+      <li><span class="sw s1"></span><b>900ms</b> silence wait — deciding you're done</li>
+      <li><span class="sw s2"></span><b>1194ms</b> speech-to-text — Whisper large-v3-turbo on the 3070</li>
+      <li><span class="sw s3"></span><b>970ms</b> model — Gemini 3.1 Flash Lite</li>
+      <li><span class="sw s4"></span><b>384ms</b> text-to-speech — Kokoro, already streaming</li>
     </ul>
   </div>
 

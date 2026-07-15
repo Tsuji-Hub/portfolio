@@ -103,6 +103,46 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     </p>
   </div>
 
+  <h2>Why recoloring it never worked</h2>
+  <p>
+    Two rounds of theme work went in and it still looked dated. I was moving
+    information around and adjusting a palette, and neither touches the thing
+    that was actually wrong: the theme plugin set <em>colors</em> and never set
+    <em>component defaults</em>, so every card, button and chip in the app kept
+    rendering stock Material underneath whatever palette I gave it. Elevation
+    shadows, 4px radii, filled chips. You cannot recolor your way out of a
+    shape problem.
+  </p>
+  <p>
+    Adding defaults in that one file restyled every page in the app: recipes,
+    search, cookbooks, meal planner, settings. Small diff, rebase-safe, because
+    upstream barely touches it.
+  </p>
+
+  <div class="ui-demo bleed" data-ui>
+    <div class="map-controls">
+      <span class="ctl-label">recipe card</span>
+      <button class="map-btn" type="button" data-ui-mode="stock" aria-pressed="true">stock Material</button>
+      <button class="map-btn" type="button" data-ui-mode="editorial" aria-pressed="false">after the redesign</button>
+    </div>
+
+    <div class="ui-stage stock" data-ui-stage>
+      <article class="rcard">
+        <div class="rcard-photo"></div>
+        <div class="rcard-body">
+          <h3 class="rcard-title">Sausages in Blanket</h3>
+          <ul class="rcard-tags">
+            <li>Dinner</li>
+            <li>Quickies</li>
+          </ul>
+          <p class="rcard-meta"><b>208</b> kcal · 4 servings</p>
+        </div>
+      </article>
+    </div>
+
+    <p class="sample-note" data-ui-note aria-live="polite"></p>
+  </div>
+
   <h2>The share bug that was the whole point</h2>
   <p>
     The reason this migration exists: I track macros in MacroFactor, and the

@@ -58,6 +58,20 @@ a:hover {
   text-underline-offset: 3px;
 }
 
+/* Links inside a block of text must not rely on colour alone (WCAG 1.4.1).
+   Standalone links (nav, footer, card, back-link) are positional, not in prose. */
+.prose p a,
+.prose li a,
+.node-descriptions a,
+.bot-out a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.prose .project-links a,
+.prose .back-link a {
+  text-decoration: none;
+}
+
 a:focus-visible,
 button:focus-visible,
 [tabindex]:focus-visible {
@@ -763,22 +777,30 @@ input[type='range'] {
   overflow: hidden;
   border: 1px solid var(--border);
 }
+/* No text on the segments. Any single text colour that passes on the mid-accent
+   fill in dark mode fails on it in light mode, so the numbers live in the key
+   below instead, where they sit on the page background. */
 .pipe-seg {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  color: var(--accent-ink);
   overflow: hidden;
-  white-space: nowrap;
 }
 /* Widths live here, NOT in a style attribute: style-src 'self' blocks inline
    styles silently (no console error), which would collapse the bar to nothing. */
-.pipe-seg.s1 { width: 26.1%; background: color-mix(in srgb, var(--accent) 35%, var(--bg-raised)); color: var(--text); }
-.pipe-seg.s2 { width: 34.6%; background: color-mix(in srgb, var(--accent) 85%, var(--bg-raised)); color: var(--accent-ink); }
-.pipe-seg.s3 { width: 28.1%; background: color-mix(in srgb, var(--accent) 60%, var(--bg-raised)); color: var(--text); }
-.pipe-seg.s4 { width: 11.1%; background: color-mix(in srgb, var(--accent) 20%, var(--bg-raised)); color: var(--text); }
+.pipe-seg.s1, .sw.s1 { background: color-mix(in srgb, var(--accent) 35%, var(--bg-raised)); }
+.pipe-seg.s2, .sw.s2 { background: color-mix(in srgb, var(--accent) 85%, var(--bg-raised)); }
+.pipe-seg.s3, .sw.s3 { background: color-mix(in srgb, var(--accent) 60%, var(--bg-raised)); }
+.pipe-seg.s4, .sw.s4 { background: color-mix(in srgb, var(--accent) 20%, var(--bg-raised)); }
+.pipe-seg.s1 { width: 26.1%; }
+.pipe-seg.s2 { width: 34.6%; }
+.pipe-seg.s3 { width: 28.1%; }
+.pipe-seg.s4 { width: 11.1%; }
+.sw {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  margin-right: 0.45rem;
+  vertical-align: middle;
+}
 
 /* Replaces inline style attributes that the CSP silently dropped. */
 .back-link {
@@ -978,6 +1000,83 @@ input[type='range'] {
 .consumer .res.good {
   color: var(--accent);
 }
+
+/* ---- Mealie: stock Material vs the redesign ---- */
+.ui-demo {
+  margin: 1.5rem 0 0;
+}
+.ui-stage {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #101014;
+}
+@media (prefers-color-scheme: light) {
+  .ui-stage { background: #eceef1; }
+}
+.rcard {
+  width: 260px;
+  overflow: hidden;
+  transition: border-radius var(--speed) ease, box-shadow var(--speed) ease,
+    background-color var(--speed) ease, border-color var(--speed) ease;
+}
+.rcard-photo {
+  height: 130px;
+  background: linear-gradient(140deg, #6b4a3a, #2d2622);
+}
+.rcard-body { padding: 0.8rem 0.9rem 1rem; }
+.rcard-title { margin: 0 0 0.5rem; font-size: 1.05rem; }
+.rcard-tags {
+  list-style: none;
+  display: flex;
+  gap: 0.35rem;
+  margin: 0 0 0.6rem;
+  padding: 0;
+}
+.rcard-tags li { font-size: 0.68rem; padding: 0.15rem 0.5rem; }
+.rcard-meta { font-size: 0.75rem; }
+
+/* Stock: elevation, tight radius, filled chips, the dated default palette. */
+.ui-stage.stock .rcard {
+  background: #1e1e1e;
+  border-radius: 4px;
+  box-shadow: 0 3px 5px -1px rgba(0,0,0,.4), 0 6px 10px 0 rgba(0,0,0,.28);
+  border: 0;
+}
+.ui-stage.stock .rcard-photo { border-radius: 0; }
+.ui-stage.stock .rcard-title { font-weight: 500; letter-spacing: 0; color: #fff; }
+.ui-stage.stock .rcard-tags li {
+  border-radius: 16px;
+  background: #973542;
+  color: #fff;
+}
+.ui-stage.stock .rcard-tags li:nth-child(2) { background: #007a99; }
+.ui-stage.stock .rcard-meta { color: #E58325; }
+
+/* Editorial: flat, real radius, hairline, tinted tags, coral used sparingly. */
+.ui-stage.editorial .rcard {
+  background: #1a1a1e;
+  border-radius: 22px;
+  box-shadow: none;
+  border: 1px solid #26262b;
+}
+.ui-stage.editorial .rcard-photo { border-radius: 0; }
+.ui-stage.editorial .rcard-title { font-weight: 600; letter-spacing: -0.01em; color: #f5f3f0; }
+.ui-stage.editorial .rcard-tags li {
+  border-radius: 999px;
+  background: rgba(224, 100, 90, 0.12);
+  color: #e0645a;
+  border: 1px solid rgba(224, 100, 90, 0.3);
+}
+.ui-stage.editorial .rcard-tags li:nth-child(2) {
+  background: rgba(143, 190, 140, 0.12);
+  color: #8fbe8c;
+  border-color: rgba(143, 190, 140, 0.3);
+}
+.ui-stage.editorial .rcard-meta { color: #8e8e96; }
+.ui-stage.editorial .rcard-meta b { color: #e0645a; font-weight: 600; }
 
 /* ---- Cloud security: prevention vs reaction ---- */
 .prevent-demo {

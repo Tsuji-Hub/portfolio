@@ -46,6 +46,20 @@ import { projects } from '../data/projects.js';
         <p class="possess-label">the policy your browser reports enforcing, read from its own violation event</p>
         <code data-policy-text></code>
       </div>
+
+      <p class="selftest-intro">
+        And here is everything this page fetched to show you itself. Not a claim
+        in a footer — your browser's own record, counted against this domain.
+      </p>
+
+      <div class="manifest" data-manifest>
+        <div class="manifest-head">
+          <span><b data-mf-count>—</b> requests</span>
+          <span><b data-mf-weight>—</b> transferred</span>
+          <span class="manifest-verdict" data-mf-verdict>counting…</span>
+        </div>
+        <ul class="manifest-list" data-mf-list></ul>
+      </div>
     </section>
 
     <h2 class="section-label">projects</h2>
@@ -68,4 +82,5 @@ import { projects } from '../data/projects.js';
   </div>
 
   <script is:inline src="/js/selftest.js" defer></script>
+  <script is:inline src="/js/manifest.js" defer></script>
 </Base>

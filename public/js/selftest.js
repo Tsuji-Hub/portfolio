@@ -261,4 +261,11 @@
       if (a) runAll(a);
     });
   });
+
+  // Deep link: /#selftest runs the whole set on load, so the result can be
+  // linked to directly. It also means the attacks fire from the page's own
+  // stack rather than a devtools/CDP one, which matters: DevTools is permitted
+  // to eval on a CSP-protected page, so driving this from a debugger reports a
+  // falsely permissive result for eval().
+  if (window.location.hash === '#selftest') runAll(null);
 })();

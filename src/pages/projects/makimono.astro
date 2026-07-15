@@ -1,5 +1,10 @@
 ---
 import ProjectLayout from '../../layouts/ProjectLayout.astro';
+
+const panels = [
+  'tall', 'mid', 'short', 'tall', 'mid', 'tall', 'short', 'mid',
+];
+const panelsAfter = ['tall', 'mid', 'tall', 'short', 'mid', 'tall'];
 ---
 
 <ProjectLayout
@@ -13,6 +18,61 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     { label: 'Releases', href: 'https://github.com/Tsuji-Hub/makimono/releases' },
   ]}
 >
+  <h2>The auto-scroll engine</h2>
+  <p>
+    Webtoons are one long vertical strip, and reading one by thumb-flicking is
+    miserable. So the reader scrolls itself, at a speed you set, and gets out of
+    the way. Drive it below: change the speed while it runs, tap the screen to
+    pause, and watch what it does at a chapter seam.
+  </p>
+
+  <div class="reader-demo bleed" data-reader>
+    <div class="phone">
+      <div class="phone-screen" data-screen role="presentation">
+        <div class="strip" data-strip>
+          {panels.map((h) => (
+            <div class={`panel ${h}`}>
+              <span class="p-fig"></span>
+              <span class="p-bub"></span>
+              <span class="p-line"></span>
+            </div>
+          ))}
+          <div class="chapter-end" data-boundary>— end of chapter 12 —</div>
+          {panelsAfter.map((h) => (
+            <div class={`panel ${h}`}>
+              <span class="p-fig"></span>
+              <span class="p-bub"></span>
+              <span class="p-line"></span>
+            </div>
+          ))}
+        </div>
+        <div class="reader-hud">
+          <span class="hud-dot"></span>
+          <span data-hud-speed>1.2×</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="reader-controls">
+      <div class="ctl-row">
+        <button class="map-btn" type="button" data-play aria-pressed="false">play</button>
+        <span class="ctl-label">tap screen too</span>
+      </div>
+      <div class="ctl-row">
+        <label class="ctl-label" for="speed">speed</label>
+        <input id="speed" type="range" data-speed min="20" max="400" step="10" value="120" />
+        <output class="ctl-out" data-speed-out>120 px/s</output>
+      </div>
+      <p class="reader-status" data-status>press play, or tap the screen.</p>
+      <p class="sample-note">
+        Panels are synthetic placeholders. What is real here is the scroll
+        engine: speed control that applies mid-scroll, pause-on-touch, and
+        stopping at the chapter seam rather than sliding through it. In the app
+        the same controller also binds to the volume keys and a two-finger tap.
+      </p>
+    </div>
+  </div>
+
   <h2>Why it exists</h2>
   <p>
     I read a lot of manga, and the reader I used every day was missing things I
@@ -21,18 +81,41 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     using it never feels like running a science project.
   </p>
 
-  <h2>What I built</h2>
+  <h2>Similar titles, ranked by agreement</h2>
+  <p>
+    Any one service will happily recommend whatever is trending. The useful
+    signal is when services that do not talk to each other independently
+    recommend the same thing. So Similar merges five sources and ranks by how
+    many of them agree, rather than trusting any single one.
+  </p>
+  <p>
+    Turn sources off and watch the ranking move. Titles carried by one source
+    collapse; titles multiple sources agree on hold their place.
+  </p>
+
+  <div class="rank-demo" data-rank>
+    <div class="rank-sources">
+      <button class="map-btn" type="button" data-source="AniList" aria-pressed="true">AniList</button>
+      <button class="map-btn" type="button" data-source="MyAnimeList" aria-pressed="true">MyAnimeList</button>
+      <button class="map-btn" type="button" data-source="MangaUpdates" aria-pressed="true">MangaUpdates</button>
+      <button class="map-btn" type="button" data-source="MangaDex" aria-pressed="true">MangaDex</button>
+      <button class="map-btn" type="button" data-source="Comick" aria-pressed="true">Comick</button>
+      <span class="sep"></span>
+      <button class="map-btn" type="button" data-gems aria-pressed="false">hidden gems</button>
+    </div>
+
+    <ol class="rank-list" data-rank-list></ol>
+
+    <p class="sample-note">
+      Sample data, not live API output. The ranking is the real approach: a
+      title earns weight per independent source that recommends it, so
+      agreement beats any one service's enthusiasm. Hidden gems inverts the
+      popularity filter to surface what the big lists bury.
+    </p>
+  </div>
+
+  <h2>What else I built</h2>
   <ul>
-    <li>
-      <strong>Webtoon auto-scroll engine.</strong> A floating controller with
-      volume-key speed control, a two-finger toggle, auto pause and resume on
-      touch, and clean handling at chapter boundaries.
-    </li>
-    <li>
-      <strong>Similar titles.</strong> Recommendations merged from five sources
-      (AniList, MyAnimeList, MangaUpdates, MangaDex, Comick), ranked by
-      cross-source agreement, with filters and a hidden-gems mode.
-    </li>
     <li>
       <strong>Discover.</strong> AniList catalog browsing with include and
       exclude tag combinations.
@@ -61,4 +144,6 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
   <p class="muted" style="font-size:0.92rem;">
     The source is a private fork; the releases and the users are public.
   </p>
+
+  <script is:inline src="/js/makimono-demos.js" defer></script>
 </ProjectLayout>

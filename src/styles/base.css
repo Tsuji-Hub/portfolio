@@ -1467,6 +1467,107 @@ input[type='range'] {
 .ui-stage.editorial .rcard-yield { color: #8e8e96; }
 .ui-stage.editorial .rcard-icons { color: #8e8e96; }
 
+/* ---- SOAR workflow canvas ---- */
+.flow-demo {
+  margin: 1.5rem 0 0;
+}
+.flow-demo svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-top: 0.4rem;
+}
+.flow-edge {
+  stroke: var(--border);
+  stroke-width: 1.5;
+  fill: none;
+}
+.flow-edge.hot {
+  stroke: var(--accent);
+}
+.flow-node rect {
+  fill: var(--bg-raised);
+  stroke: var(--border);
+  stroke-width: 1;
+  transition: stroke var(--speed) ease;
+}
+.flow-node.fired rect {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.flow-node.failed rect {
+  stroke: var(--danger);
+  stroke-width: 2;
+}
+.flow-node text {
+  font-family: var(--font-mono);
+  fill: var(--text);
+  font-size: 11px;
+}
+.flow-node .fn-sub {
+  fill: var(--muted);
+  font-size: 9.5px;
+}
+.flow-node.fired .fn-sub {
+  fill: var(--accent);
+}
+.flow-node.failed .fn-sub {
+  fill: var(--danger);
+}
+#flow-token {
+  fill: var(--accent);
+  opacity: 0;
+  transform-box: view-box;
+  transform-origin: 0 0;
+}
+#flow-token.is-live {
+  opacity: 1;
+}
+.flow-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+  margin-top: 1rem;
+}
+@media (max-width: 760px) {
+  .flow-grid { grid-template-columns: 1fr; }
+}
+.flow-clock {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.flow-clock.slow { color: var(--danger); }
+.flow-cost {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+.flow-steps {
+  list-style: none;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+}
+.flow-steps li {
+  display: grid;
+  grid-template-columns: 4.2rem minmax(0, 1fr);
+  gap: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  opacity: 0.35;
+  margin: 0;
+  transition: opacity var(--speed) ease;
+}
+.flow-steps li.shown { opacity: 1; }
+.flow-steps li .t { color: var(--accent); }
+.flow-steps li.slow .t { color: var(--danger); }
+
 /* ---- Field: every unit of work as one cell ---- */
 .field-wrap {
   margin: 1.1rem 0 0;

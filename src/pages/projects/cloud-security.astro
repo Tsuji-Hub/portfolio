@@ -57,13 +57,91 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
 
   <h2>SOAR proof of concept</h2>
   <p>
-    Cloud vulnerability alerts were landing without context, so every one meant
-    manual enrichment before anyone could act. I evaluated no-code automation
-    platforms (Torq, Tines) and built workflows that auto-enrich those alerts as
-    they arrive. I presented the results to leadership with an adoption roadmap,
-    turning a repetitive manual step into something the tooling handles on its
-    own.
+    A cloud vulnerability alert arrives knowing almost nothing: something is
+    wrong, somewhere, in a project named after a number. Everything that makes
+    it actionable — who owns it, how bad it is, whether we already know — is
+    research a human does before the real work starts. So I evaluated no-code
+    automation platforms (Torq, Tines) and built workflows that do the research
+    on arrival, then took the results to leadership with an adoption roadmap.
   </p>
+  <p>
+    Fire one and watch the right-hand side. The graph is the boring half; the
+    argument is the payload getting fatter at every hop.
+  </p>
+
+  <div class="flow-demo bleed" data-flow>
+    <div class="map-controls">
+      <span class="ctl-label">run it</span>
+      <button class="map-btn" type="button" data-flow-mode="auto" aria-pressed="true">automated · Torq</button>
+      <button class="map-btn" type="button" data-flow-mode="manual" aria-pressed="false">by hand · an analyst</button>
+      <span class="sep"></span>
+      <button class="map-btn" type="button" data-flow-run>▶ raise a finding</button>
+    </div>
+
+    <svg viewBox="0 0 900 120" data-flow-svg role="img" aria-label="A five step enrichment workflow: Wiz finding, CMDB lookup, context enrichment, deduplication, case creation">
+      <path class="flow-edge" d="M 180 62 H 195"></path>
+      <path class="flow-edge" d="M 355 62 H 370"></path>
+      <path class="flow-edge" d="M 530 62 H 545"></path>
+      <path class="flow-edge" d="M 705 62 H 720"></path>
+
+      <g class="flow-node">
+        <rect x="20" y="34" width="160" height="56" rx="7"></rect>
+        <text x="100" y="58" text-anchor="middle">Wiz finding</text>
+        <text class="fn-sub" x="100" y="74" text-anchor="middle">trigger</text>
+      </g>
+      <g class="flow-node">
+        <rect x="195" y="34" width="160" height="56" rx="7"></rect>
+        <text x="275" y="58" text-anchor="middle">CMDB lookup</text>
+        <text class="fn-sub" x="275" y="74" text-anchor="middle">who owns this?</text>
+      </g>
+      <g class="flow-node">
+        <rect x="370" y="34" width="160" height="56" rx="7"></rect>
+        <text x="450" y="58" text-anchor="middle">Enrich</text>
+        <text class="fn-sub" x="450" y="74" text-anchor="middle">severity · context</text>
+      </g>
+      <g class="flow-node">
+        <rect x="545" y="34" width="160" height="56" rx="7"></rect>
+        <text x="625" y="58" text-anchor="middle">Dedupe</text>
+        <text class="fn-sub" x="625" y="74" text-anchor="middle">already open?</text>
+      </g>
+      <g class="flow-node">
+        <rect x="720" y="34" width="160" height="56" rx="7"></rect>
+        <text x="800" y="58" text-anchor="middle">Open case</text>
+        <text class="fn-sub" x="800" y="74" text-anchor="middle">assigned to owner</text>
+      </g>
+
+      <circle id="flow-token" cx="0" cy="62" r="5"></circle>
+    </svg>
+
+    <div class="flow-grid">
+      <div>
+        <p class="possess-label">what it cost</p>
+        <div class="flow-clock" data-flow-clock>—</div>
+        <p class="flow-cost" data-flow-cost></p>
+        <ol class="flow-steps" data-flow-steps>
+          <li><span class="t"></span><span class="n"></span></li>
+          <li><span class="t"></span><span class="n"></span></li>
+          <li><span class="t"></span><span class="n"></span></li>
+          <li><span class="t"></span><span class="n"></span></li>
+          <li><span class="t"></span><span class="n"></span></li>
+        </ol>
+      </div>
+      <div>
+        <p class="possess-label">the alert, as it travels</p>
+        <pre class="code-out" data-flow-payload aria-live="polite"></pre>
+      </div>
+    </div>
+
+    <p class="sample-note">
+      Both runs end with the identical payload, deliberately. The workflow does
+      nothing an analyst couldn't do by hand — it does it in seconds, at 3am,
+      for every alert, without getting bored, and it never mistypes the project
+      id. Note the second step: it can only resolve an owner because of the
+      mapping work above it. Automation cannot look up a fact nobody wrote down.
+      Illustrative timings and a redacted resource; the shape of the workflow is
+      the real one.
+    </p>
+  </div>
 
   <h2>Prevention over reaction</h2>
   <p>
@@ -135,5 +213,6 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
   </div>
 
   <script is:inline src="/js/field.js" defer></script>
+  <script is:inline src="/js/soar-flow.js" defer></script>
   <script is:inline src="/js/exposure-clock.js" defer></script>
 </ProjectLayout>

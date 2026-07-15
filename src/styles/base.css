@@ -766,6 +766,100 @@ input[type='range'] {
   font-weight: 500;
 }
 
+/* ---- Live self-attack panel ---- */
+.selftest {
+  margin: 3rem 0 0;
+}
+.selftest-intro {
+  max-width: 62ch;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.atk-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.atk-row {
+  display: grid;
+  grid-template-columns: 5.6rem minmax(0, 1fr);
+  gap: 0.9rem;
+  align-items: start;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  margin: 0;
+}
+.atk-row.blocked {
+  border-left-color: var(--accent);
+}
+.atk-row.through {
+  border-left-color: var(--danger);
+}
+.atk-verdict {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  padding-top: 0.1rem;
+}
+.atk-row.blocked .atk-verdict {
+  color: var(--accent);
+}
+.atk-row.through .atk-verdict {
+  color: var(--danger);
+}
+.atk-what {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text);
+}
+.atk-why {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: 0.15rem 0 0;
+}
+.atk-msg {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin: 0.3rem 0 0;
+  word-break: break-word;
+}
+.atk-msg .dir {
+  color: var(--accent);
+}
+.atk-row.through .atk-msg .dir {
+  color: var(--danger);
+}
+.policy {
+  margin-top: 1rem;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: #05070a;
+}
+@media (prefers-color-scheme: light) {
+  .policy {
+    background: #f6f8fa;
+  }
+}
+.policy code {
+  display: block;
+  font-size: 0.7rem;
+  line-height: 1.7;
+  color: var(--muted);
+  word-break: break-word;
+}
+.policy code b {
+  color: var(--accent);
+  font-weight: 500;
+}
+
 /* ---- Latency pipeline (static, measured) ---- */
 .pipeline {
   margin: 1.25rem 0 0;

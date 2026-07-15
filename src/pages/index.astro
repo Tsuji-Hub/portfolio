@@ -20,6 +20,34 @@ import { projects } from '../data/projects.js';
       <li><strong>5th of 160</strong> — DOE CyberForce</li>
     </ul>
 
+    <section class="selftest" data-selftest>
+      <h2 class="section-label">this page is the first exhibit</h2>
+      <p class="selftest-intro">
+        I could tell you I take this seriously. Instead: attack it. Every button
+        below runs a real attack against this page, in your browser, right now.
+        Nothing is simulated and none of the verdicts are written by me — they
+        are the browser refusing, and reporting why.
+      </p>
+
+      <div class="map-controls">
+        <button class="map-btn" type="button" data-atk="all">run all →</button>
+        <span class="sep"></span>
+        <button class="map-btn" type="button" data-atk="eval">eval()</button>
+        <button class="map-btn" type="button" data-atk="fn">new Function()</button>
+        <button class="map-btn" type="button" data-atk="inline">inject a script</button>
+        <button class="map-btn" type="button" data-atk="style">inject a style</button>
+        <button class="map-btn" type="button" data-atk="cdn">load a CDN</button>
+        <button class="map-btn" type="button" data-atk="fetch">phone home</button>
+      </div>
+
+      <ol class="atk-list" data-atk-list aria-live="polite"></ol>
+
+      <div class="policy" data-policy hidden>
+        <p class="possess-label">the policy your browser reports enforcing, read from its own violation event</p>
+        <code data-policy-text></code>
+      </div>
+    </section>
+
     <h2 class="section-label">projects</h2>
     <div class="project-grid">
       {
@@ -38,4 +66,6 @@ import { projects } from '../data/projects.js';
       }
     </div>
   </div>
+
+  <script is:inline src="/js/selftest.js" defer></script>
 </Base>

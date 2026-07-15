@@ -15,23 +15,59 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
 >
   <h2>Why it exists</h2>
   <p>
-    I wanted nutrition data as a first-class part of my recipe workflow, and I
-    wanted to run my own build rather than wait on a release. Forking meant I
-    also had to make the upstream CI actually work for someone who isn't the
-    upstream maintainer.
+    I'm moving roughly 300 recipes off a commercial app with two structural
+    problems. Its search indexes the title and nothing else, so searching
+    "Worcestershire" returns zero results for the recipes that call for it. And
+    there is no nutrition field anywhere in its data model, which makes the one
+    thing I actually want impossible rather than merely missing. Mealie has
+    both.
+  </p>
+  <p>
+    Same model as my Android fork: own the code so "I wish it had X" becomes
+    something you just do.
+  </p>
+
+  <h2>The CI that went green and built nothing</h2>
+  <p>
+    Upstream's pipeline is built for upstream, and none of it works on a fork.
+    Four separate things had to be fixed, but only the first one was dangerous:
+  </p>
+  <ul>
+    <li>
+      <strong>The publish job was gated to the upstream repo.</strong>
+      <code>if: github.repository == 'mealie-recipes/mealie'</code>. On a fork
+      that condition is false, so the job is skipped, the run reports
+      <strong>green</strong>, and no image is ever built. A pipeline that fails
+      loudly costs you ten minutes. One that succeeds while doing nothing costs
+      you however long it takes to notice.
+    </li>
+    <li>
+      It built through a paid build service I have no token for. Swapped for
+      stock buildx with layer caching.
+    </li>
+    <li>
+      It pushed to the maintainer's registry namespace. Permission denied on a
+      fork, so I publish to my own instead.
+    </li>
+    <li>
+      The registry rejects uppercase image names, and my username has capitals
+      in it. The repo name gets lowercased explicitly. I also dropped a second
+      architecture that was doubling build time for hardware I don't run.
+    </li>
+  </ul>
+
+  <p>
+    A related trap worth naming: the CLI in that repo defaults to the
+    <em>parent</em>, not the fork. Every command has to be pointed at the fork
+    explicitly or you're reading upstream's CI and concluding your build never
+    ran. That one cost real time.
   </p>
 
   <h2>What I built</h2>
   <ul>
     <li>
-      <strong>Repaired the fork's CI.</strong> Upstream's pipeline was
-      hard-gated to its own repo, built on a paid service I don't have, and
-      pushed to a namespace I can't write to. I rewrote it: stock buildx, GHCR
-      publishing, a lowercased namespace, and a dispatch trigger.
-    </li>
-    <li>
-      <strong>Nightly images to ghcr.io,</strong> deployed to the homelab
-      through Portainer.
+      <strong>Nightly images to my own registry,</strong> built by the repaired
+      pipeline above and deployed to the homelab through Portainer.
     </li>
     <li>
       <strong>Backend.</strong> Added nutrition to the recipe list schema with a
@@ -57,22 +93,22 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
       <strong>Upstream fix (PR #7881).</strong> The recipe yield display emitted
       "0.0" into the schema.org JSON-LD for servings-only recipes, poisoning
       per-serving data for anything that consumed it. I fixed it and added
-      parametrized tests. (Demonstrated above.)
+      parametrized tests. (Demonstrated below.)
     </li>
   </ul>
 
-  <script is:inline src="/js/mealie-demo.js" defer></script>
 
   <h2>The upstream bug, PR #7881</h2>
   <p>
     Mealie emits schema.org JSON-LD for every recipe, which is how any consumer
-    (search engines, importers, my own nutrition pipeline) reads it. For recipes
-    whose yield is a plain serving count, the yield display emitted
-    <code>"0.0"</code>. Not missing. Zero.
+    (search engines, scrapers, nutrition trackers) reads it. The yield string was
+    built from the yield <em>quantity</em> and the yield <em>text</em>, and a
+    validator coerces an unset quantity to zero. So a recipe with servings but no
+    explicit yield emitted a bare <code>"0.0"</code>. Not missing. Zero.
   </p>
   <p>
     That number is the denominator for anything per-serving. Flip between the
-    builds and watch what a downstream consumer computes.
+    builds and watch what a consumer computes.
   </p>
 
   <div class="jsonld-demo bleed" data-jsonld>
@@ -82,8 +118,8 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
       <button class="map-btn" type="button" data-fix="after" aria-pressed="false">after #7881</button>
       <span class="sep"></span>
       <span class="ctl-label">yield</span>
-      <button class="map-btn" type="button" data-ytype="servings" aria-pressed="true">servings</button>
-      <button class="map-btn" type="button" data-ytype="text" aria-pressed="false">text ("2 loaves")</button>
+      <button class="map-btn" type="button" data-ytype="servings" aria-pressed="true">servings only</button>
+      <button class="map-btn" type="button" data-ytype="text" aria-pressed="false">quantity + text</button>
     </div>
 
     <div class="map-controls" data-servings-wrap>
@@ -96,10 +132,14 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     <div class="consumer" data-consumer aria-live="polite"></div>
 
     <p class="sample-note">
-      Switch yield to text and the bug vanishes. That is why it survived: it
-      only manifested for servings-only recipes, and only in the emitted
-      metadata, where nobody looks. The fix came with parametrized tests
-      covering both shapes.
+      Switch to a quantity-and-text yield and it degrades from destructive to
+      merely wrong: <code>"8.0 slices"</code> instead of <code>"8 slices"</code>.
+      That's why it survived. The visible case looked like a cosmetic trailing
+      zero, and the case that actually poisoned the math only fired for
+      servings-only recipes, in emitted metadata nobody reads by eye. The fix
+      handles both (fall back to servings; format the number so whole numbers
+      lose the <code>.0</code>) and ships with parametrized tests over every
+      yield shape.
     </p>
   </div>
 
@@ -193,4 +233,6 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
       turns into a merge fight.
     </p>
   </div>
+
+  <script is:inline src="/js/mealie-demo.js" defer></script>
 </ProjectLayout>

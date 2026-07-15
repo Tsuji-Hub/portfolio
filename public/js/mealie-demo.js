@@ -13,15 +13,42 @@
   var note = root.querySelector('[data-ui-note]');
   var btns = root.querySelectorAll('[data-ui-mode]');
 
+  // The two cards differ structurally, not just cosmetically — that IS the
+  // point. Badges move onto the photo; calories only exist at all after the
+  // backend change that put nutrition in the list payload.
+  var CARD = {
+    stock:
+      '<article class="rcard">' +
+      '<div class="rcard-photo"></div>' +
+      '<div class="rcard-body">' +
+      '<h3 class="rcard-title">Loaded Smash Potato Nachos</h3>' +
+      '<ul class="rcard-chips"><li>Dinner</li><li>FDL</li></ul>' +
+      '<div class="rcard-foot"><span class="rcard-yield">4 servings</span>' +
+      '<span class="rcard-icons">♥ ⋮</span></div>' +
+      '</div></article>',
+    editorial:
+      '<article class="rcard">' +
+      '<div class="rcard-photo">' +
+      '<span class="rcard-cat"><i class="dot"></i>Dinner<i class="caret">▾</i></span>' +
+      '<span class="rcard-kcal">359 kcal</span>' +
+      '</div>' +
+      '<div class="rcard-body">' +
+      '<h3 class="rcard-title">Loaded Smash Potato Nachos</h3>' +
+      '<div class="rcard-foot"><span class="rcard-yield">4 the Pans</span>' +
+      '<span class="rcard-icons">♥ ⋮</span></div>' +
+      '</div></article>',
+  };
+
   var NOTE = {
     stock:
-      'Palette set, component defaults never set. This is what the app rendered regardless of what colors I gave it: elevation shadow, 4px radius, filled chips, and the stock orange-teal-maroon on one screen. Recoloring this cannot fix it.',
+      'Palette set, component defaults never set. This is what the app rendered no matter what colors I handed it: elevation shadow, 4px radius, filled chips, stock orange-teal-maroon on one screen. Calories are absent because the list endpoint did not return nutrition at all. Recoloring cannot fix any of this.',
     editorial:
-      'Same component tree, same data, one file changed. Defaults alongside the palette: flat card, real radius, hairline border, tinted taxonomy tags, coral used sparingly. Approximated here in the site\'s own fonts to show shape and color, not to copy the app pixel for pixel.',
+      'Defaults set alongside the palette, and the card rebuilt: photo-forward, serif title, taxonomy pill and calorie badge over the image, subtle circular actions. The category pill is a dropdown — one tap files the recipe into a cookbook. Recreated here from the real build; the app uses Fraunces for titles and real photography, neither of which I ship on this site.',
   };
 
   function set(mode) {
     stage.className = 'ui-stage ' + mode;
+    stage.innerHTML = CARD[mode];
     note.textContent = NOTE[mode];
     btns.forEach(function (b) {
       b.setAttribute('aria-pressed', String(b.dataset.uiMode === mode));
@@ -58,10 +85,22 @@
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
   }
 
+  // Mirrors the real property. Before:
+  //   f"{recipe_yield_quantity} {recipe_yield}".strip()
+  // where an unset quantity is coerced to 0 by the validator. After:
+  //   quantity = recipe_yield_quantity or recipe_servings
+  //   number   = f"{quantity:g}" if quantity else ""
+  //   f"{number} {recipe_yield or ''}".strip()
   function yieldValue() {
-    if (ytype === 'text') return { v: '2 loaves', bad: false };
+    var servings = Number(servIn.value);
+    if (ytype === 'text') {
+      // quantity 8, yield text "slices"
+      if (fix === 'before') return { v: '8.0 slices', bad: false, note: 'trailing .0' };
+      return { v: '8 slices', bad: false };
+    }
+    // servings-only: no yield quantity, no yield text
     if (fix === 'before') return { v: '0.0', bad: true };
-    return { v: servIn.value + ' servings', bad: false };
+    return { v: String(servings), bad: false };
   }
 
   function render() {

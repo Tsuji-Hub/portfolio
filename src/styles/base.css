@@ -1017,66 +1017,110 @@ input[type='range'] {
   .ui-stage { background: #eceef1; }
 }
 .rcard {
-  width: 260px;
+  width: 268px;
   overflow: hidden;
-  transition: border-radius var(--speed) ease, box-shadow var(--speed) ease,
-    background-color var(--speed) ease, border-color var(--speed) ease;
+  position: relative;
 }
 .rcard-photo {
-  height: 130px;
-  background: linear-gradient(140deg, #6b4a3a, #2d2622);
+  position: relative;
+  height: 150px;
+  background: linear-gradient(150deg, #7d4f2e 10%, #40261a 55%, #241611);
 }
-.rcard-body { padding: 0.8rem 0.9rem 1rem; }
-.rcard-title { margin: 0 0 0.5rem; font-size: 1.05rem; }
-.rcard-tags {
-  list-style: none;
+.rcard-photo::after {
+  /* stand-in for the food photo: no third-party imagery shipped */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 32% 62%, rgba(240, 180, 90, 0.5), transparent 58%),
+    radial-gradient(ellipse at 70% 40%, rgba(210, 90, 60, 0.4), transparent 55%);
+}
+.rcard-body { padding: 0.85rem 0.95rem 0.8rem; }
+.rcard-title { margin: 0; }
+.rcard-foot {
   display: flex;
-  gap: 0.35rem;
-  margin: 0 0 0.6rem;
-  padding: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
 }
-.rcard-tags li { font-size: 0.68rem; padding: 0.15rem 0.5rem; }
-.rcard-meta { font-size: 0.75rem; }
+.rcard-yield { font-size: 0.72rem; }
+.rcard-icons { display: flex; gap: 0.5rem; opacity: 0.75; font-size: 0.85rem; }
 
-/* Stock: elevation, tight radius, filled chips, the dated default palette. */
+/* --- STOCK: what the app rendered regardless of palette --- */
 .ui-stage.stock .rcard {
   background: #1e1e1e;
   border-radius: 4px;
   box-shadow: 0 3px 5px -1px rgba(0,0,0,.4), 0 6px 10px 0 rgba(0,0,0,.28);
   border: 0;
 }
-.ui-stage.stock .rcard-photo { border-radius: 0; }
-.ui-stage.stock .rcard-title { font-weight: 500; letter-spacing: 0; color: #fff; }
-.ui-stage.stock .rcard-tags li {
+.ui-stage.stock .rcard-title {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 1rem;
+  color: #fff;
+  letter-spacing: 0;
+}
+.ui-stage.stock .rcard-chips {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+  list-style: none;
+  padding: 0;
+}
+.ui-stage.stock .rcard-chips li {
+  font-size: 0.68rem;
+  padding: 0.18rem 0.55rem;
   border-radius: 16px;
-  background: #973542;
+  background: #973542; /* maroon */
   color: #fff;
 }
-.ui-stage.stock .rcard-tags li:nth-child(2) { background: #007a99; }
-.ui-stage.stock .rcard-meta { color: #E58325; }
+.ui-stage.stock .rcard-chips li:nth-child(2) { background: #007a99; } /* teal */
+.ui-stage.stock .rcard-yield { color: #E58325; } /* orange */
+.ui-stage.stock .rcard-icons { color: #aa9f90; }
 
-/* Editorial: flat, real radius, hairline, tinted tags, coral used sparingly. */
+/* --- EDITORIAL: photo-forward, badges over the image, serif title --- */
 .ui-stage.editorial .rcard {
   background: #1a1a1e;
-  border-radius: 22px;
+  border-radius: 14px;
   box-shadow: none;
   border: 1px solid #26262b;
 }
-.ui-stage.editorial .rcard-photo { border-radius: 0; }
-.ui-stage.editorial .rcard-title { font-weight: 600; letter-spacing: -0.01em; color: #f5f3f0; }
-.ui-stage.editorial .rcard-tags li {
+.ui-stage.editorial .rcard-title {
+  /* the real app uses Fraunces; approximated with a system serif here */
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 600;
+  font-size: 1.02rem;
+  line-height: 1.3;
+  color: #f5f3f0;
+  letter-spacing: 0;
+}
+.rcard-cat,
+.rcard-kcal {
+  position: absolute;
+  top: 10px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  padding: 0.22rem 0.5rem;
   border-radius: 999px;
-  background: rgba(224, 100, 90, 0.12);
-  color: #e0645a;
-  border: 1px solid rgba(224, 100, 90, 0.3);
+  background: rgba(20, 18, 16, 0.72);
+  color: #f5f3f0;
+  backdrop-filter: blur(6px);
 }
-.ui-stage.editorial .rcard-tags li:nth-child(2) {
-  background: rgba(143, 190, 140, 0.12);
-  color: #8fbe8c;
-  border-color: rgba(143, 190, 140, 0.3);
+.rcard-cat { left: 10px; }
+.rcard-kcal { right: 10px; }
+.rcard-cat .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #E0894A;
 }
-.ui-stage.editorial .rcard-meta { color: #8e8e96; }
-.ui-stage.editorial .rcard-meta b { color: #e0645a; font-weight: 600; }
+.rcard-cat .caret { opacity: 0.6; font-size: 0.6rem; }
+.ui-stage.editorial .rcard-yield { color: #8e8e96; }
+.ui-stage.editorial .rcard-icons { color: #8e8e96; }
 
 /* ---- Cloud security: prevention vs reaction ---- */
 .prevent-demo {

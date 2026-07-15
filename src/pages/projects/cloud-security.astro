@@ -21,12 +21,39 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
 
   <h2>Cloud asset governance</h2>
   <p>
-    More than 1,100 GCP projects existed with no reliable link to the business
-    applications they belonged to, so remediation had nowhere to route. I
-    validated the projects and tied them to their applications in the CMDB,
-    creating eight new service entries in the process. Now a finding routes to
-    an actual owner instead of landing in a shared mailbox and going stale.
+    Every cell below is one GCP project that existed with no reliable link to
+    the business application it belonged to. Not a rounding error, not a
+    backlog: this is the estate. A finding on any one of them had nowhere to
+    route, because nothing recorded who owned it.
   </p>
+
+  <div class="field-wrap bleed">
+    <canvas
+      class="field"
+      data-field
+      data-total="1100"
+      data-cols="50"
+      data-special="8"
+      data-mode="fill"
+      role="img"
+      aria-label="A field of 1,100 cells, one per unmapped GCP project, filling in as each is validated and mapped to its owning application"
+    ></canvas>
+
+    <div class="field-readout">
+      <span class="field-count" data-field-count>0 / 1,100</span>
+      <span>validated and mapped to an owning application</span>
+      <span class="sep"></span>
+      <button class="map-btn" type="button" data-field-run>▶ map the estate</button>
+    </div>
+
+    <p class="field-note" data-field-note hidden>
+      The eight lighter cells are Technical Service entries that did not exist
+      and had to be created before their projects had anything to point at. This
+      is the least glamorous work I have ever done and it is the reason the
+      timeline further down reads two days instead of three weeks: a finding
+      cannot route to an owner that was never written down.
+    </p>
+  </div>
 
   <h2>SOAR proof of concept</h2>
   <p>
@@ -107,5 +134,6 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     </p>
   </div>
 
+  <script is:inline src="/js/field.js" defer></script>
   <script is:inline src="/js/exposure-clock.js" defer></script>
 </ProjectLayout>

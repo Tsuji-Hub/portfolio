@@ -10,17 +10,60 @@ import Base from '../layouts/Base.astro';
   <div class="wrap prose">
     <h1>About</h1>
 
+    <p class="lede">
+      I'm a cloud security analyst. I govern cloud environments for a Fortune
+      500 insurer, which mostly means secure configuration management and the
+      automation around it.
+    </p>
     <p>
-      I'm a cloud security analyst. My day job is governing cloud environments
-      for a Fortune 500 insurer, mostly secure configuration management and the
-      automation around it. I came up through Lewis University's 4+1 program and
-      a run of collegiate cyber competitions.
+      I came up through Lewis University's 4+1 program and a run of collegiate
+      cyber competitions, which is where I learned that the interesting part of
+      security is never the exploit. It's whether the thing was built so the
+      exploit had somewhere to go.
     </p>
     <p>
       Outside work I run a homelab like it's production. The projects on this
-      site are where I keep the same control mindset sharp: build it, break it,
-      back it up, and prove the backup restores.
+      site are where I keep the same instinct sharp: build it, break it, back it
+      up, and prove the backup restores.
     </p>
+
+    <h2>The field</h2>
+    <p>
+      "5th of 160" is the kind of line that slides past on a résumé. Here is
+      what 160 teams actually looks like. The lit cell is us.
+    </p>
+
+    <div class="field-wrap">
+      <canvas
+        class="field"
+        data-field
+        data-total="160"
+        data-cols="20"
+        data-rank="5"
+        data-mode="rank"
+        role="img"
+        aria-label="A field of 160 cells, one per competing team at the 2022 Department of Energy CyberForce Competition, with the 5th cell highlighted"
+      ></canvas>
+      <p class="field-readout">
+        <span>Department of Energy CyberForce, 2022 · <b>5th of 160 teams</b></span>
+      </p>
+    </div>
+
+    <dl class="facts">
+      <div class="fact">
+        <dt>DOE CyberForce</dt>
+        <dd>5th of 160 (2022)</dd>
+        <dd>10th of 120 (2021)</dd>
+      </div>
+      <div class="fact">
+        <dt>Lewis University CTF</dt>
+        <dd>1st place (2021)</dd>
+      </div>
+      <div class="fact">
+        <dt>CCDC</dt>
+        <dd>Collegiate competitor</dd>
+      </div>
+    </dl>
 
     <h2>Education</h2>
     <dl class="facts">
@@ -46,27 +89,10 @@ import Base from '../layouts/Base.astro';
       </div>
     </dl>
 
-    <h2>Competitions</h2>
-    <dl class="facts">
-      <div class="fact">
-        <dt>DOE CyberForce</dt>
-        <dd>5th of 160 (2022)</dd>
-        <dd>10th of 120 (2021)</dd>
-      </div>
-      <div class="fact">
-        <dt>Lewis University CTF</dt>
-        <dd>1st place (2021)</dd>
-      </div>
-      <div class="fact">
-        <dt>CCDC</dt>
-        <dd>Collegiate competitor</dd>
-      </div>
-    </dl>
-
     <h2>Beyond work</h2>
     <p>
       PADI certified diver. I read a lot of manga, which is how the Makimono
-      fork started, an itch to fix the reader I use every day.
+      fork started: an itch to fix the reader I use every day.
     </p>
 
     <h2>Contact</h2>
@@ -84,4 +110,6 @@ import Base from '../layouts/Base.astro';
       Web version: no phone number, no street address.
     </p>
   </div>
+
+  <script is:inline src="/js/field.js" defer></script>
 </Base>

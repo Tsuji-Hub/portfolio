@@ -1467,6 +1467,39 @@ input[type='range'] {
 .ui-stage.editorial .rcard-yield { color: #8e8e96; }
 .ui-stage.editorial .rcard-icons { color: #8e8e96; }
 
+/* ---- Field: every unit of work as one cell ---- */
+.field-wrap {
+  margin: 1.1rem 0 0;
+}
+canvas.field {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.field-readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.4rem;
+  align-items: baseline;
+  margin-top: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.field-count {
+  font-size: 1.35rem;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  min-width: 7.5rem;
+}
+.field-note {
+  margin-top: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+  border-left: 2px solid var(--border);
+  padding-left: 0.8rem;
+}
+
 /* ---- Exposure clock (animated, fixed 3-week scale) ---- */
 .clock-wrap {
   margin: 1rem 0 0;

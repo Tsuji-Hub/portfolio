@@ -13,224 +13,37 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     { label: 'Upstream PR #7881', href: 'https://github.com/mealie-recipes/mealie/pull/7881' },
   ]}
 >
-  <h2>Why it exists</h2>
+  <h2>It looked like this</h2>
   <p>
-    I'm moving roughly 300 recipes off a commercial app with two structural
-    problems. Its search indexes the title and nothing else, so searching
-    "Worcestershire" returns zero results for the recipes that call for it. And
-    there is no nutrition field anywhere in its data model, which makes the one
-    thing I actually want impossible rather than merely missing. Mealie has
-    both.
-  </p>
-  <p>
-    Same model as my Android fork: own the code so "I wish it had X" becomes
-    something you just do.
-  </p>
-
-  <h2>The CI that went green and built nothing</h2>
-  <p>
-    Upstream's pipeline is built for upstream, and none of it works on a fork.
-    Four separate things had to be fixed, but only the first one was dangerous:
-  </p>
-  <ul>
-    <li>
-      <strong>The publish job was gated to the upstream repo.</strong>
-      <code>if: github.repository == 'mealie-recipes/mealie'</code>. On a fork
-      that condition is false, so the job is skipped, the run reports
-      <strong>green</strong>, and no image is ever built. A pipeline that fails
-      loudly costs you ten minutes. One that succeeds while doing nothing costs
-      you however long it takes to notice.
-    </li>
-    <li>
-      It built through a paid build service I have no token for. Swapped for
-      stock buildx with layer caching.
-    </li>
-    <li>
-      It pushed to the maintainer's registry namespace. Permission denied on a
-      fork, so I publish to my own instead.
-    </li>
-    <li>
-      The registry rejects uppercase image names, and my username has capitals
-      in it. The repo name gets lowercased explicitly. I also dropped a second
-      architecture that was doubling build time for hardware I don't run.
-    </li>
-  </ul>
-
-  <p>
-    A related trap worth naming: the CLI in that repo defaults to the
-    <em>parent</em>, not the fork. Every command has to be pointed at the fork
-    explicitly or you're reading upstream's CI and concluding your build never
-    ran. That one cost real time.
-  </p>
-
-  <h2>What I built</h2>
-  <ul>
-    <li>
-      <strong>Nightly images to my own registry,</strong> built by the repaired
-      pipeline above and deployed to the homelab through Portainer.
-    </li>
-    <li>
-      <strong>Backend.</strong> Added nutrition to the recipe list schema with a
-      batched eager-load instead of an N+1 query.
-    </li>
-    <li>
-      <strong>Frontend.</strong> A full editorial redesign: image-forward tiles,
-      a real typographic hierarchy, colored taxonomy tags, dark and light. The
-      root cause of "it looks dated" turned out to be one file: the theme plugin
-      set colors but never component defaults, so every card, button and chip in
-      the app rendered stock Material regardless of palette. Adding defaults
-      there restyled every page with a small, rebase-safe diff.
-    </li>
-    <li>
-      <strong>One-tap filing.</strong> Recipes file into cookbooks from the card
-      itself. It has one genuinely dangerous edge, demonstrated below.
-    </li>
-    <li>
-      <strong>Upstream fix (PR #7881).</strong> The recipe yield display emitted
-      "0.0" into the schema.org JSON-LD for servings-only recipes, poisoning
-      per-serving data for anything that consumed it. I fixed it and added
-      parametrized tests. (Demonstrated below.)
-    </li>
-  </ul>
-
-
-  <h2>The upstream bug, PR #7881</h2>
-  <p>
-    Mealie emits schema.org JSON-LD for every recipe, which is how any consumer
-    (search engines, scrapers, nutrition trackers) reads it. The yield string was
-    built from the yield <em>quantity</em> and the yield <em>text</em>, and a
-    validator coerces an unset quantity to zero. So a recipe with servings but no
-    explicit yield emitted a bare <code>"0.0"</code>. Not missing. Zero.
-  </p>
-  <p>
-    That number is the denominator for anything per-serving. Flip between the
-    builds and watch what a consumer computes.
-  </p>
-
-  <div class="jsonld-demo bleed" data-jsonld>
-    <div class="map-controls">
-      <span class="ctl-label">build</span>
-      <button class="map-btn" type="button" data-fix="before" aria-pressed="true">before #7881</button>
-      <button class="map-btn" type="button" data-fix="after" aria-pressed="false">after #7881</button>
-      <span class="sep"></span>
-      <span class="ctl-label">yield</span>
-      <button class="map-btn" type="button" data-ytype="servings" aria-pressed="true">servings only</button>
-      <button class="map-btn" type="button" data-ytype="text" aria-pressed="false">quantity + text</button>
-    </div>
-
-    <div class="map-controls" data-servings-wrap>
-      <label class="ctl-label" for="servings">count</label>
-      <input id="servings" type="range" data-servings min="1" max="12" step="1" value="4" />
-      <output class="ctl-out" data-servings-out>4</output>
-    </div>
-
-    <pre class="code-out" data-json aria-label="emitted schema.org JSON-LD"></pre>
-    <div class="consumer" data-consumer aria-live="polite"></div>
-
-    <p class="sample-note">
-      Switch to a quantity-and-text yield and it degrades from destructive to
-      merely wrong: <code>"8.0 slices"</code> instead of <code>"8 slices"</code>.
-      That's why it survived. The visible case looked like a cosmetic trailing
-      zero, and the case that actually poisoned the math only fired for
-      servings-only recipes, in emitted metadata nobody reads by eye. The fix
-      handles both (fall back to servings; format the number so whole numbers
-      lose the <code>.0</code>) and ships with parametrized tests over every
-      yield shape.
-    </p>
-  </div>
-
-  <h2>Why recoloring it never worked</h2>
-  <p>
-    Two rounds of theme work went in and it still looked dated. I was moving
-    information around and adjusting a palette, and neither touches the thing
-    that was actually wrong: the theme plugin set <em>colors</em> and never set
-    <em>component defaults</em>, so every card, button and chip in the app kept
-    rendering stock Material underneath whatever palette I gave it. Elevation
-    shadows, 4px radii, filled chips. You cannot recolor your way out of a
-    shape problem.
-  </p>
-  <p>
-    Adding defaults in that one file restyled every page in the app: recipes,
-    search, cookbooks, meal planner, settings. Small diff, rebase-safe, because
-    upstream barely touches it.
+    Two rounds of theme work went in and it still looked dated, because I was
+    changing colours and the problem was shape. Flip between them.
   </p>
 
   <div class="ui-demo bleed" data-ui>
     <div class="map-controls">
       <span class="ctl-label">recipe card</span>
-      <button class="map-btn" type="button" data-ui-mode="stock" aria-pressed="true">stock Material</button>
-      <button class="map-btn" type="button" data-ui-mode="editorial" aria-pressed="false">after the redesign</button>
+      <button class="map-btn" type="button" data-ui-mode="stock" aria-pressed="true">palette only</button>
+      <button class="map-btn" type="button" data-ui-mode="editorial" aria-pressed="false">defaults + rebuild</button>
     </div>
-
-    <div class="ui-stage stock" data-ui-stage>
-      <article class="rcard">
-        <div class="rcard-photo"></div>
-        <div class="rcard-body">
-          <h3 class="rcard-title">Sausages in Blanket</h3>
-          <ul class="rcard-tags">
-            <li>Dinner</li>
-            <li>Quickies</li>
-          </ul>
-          <p class="rcard-meta"><b>208</b> kcal · 4 servings</p>
-        </div>
-      </article>
-    </div>
-
-    <p class="sample-note" data-ui-note aria-live="polite"></p>
+    <div class="ui-stage stock" data-ui-stage></div>
+    <p class="sample-note" data-ui-note></p>
   </div>
 
-  <h2>The share bug that was the whole point</h2>
+  <h2>Why recoloring never worked</h2>
   <p>
-    The reason this migration exists: I track macros in MacroFactor, and the
-    workflow is share a recipe from Mealie, import it there. On the old app that
-    auto-filled. From my fork it came up empty every time, so the migration was
-    dead until it worked.
+    The theme plugin set <em>colors</em> and never set <em>component defaults</em>,
+    so every card, button and chip in the app kept rendering stock Material
+    underneath whatever palette I handed it. Elevation shadows, 4px radii, filled
+    chips. You cannot recolor your way out of a shape problem.
   </p>
   <p>
-    The share call passed three things: a title, a URL, and a text field that
-    happened to be the same string as the title. On iOS, <code>navigator.share</code>
-    maps to a system activity sheet, where the URL arrives as one item type and
-    the text as another. With both present, the receiving app picks. MacroFactor
-    took the string and ignored the URL, so its import field sat blank.
-  </p>
-  <p>
-    The fix was deleting one redundant field. That's it. The failure looked like
-    a broken integration and was actually a platform detail about how two
-    attachment types compete inside a share sheet. It imports now.
+    Adding defaults in that one file restyled every page in the app: recipes,
+    search, cookbooks, meal planner, settings. Small diff, rebase-safe, because
+    upstream barely touches it. The calories only exist at all because of a
+    separate backend change that put nutrition in the list payload.
   </p>
 
-  <h2>The fix that broke production</h2>
-  <p>
-    Worth showing because it went wrong. A code review flagged an N+1: I'd put
-    nutrition on the base recipe summary, so meal plans and shopping lists,
-    which nest that summary, lazy-loaded nutrition per row. The clean fix was a
-    fork-only subclass carrying nutrition, used only by the recipe list.
-  </p>
-  <p>
-    It deployed and the calories vanished from every card. The list route still
-    declared the base class as its response model, and the framework coerces
-    each item to the declared type, dropping fields it doesn't know about. The
-    data was fine. The serialization silently ate it.
-  </p>
-  <p>
-    I reverted to the approach I'd already verified (nutrition on the summary,
-    with a batched eager-load) and accepted the N+1 as a known issue. At ten
-    recipes it costs about thirty milliseconds, and I'd rather carry a measured,
-    documented cost than chase it with a second refactor I can't verify without
-    another deploy. Being right about the N+1 didn't make the fix right.
-  </p>
-
-  <div class="callout">
-    <h2>The discipline</h2>
-    <p>
-      Upstream the generic, fork-carry the opinionated. Generic fixes go
-      upstream so they're maintained forever at no cost to me. Opinionated
-      features stay small and rebasable, so pulling in upstream changes never
-      turns into a merge fight.
-    </p>
-  </div>
-
-  <h2>The one that could quietly destroy his library</h2>
+  <h2>The one that could quietly destroy the library</h2>
   <p>
     Tapping the pill on a card files the recipe into a cookbook. Recipes are
     multi-membership on purpose: one can live in Dinner and DELICIOUS and
@@ -285,11 +98,92 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
       which is exactly why it is the kind of thing that ships wrong: the naive
       version works perfectly on any recipe that is only in one folder, and
       every test you would write by hand starts with a recipe in one folder.
-      Verified on the wire before I trusted it: toggling DELICIOUS onto a recipe
-      already in Dinner has to come back <code>[Dinner, DELICIOUS]</code>, not
-      <code>[DELICIOUS]</code>.
+      Verified on the wire before I trusted it.
     </p>
   </div>
+
+  <h2>The upstream bug, PR #7881</h2>
+  <p>
+    Mealie emits schema.org JSON-LD for every recipe, which is how any consumer
+    (search engines, scrapers, nutrition trackers) reads it. The yield string was
+    built from the yield <em>quantity</em> and the yield <em>text</em>, and a
+    validator coerces an unset quantity to zero. So a recipe with servings but no
+    explicit yield emitted a bare <code>"0.0"</code>. Not missing. Zero — and it
+    is the denominator for anything per-serving.
+  </p>
+
+  <div class="jsonld-demo bleed" data-jsonld>
+    <div class="map-controls">
+      <span class="ctl-label">build</span>
+      <button class="map-btn" type="button" data-fix="before" aria-pressed="true">before #7881</button>
+      <button class="map-btn" type="button" data-fix="after" aria-pressed="false">after #7881</button>
+      <span class="sep"></span>
+      <span class="ctl-label">yield</span>
+      <button class="map-btn" type="button" data-ytype="servings" aria-pressed="true">servings only</button>
+      <button class="map-btn" type="button" data-ytype="text" aria-pressed="false">quantity + text</button>
+    </div>
+
+    <div class="map-controls" data-servings-wrap>
+      <label class="ctl-label" for="servings">count</label>
+      <input id="servings" type="range" data-servings min="1" max="12" step="1" value="4" />
+      <output class="ctl-out" data-servings-out>4</output>
+    </div>
+
+    <pre class="code-out" data-json aria-label="emitted schema.org JSON-LD"></pre>
+    <div class="consumer" data-consumer aria-live="polite"></div>
+
+    <p class="sample-note">
+      Switch to a quantity-and-text yield and it degrades from destructive to
+      merely wrong: <code>"8.0 slices"</code> instead of <code>"8 slices"</code>.
+      That's why it survived. The visible case looked like a cosmetic trailing
+      zero, and the case that actually poisoned the math only fired for
+      servings-only recipes, in emitted metadata nobody reads by eye. The fix
+      handles both and ships with parametrized tests over every yield shape.
+    </p>
+  </div>
+
+  <h2>Why the fork exists</h2>
+  <p>
+    I'm moving roughly 300 recipes off a commercial app with two structural
+    problems. Its search indexes the title and nothing else, so searching
+    "Worcestershire" returns zero results for the recipes that call for it. And
+    there is no nutrition field anywhere in its data model, which makes the one
+    thing I actually want impossible rather than merely missing.
+  </p>
+  <p>
+    Same model as my Android fork: own the code so "I wish it had X" becomes
+    something you just do. Upstream the generic, fork-carry the opinionated. The
+    yield fix is broadly useful, so it goes upstream and gets maintained forever
+    at no cost to me. The macro-first UI is mine and upstream would never take
+    it, which is fine — it stays small and rebasable.
+  </p>
+
+  <h2>The CI that went green and built nothing</h2>
+  <p>
+    Upstream's pipeline is built for upstream, and none of it works on a fork.
+    Four things had to be fixed; only the first was dangerous.
+  </p>
+  <ul>
+    <li>
+      <strong>The publish job was gated to the upstream repo.</strong>
+      <code>if: github.repository == 'mealie-recipes/mealie'</code>. On a fork
+      that is false, so the job is skipped, the run reports <strong>green</strong>,
+      and no image is ever built. A pipeline that fails loudly costs you ten
+      minutes. One that succeeds while doing nothing costs you however long it
+      takes to notice.
+    </li>
+    <li>
+      It built through a paid service I have no token for; swapped for stock
+      buildx with layer caching. It pushed to the maintainer's namespace; I
+      publish to my own. The registry rejects uppercase image names and my
+      username has capitals, so the repo name gets lowercased explicitly.
+    </li>
+    <li>
+      A related trap: the CLI in that repo defaults to the <em>parent</em>, not
+      the fork. Point every command at the fork explicitly or you're reading
+      upstream's CI and concluding your build never ran.
+    </li>
+  </ul>
 
   <script is:inline src="/js/mealie-demo.js" defer></script>
   <script is:inline src="/js/wipe-demo.js" defer></script>

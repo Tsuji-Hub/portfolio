@@ -5,58 +5,113 @@ import Base from '../layouts/Base.astro';
 <Base
   title="About — Ethan Justice"
   path="/about/"
-  description="Ethan Justice — cloud security analyst. M.S. Cybersecurity, Lewis University. Google Cloud, ISC2 CC. DOE CyberForce and CCDC competitor."
+  description="Ethan Justice — cloud security analyst. What I think about building systems that fail safely, and the projects where I proved it."
 >
   <div class="wrap prose">
     <h1>About</h1>
 
     <p class="lede">
       I'm a cloud security analyst. I govern cloud environments for a Fortune
-      500 insurer, which mostly means secure configuration management and the
-      automation around it.
+      500 insurer by day, and run my own infrastructure like production by
+      night.
     </p>
     <p>
-      I came up through Lewis University's 4+1 program and a run of collegiate
-      cyber competitions, which is where I learned that the interesting part of
-      security is never the exploit. It's whether the thing was built so the
-      exploit had somewhere to go.
+      The through-line, if there is one: the interesting part of security is
+      never the exploit. It's whether the thing was built so the exploit had
+      somewhere to go. That's a design question, and it gets decided long before
+      anyone attacks you.
     </p>
+
+    <h2>What I actually think</h2>
     <p>
-      Outside work I run a homelab like it's production. The projects on this
-      site are where I keep the same instinct sharp: build it, break it, back it
-      up, and prove the backup restores.
+      Anyone can assert these. So each one links to the place on this site where
+      you can watch it hold.
     </p>
 
-    <h2>Education</h2>
+    <ol class="positions">
+      <li>
+        <p class="pos-claim">
+          The guard has to be architectural, not textual.
+        </p>
+        <p class="pos-where">
+          "Don't reveal X" in a prompt fails the first time someone is clever or
+          insistent. The only defense that holds is an agent that doesn't
+          possess the thing. Send it an injection and watch it have nothing to
+          give up. <a href="/projects/jarvis/">try to break it →</a>
+        </p>
+      </li>
+      <li>
+        <p class="pos-claim">
+          A backup that has never been restored is a hope, not a backup.
+        </p>
+        <p class="pos-where">
+          Same for isolation. Kill the tunnel and the workloads lose the
+          internet rather than quietly falling back to the LAN, because the
+          fallback route doesn't exist.
+          <a href="/projects/homelab/#trace=bypass">watch it fail closed →</a>
+        </p>
+      </li>
+      <li>
+        <p class="pos-claim">
+          Prevention beats detection, and it isn't close.
+        </p>
+        <p class="pos-where">
+          A control that evaluates at creation has no exposure window to
+          measure. Detection's best case still costs you the lag plus however
+          long a human takes.
+          <a href="/projects/cloud-security/">run the timeline →</a>
+        </p>
+      </li>
+      <li>
+        <p class="pos-claim">
+          Measure before you optimise, or you'll spend the night on the wrong
+          thing.
+        </p>
+        <p class="pos-where">
+          I instrumented my voice assistant expecting text-to-speech to be the
+          bottleneck. It was the fastest stage in the pipeline.
+          <a href="/projects/jarvis/">build the pipeline →</a>
+        </p>
+      </li>
+      <li>
+        <p class="pos-claim">
+          Run what you build.
+        </p>
+        <p class="pos-where">
+          I ship my own images of the recipe app my household actually eats
+          from, so every regression I write lands on the machine I use at
+          dinner. It's the fastest feedback loop I have.
+          <a href="/projects/mealie/">see the bug →</a>
+        </p>
+      </li>
+      <li>
+        <p class="pos-claim">
+          Own the code, and "I wish it had X" becomes a thing you just do.
+        </p>
+        <p class="pos-where">
+          Eleven releases of a manga reader later, that has been true every
+          time. <a href="/projects/makimono/">drive the reader →</a>
+        </p>
+      </li>
+    </ol>
+
+    <h2>The credentials, briefly</h2>
     <dl class="facts">
       <div class="fact">
-        <dt>M.S. Cybersecurity</dt>
-        <dd>Lewis University, 2025</dd>
+        <dt>Education</dt>
+        <dd>M.S. Cybersecurity, Lewis University, 2025</dd>
+        <dd>B.S. Cybersecurity, Lewis University, 2024 (4+1 program)</dd>
       </div>
       <div class="fact">
-        <dt>B.S. Cybersecurity</dt>
-        <dd>Lewis University, 2024 (4+1 program)</dd>
+        <dt>Certifications</dt>
+        <dd>Google Cloud Digital Leader</dd>
+        <dd>ISC2 Certified in Cybersecurity (CC)</dd>
       </div>
     </dl>
-
-    <h2>Certifications</h2>
-    <dl class="facts">
-      <div class="fact">
-        <dt>Google Cloud</dt>
-        <dd>Cloud Digital Leader</dd>
-      </div>
-      <div class="fact">
-        <dt>ISC2</dt>
-        <dd>Certified in Cybersecurity (CC)</dd>
-      </div>
-    </dl>
-
-    <h2>Earlier</h2>
     <p class="muted fineprint">
-      Collegiate competitions, 2021–2022: 5th of 160 and 10th of 120 at the
-      Department of Energy CyberForce, 1st in the Lewis University CTF, and CCDC.
-      Where the instinct came from, and old enough now that the work above is
-      the better argument.
+      Earlier, 2021–2022: 5th of 160 and 10th of 120 at the Department of Energy
+      CyberForce, 1st in the Lewis University CTF, and CCDC. Where the instinct
+      came from, and old enough now that the work above is the better argument.
     </p>
 
     <h2>Beyond work</h2>
@@ -80,5 +135,4 @@ import Base from '../layouts/Base.astro';
       Web version: no phone number, no street address.
     </p>
   </div>
-
 </Base>

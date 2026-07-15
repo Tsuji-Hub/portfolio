@@ -1467,6 +1467,39 @@ input[type='range'] {
 .ui-stage.editorial .rcard-yield { color: #8e8e96; }
 .ui-stage.editorial .rcard-icons { color: #8e8e96; }
 
+/* ---- Positions, each with a receipt ---- */
+.positions {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+.positions li {
+  margin: 0;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+.pos-claim {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+.pos-where {
+  margin: 0.45rem 0 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+.pos-where a {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
 /* ---- SOAR workflow canvas ---- */
 .flow-demo {
   margin: 1.5rem 0 0;

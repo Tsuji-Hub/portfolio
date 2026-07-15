@@ -860,6 +860,74 @@ input[type='range'] {
   font-weight: 500;
 }
 
+/* ---- Latency lab (real-time playback) ---- */
+.lab {
+  margin: 1.5rem 0 0;
+}
+.lab svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-top: 0.4rem;
+}
+.lab-seg {
+  transition: opacity var(--speed) ease;
+}
+.lab-seg rect {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.lab-seg.s-silence rect { fill: color-mix(in srgb, var(--accent) 22%, var(--bg-raised)); }
+.lab-seg.s-stt rect     { fill: color-mix(in srgb, var(--accent) 78%, var(--bg-raised)); }
+.lab-seg.s-model rect   { fill: color-mix(in srgb, var(--accent) 50%, var(--bg-raised)); }
+.lab-seg.s-tts rect     { fill: color-mix(in srgb, var(--accent) 14%, var(--bg-raised)); }
+.lab-seg.done rect { stroke: var(--accent); stroke-width: 2; }
+.lab-seg text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  fill: var(--text);
+  pointer-events: none;
+}
+.lab-seg .lab-ms { font-size: 10px; fill: var(--muted); }
+.lab-axis {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  fill: var(--muted);
+}
+#lab-head line {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+#lab-head circle { fill: var(--accent); }
+#lab-head { opacity: 0; transform-box: view-box; transform-origin: 0 0; }
+#lab-head.is-live { opacity: 1; }
+.lab-readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.6rem;
+  align-items: baseline;
+  margin-top: 0.9rem;
+  font-family: var(--font-mono);
+}
+.lab-clock {
+  font-size: 1.6rem;
+  color: var(--accent);
+  min-width: 6.5rem;
+  font-variant-numeric: tabular-nums;
+}
+.lab-total { font-size: 0.8rem; color: var(--muted); }
+.lab-delta { font-size: 0.8rem; }
+.lab-delta.better { color: var(--accent); }
+.lab-delta.worse { color: var(--danger); }
+.lab-note {
+  margin-top: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  min-height: 2.6rem;
+  border-left: 2px solid var(--border);
+  padding-left: 0.8rem;
+}
+
 /* ---- Latency pipeline (static, measured) ---- */
 .pipeline {
   margin: 1.25rem 0 0;

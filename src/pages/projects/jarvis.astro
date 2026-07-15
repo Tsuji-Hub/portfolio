@@ -145,19 +145,56 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     rather than guessing, and the profile was not what I expected.
   </p>
 
-  <div class="pipeline">
-    <div class="pipe-bar" role="img" aria-label="Measured response latency, 3.45 seconds total: silence wait 900ms, speech-to-text 1194ms, model 970ms, text-to-speech 384ms">
-      <div class="pipe-seg s1"></div>
-      <div class="pipe-seg s2"></div>
-      <div class="pipe-seg s3"></div>
-      <div class="pipe-seg s4"></div>
+  <p>
+    Build a pipeline and listen to it. The playback is <strong>real time</strong>:
+    3.4 seconds of waiting is 3.4 seconds of waiting. That gap is the whole
+    problem, and no bar chart has ever conveyed it.
+  </p>
+
+  <div class="lab bleed" data-lab>
+    <div class="map-controls">
+      <span class="ctl-label">turn end</span>
+      <button class="map-btn" type="button" data-opt="silence" data-val="900" aria-pressed="true">fixed 900ms</button>
+      <button class="map-btn" type="button" data-opt="silence" data-val="600" aria-pressed="false">tuned 600ms</button>
+      <button class="map-btn" type="button" data-opt="silence" data-val="150" aria-pressed="false">semantic turn ≈150ms</button>
     </div>
-    <ul class="pipe-key">
-      <li><span class="sw s1"></span><b>900ms</b> silence wait — deciding you're done</li>
-      <li><span class="sw s2"></span><b>1194ms</b> speech-to-text — Whisper large-v3-turbo on the 3070</li>
-      <li><span class="sw s3"></span><b>970ms</b> model — Gemini 3.1 Flash Lite</li>
-      <li><span class="sw s4"></span><b>384ms</b> text-to-speech — Kokoro, already streaming</li>
-    </ul>
+    <div class="map-controls">
+      <span class="ctl-label">speech-to-text</span>
+      <button class="map-btn" type="button" data-opt="stt" data-val="1194" aria-pressed="true">Whisper · beam 5</button>
+      <button class="map-btn" type="button" data-opt="stt" data-val="800" aria-pressed="false">Whisper · greedy</button>
+      <button class="map-btn" type="button" data-opt="stt" data-val="225" aria-pressed="false">Parakeet TDT ≈225ms</button>
+    </div>
+    <div class="map-controls">
+      <span class="ctl-label">model</span>
+      <button class="map-btn" type="button" data-opt="model" data-val="970" aria-pressed="true">wait for the full reply</button>
+      <button class="map-btn" type="button" data-opt="model" data-val="500" aria-pressed="false">stream first sentence ≈500ms</button>
+      <span class="sep"></span>
+      <button class="map-btn" type="button" data-lab-run>▶ "hey Jarvis, play Funkytown"</button>
+    </div>
+
+    <svg viewBox="0 0 900 100" data-lab-svg role="img" aria-label="Speech pipeline latency, played back in real time">
+      <text class="lab-axis" x="24" y="22">you stop talking</text>
+      <text class="lab-axis" x="876" y="22" text-anchor="end">first sound back</text>
+      <g data-lab-track></g>
+      <g id="lab-head">
+        <line x1="0" y1="28" x2="0" y2="86"></line>
+        <circle cx="0" cy="28" r="4"></circle>
+      </g>
+    </svg>
+
+    <div class="lab-readout">
+      <span class="lab-clock" data-lab-clock>0 ms</span>
+      <span class="lab-total" data-lab-total></span>
+      <span class="lab-delta" data-lab-delta></span>
+    </div>
+    <p class="lab-note" data-lab-note></p>
+    <p class="sample-note">
+      Measured on the live bot with timing instrumentation, from the moment
+      speech stops to first audio out. The Parakeet and streaming figures are
+      estimates from the roadmap, not measurements; everything else is real.
+      Kokoro is fixed here because it is already sentence-streaming and is not
+      the bottleneck.
+    </p>
   </div>
 
   <p>
@@ -207,4 +244,5 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
   </p>
 
   <script is:inline src="/js/jarvis-demo.js" defer></script>
+  <script is:inline src="/js/jarvis-lab.js" defer></script>
 </ProjectLayout>

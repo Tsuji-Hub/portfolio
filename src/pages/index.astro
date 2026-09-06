@@ -5,20 +5,67 @@ import { projects } from '../data/projects.js';
 
 <Base title="Ethan Justice — Cloud Security Analyst" path="/">
   <div class="wrap">
-    <section class="hero prose">
-      <h1>Ethan Justice</h1>
-      <p class="lede">
-        Cloud security analyst. I govern cloud environments for a Fortune 500
-        insurer by day, and run my own infrastructure like production by night.
-      </p>
-    </section>
+    <section class="hero-split">
+      <div>
+        <p class="label hero-eyebrow" data-reveal>
+          Cloud security analyst · governance · automation
+        </p>
+        <h1 class="hero-title" data-reveal>Ethan Justice</h1>
+        <p class="hero-lede" data-reveal>
+          I govern cloud environments for a Fortune 500 insurer by day, and run
+          my own infrastructure <span class="accent text-glow">like production</span>
+          by night.
+        </p>
 
-    <ul class="stats" aria-label="At a glance">
-      <li><strong>1,100+</strong> GCP projects brought under governance</li>
-      <li><strong>11</strong> releases of my Android fork shipped</li>
-      <li><strong>13-container</strong> stack, restore-tested backups</li>
-      <li><strong>12.7k-star</strong> project, one upstream fix of mine open</li>
-    </ul>
+        <div class="hero-actions" data-reveal>
+          <a class="btn btn-accent" href="#work">
+            See the work
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19" /><polyline points="19 12 12 19 5 12" />
+            </svg>
+          </a>
+          <a class="btn" href="/Ethan-Justice-Resume.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+            </svg>
+            Résumé
+          </a>
+        </div>
+
+        <dl class="hero-stats" data-reveal>
+          <div>
+            <dt>1,100+</dt>
+            <dd>GCP projects governed</dd>
+          </div>
+          <div>
+            <dt>11</dt>
+            <dd>releases shipped</dd>
+          </div>
+          <div>
+            <dt>13</dt>
+            <dd>containers, tested restores</dd>
+          </div>
+          <div>
+            <dt>12.7k★</dt>
+            <dd>project, one fix of mine open</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div data-canvas>
+        <div class="hero-canvas">
+          <div class="hero-canvas-head">
+            <span class="label">homelab · live topology</span>
+            <span class="live"><span class="dot" aria-hidden="true"></span>sanitized</span>
+          </div>
+          <canvas
+            data-topology
+            role="img"
+            aria-label="Diagram of a self-hosted homelab: a hypervisor at the centre linked to storage, a GPU media VM, containers, a VPN namespace, a TLS proxy, monitoring and nightly backups."
+          ></canvas>
+        </div>
+      </div>
+    </section>
 
     <section class="selftest" data-selftest>
       <h2 class="section-label">this page is the first exhibit</h2>
@@ -81,6 +128,8 @@ import { projects } from '../data/projects.js';
     </div>
   </div>
 
+  <script is:inline src="/js/topology.js" defer></script>
+  <script>import "../scripts/reveal.ts";</script>
   <script is:inline src="/js/selftest.js" defer></script>
   <script is:inline src="/js/manifest.js" defer></script>
 </Base>

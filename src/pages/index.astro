@@ -1,0 +1,13 @@
+---
+import Base from "@/layouts/Base.astro";
+import Hero from "@/components/Hero";
+import Bento from "@/components/Bento";
+---
+
+<Base
+  title="Ethan Justice · Cloud Security Analyst"
+  description="Cloud security analyst focused on governance, risk-based controls, and security automation. Homelab run like production, an Android fork with real users, upstream open-source contributions."
+>
+  <Hero client:load />
+  <Bento client:visible />
+</Base>

@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+/* ---------- Design tokens: deep monochrome + one electric accent ---------- */
+@theme {
+  --color-obsidian: #07080a;
+  --color-obsidian-900: #0b0d10;
+  --color-obsidian-800: #111419;
+  --color-obsidian-700: #181c22;
+  --color-line: #232830;
+  --color-line-strong: #2f3641;
+  --color-ink: #f4f5f7;
+  --color-ink-muted: #8d95a1;
+  --color-ink-faint: #5c6470;
+  --color-accent: #2ee6ff;
+  --color-accent-deep: #0aa9c2;
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "Cascadia Mono", monospace;
+
+  --shadow-glow: 0 0 0 1px rgba(46, 230, 255, 0.25), 0 0 40px -8px rgba(46, 230, 255, 0.45);
+  --shadow-card: 0 1px 0 0 rgba(255, 255, 255, 0.03) inset, 0 20px 50px -30px rgba(0, 0, 0, 0.8);
+
+  --radius-xl2: 1.25rem;
+}
+
+/* ---------- Base ---------- */
+html {
+  background: var(--color-obsidian);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100dvh;
+  /* faint editorial grain + top glow, pure CSS, no assets */
+  background-image:
+    radial-gradient(1200px 600px at 20% -10%, rgba(46, 230, 255, 0.07), transparent 60%),
+    radial-gradient(800px 400px at 90% 10%, rgba(46, 230, 255, 0.04), transparent 60%);
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-obsidian);
+}
+
+/* Reveal elements start hidden ONLY when JS is present; GSAP brings them in.
+   No JS (or reduced motion): everything is simply visible. */
+html.js [data-reveal],
+html.js [data-card],
+html.js [data-canvas] {
+  opacity: 0;
+  transform: translateY(18px);
+  will-change: opacity, transform;
+}
+html.js [data-canvas] {
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.js [data-reveal],
+  html.js [data-card],
+  html.js [data-canvas] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Utilities ---------- */
+@utility glass {
+  background: rgba(11, 13, 16, 0.55);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@utility glass-strong {
+  background: rgba(11, 13, 16, 0.78);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@utility text-glow {
+  text-shadow: 0 0 24px rgba(46, 230, 255, 0.35);
+}
+
+@utility hairline {
+  border: 1px solid var(--color-line);
+}
+
+@utility label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+/* Bento card hover: scale + glow, transform only (cheap) */
+.bento-card {
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 220ms ease, border-color 220ms ease;
+}
+.bento-card:hover {
+  transform: translateY(-3px) scale(1.012);
+  box-shadow: var(--shadow-glow), var(--shadow-card);
+  border-color: rgba(46, 230, 255, 0.35);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bento-card,
+  .bento-card:hover {
+    transition: none;
+    transform: none;
+  }
+}

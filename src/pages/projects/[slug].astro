@@ -1,0 +1,45 @@
+---
+import Base from "@/layouts/Base.astro";
+import { PROJECTS } from "@/data/projects";
+
+export function getStaticPaths() {
+  return PROJECTS.map((p) => ({ params: { slug: p.slug }, props: { project: p } }));
+}
+const { project } = Astro.props;
+---
+
+<Base title={`${project.title} · Ethan Justice`} description={project.summary}>
+  <article class="mx-auto max-w-3xl px-6 pb-20 pt-32">
+    <p class="label mb-4">{project.kicker}</p>
+    <h1 class="text-4xl font-semibold tracking-[-0.02em] md:text-5xl">{project.title}</h1>
+    {project.status && (
+      <span class="mt-4 inline-block rounded-full border border-accent/40 px-3 py-1 font-mono text-xs text-accent">{project.status}</span>
+    )}
+    <p class="mt-6 text-lg leading-relaxed text-ink-muted">{project.summary}</p>
+
+    <h2 class="label mt-12 mb-4">What I built</h2>
+    <ul class="space-y-4">
+      {project.bullets.map((b) => (
+        <li class="hairline rounded-xl2 bg-obsidian-800/60 p-5 leading-relaxed">{b}</li>
+      ))}
+    </ul>
+
+    <h2 class="label mt-12 mb-3">What it demonstrates</h2>
+    <p class="leading-relaxed text-ink-muted">{project.demonstrates}</p>
+
+    <h2 class="label mt-10 mb-3">Stack</h2>
+    <ul class="flex flex-wrap gap-2">
+      {project.stack.map((s) => (
+        <li class="rounded-full border border-line px-3 py-1 font-mono text-xs text-ink-muted">{s}</li>
+      ))}
+    </ul>
+
+    {project.link && (
+      <a href={project.link.href} class="mt-10 inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-obsidian hover:bg-white">
+        {project.link.label} →
+      </a>
+    )}
+
+    <p class="mt-14 font-mono text-xs text-ink-faint">Architecture diagram and the longer writeup are on the way.</p>
+  </article>
+</Base>

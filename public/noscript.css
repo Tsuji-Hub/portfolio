@@ -18,10 +18,21 @@
 }
 
 [data-reveal],
-[data-card],
-[data-canvas] {
+[data-card] {
   opacity: 1 !important;
   transform: none !important;
+}
+
+/* 4. The hero canvas is drawn by JS. With none, it would render as an empty
+      bordered box, which reads as broken. Hide it and let the hero go
+      single-column; the full homelab diagram on /projects/homelab has a real
+      text fallback of its own. */
+[data-canvas] {
+  display: none !important;
+}
+.hero-split {
+  grid-template-columns: 1fr !important;
+  min-height: 0 !important;
 }
 
 .nav-toggle {
@@ -32,3 +43,9 @@
   flex-wrap: wrap;
   justify-content: flex-end;
 }
+
+/* 5. The self-attack panel is JS by definition. With none, hide the inert
+      controls and say so rather than leaving a manifest reading "counting..."
+      forever. */
+.js-only { display: none !important; }
+.js-required { display: block !important; }

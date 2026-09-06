@@ -157,7 +157,7 @@
           .catch(function (e) {
             return {
               blocked: true,
-              msg: e.name + ': refused. No connect-src is set, so it falls back to default-src none.',
+              msg: e.name + ": refused. connect-src is 'self', and example.com is not self.",
             };
           });
       },

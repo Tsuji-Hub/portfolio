@@ -2367,3 +2367,6 @@ canvas.field {
   margin: 0;
 }
 .fact dd + dd { margin-top: 0.15rem; }
+
+/* Shown only when scripting is off (flipped by /noscript.css). */
+.js-required { display: none; }

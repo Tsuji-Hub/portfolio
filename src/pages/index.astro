@@ -99,7 +99,13 @@ const ICONS: Record<string, string> = {
         are the browser refusing, and reporting why.
       </p>
 
-      <div class="map-controls">
+      <p class="js-required">
+        These attacks run in JavaScript, and you have it switched off, so there
+        is nothing here to run. The page still works without it — which is the
+        other half of the same argument.
+      </p>
+
+      <div class="map-controls js-only">
         <button class="map-btn" type="button" data-atk="all">run all →</button>
         <span class="sep"></span>
         <button class="map-btn" type="button" data-atk="eval">eval()</button>
@@ -117,12 +123,12 @@ const ICONS: Record<string, string> = {
         <code data-policy-text></code>
       </div>
 
-      <p class="selftest-intro">
+      <p class="selftest-intro js-only">
         And here is everything this page fetched to show you itself. Not a claim
         in a footer — your browser's own record, counted against this domain.
       </p>
 
-      <div class="manifest" data-manifest>
+      <div class="manifest js-only" data-manifest>
         <div class="manifest-head">
           <span><b data-mf-count>—</b> requests</span>
           <span><b data-mf-weight>—</b> transferred</span>

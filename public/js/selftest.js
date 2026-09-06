@@ -267,5 +267,9 @@
   // stack rather than a devtools/CDP one, which matters: DevTools is permitted
   // to eval on a CSP-protected page, so driving this from a debugger reports a
   // falsely permissive result for eval().
-  if (window.location.hash === '#selftest') runAll(null);
+  function fromHash() {
+    if (window.location.hash === '#selftest') runAll(null);
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
 })();

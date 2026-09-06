@@ -13,6 +13,16 @@
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { join, extname, resolve } from 'node:path';
+import { brotliCompress, gzip } from 'node:zlib';
+import { promisify } from 'node:util';
+
+const br = promisify(brotliCompress);
+const gz = promisify(gzip);
+
+// Cloudflare compresses text responses. Serving them raw locally punishes CSS
+// and JS size several times harder than production does, which turns any
+// Lighthouse comparison into a measurement of this server rather than the site.
+const COMPRESSIBLE = /^(text\/|application\/(javascript|json|xml))/;
 
 const PORT = Number(process.argv[2] || 4330);
 const ROOT = resolve('dist');
@@ -60,11 +70,22 @@ createServer(async (req, res) => {
   try {
     const s = await stat(file).catch(() => null);
     if (!s || s.isDirectory()) file = join(file, 'index.html');
-    const body = await readFile(file);
-    res.writeHead(200, {
-      ...headers,
-      'Content-Type': TYPES[extname(file)] || 'application/octet-stream',
-    });
+    let body = await readFile(file);
+    const type = TYPES[extname(file)] || 'application/octet-stream';
+    const out = { ...headers, 'Content-Type': type };
+
+    const accept = String(req.headers['accept-encoding'] || '');
+    if (COMPRESSIBLE.test(type) && body.length > 512) {
+      if (/\bbr\b/.test(accept)) {
+        body = await br(body);
+        out['Content-Encoding'] = 'br';
+      } else if (/\bgzip\b/.test(accept)) {
+        body = await gz(body);
+        out['Content-Encoding'] = 'gzip';
+      }
+    }
+    out['Content-Length'] = String(body.length);
+    res.writeHead(200, out);
     res.end(body);
   } catch {
     try {

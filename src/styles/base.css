@@ -25,6 +25,7 @@ html {
 
 body {
   margin: 0;
+  min-height: 100dvh;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
@@ -32,6 +33,40 @@ body {
   line-height: var(--leading-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Two soft accent washes at the top. Pure CSS, no image requests. */
+  background-image:
+    radial-gradient(1200px 600px at 20% -10%, rgba(var(--accent-rgb), 0.07), transparent 60%),
+    radial-gradient(800px 400px at 90% 10%, rgba(var(--accent-rgb), 0.04), transparent 60%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Reveal targets start hidden so GSAP can bring them in. With JS off,
+   /noscript.css (loaded via <noscript>) makes them visible again — the same
+   pattern the homelab diagram uses. Inverting it this way means no inline
+   script, so the CSP needs no hash and never has to be recomputed.
+   Reduced motion also lands them immediately. */
+[data-reveal],
+[data-card] {
+  opacity: 0;
+  transform: translateY(18px);
+  will-change: opacity, transform;
+}
+[data-canvas] {
+  opacity: 0;
+  will-change: opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  [data-card],
+  [data-canvas] {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 h1,
@@ -126,54 +161,223 @@ img, svg { max-width: 100%; height: auto; }
   top: 0.5rem;
 }
 
-/* Site chrome */
-.site-header {
-  border-bottom: 1px solid var(--border);
+/* ---------------- Shared surface utilities ---------------- */
+
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid var(--glass-edge);
 }
-.site-header .wrap {
+.glass-strong {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--glass-edge-strong);
+}
+.text-glow {
+  text-shadow: 0 0 24px rgba(var(--accent-rgb), 0.35);
+}
+.hairline {
+  border: 1px solid var(--border);
+}
+.label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------------- Site chrome: floating glass nav ---------------- */
+
+.site-header {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  padding: 1rem var(--gutter) 0;
+  pointer-events: none; /* only the pill itself is a target */
+}
+.navbar {
+  pointer-events: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding-block: 1rem;
+  width: 100%;
+  max-width: 64rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  transition: background-color 300ms ease, border-color 300ms ease,
+    box-shadow 300ms ease, backdrop-filter 300ms ease;
 }
+/* JS adds .is-scrolled past 24px. */
+.navbar.is-scrolled {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border-color: var(--glass-edge-strong);
+  box-shadow: var(--shadow-nav);
+}
+
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-left: 0.35rem;
   font-family: var(--font-mono);
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--text);
   letter-spacing: -0.02em;
+  white-space: nowrap;
 }
+.brand:hover { text-decoration: none; }
+.brand .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.9);
+  flex: none;
+}
+
 .nav {
   display: flex;
-  gap: 1.25rem;
+  align-items: center;
+  gap: 0.15rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.nav li { margin: 0; }
+.nav a {
+  display: block;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  color: var(--muted);
+  transition: color var(--speed) ease, background-color var(--speed) ease;
+}
+.nav a:hover {
+  color: var(--text);
+  background: var(--bg-elevated);
+  text-decoration: none;
+}
+.nav a[aria-current="page"] { color: var(--text); }
+.nav-socials {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  margin-left: 0.35rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--border);
+}
+.nav-socials a {
+  display: flex;
+  padding: 0.45rem;
+  color: var(--muted);
+}
+.nav-socials svg { width: 16px; height: 16px; display: block; }
+
+.nav-toggle {
+  display: none; /* shown under the mobile breakpoint */
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+.nav-toggle svg { width: 20px; height: 20px; display: block; }
+.nav-toggle .icon-close { display: none; }
+.nav-toggle[aria-expanded='true'] .icon-open { display: none; }
+.nav-toggle[aria-expanded='true'] .icon-close { display: block; }
+
+.nav-panel {
+  pointer-events: auto;
+  display: none;
+  position: absolute;
+  inset-inline: var(--gutter);
+  top: 4.25rem;
+  padding: 0.5rem;
+  border-radius: 1rem;
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--glass-edge-strong);
+  box-shadow: var(--shadow-nav);
+}
+.nav-panel.is-open { display: block; }
+.nav-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.nav-panel a {
+  display: block;
+  padding: 0.7rem 1rem;
+  border-radius: 0.75rem;
   font-family: var(--font-mono);
   font-size: 0.9rem;
+  color: var(--muted);
 }
-.nav a { color: var(--muted); }
-.nav a:hover,
-.nav a[aria-current="page"] { color: var(--text); text-decoration: none; }
+.nav-panel a:hover {
+  color: var(--text);
+  background: var(--bg-elevated);
+  text-decoration: none;
+}
 
-main { padding-block: clamp(2rem, 6vw, 4rem); }
+@media (max-width: 900px) {
+  .nav { display: none; }
+  .nav-toggle { display: inline-flex; }
+}
+
+/* Fixed header, so content clears it. */
+main {
+  padding-block: clamp(5.5rem, 6vw + 4rem, 7.5rem) clamp(2rem, 6vw, 4rem);
+}
+
+/* ---------------- Footer ---------------- */
 
 .site-footer {
-  border-top: 1px solid var(--border);
-  margin-top: 4rem;
-  color: var(--muted);
+  margin-top: 5rem;
+  padding-bottom: 3rem;
+  color: var(--faint);
   font-size: 0.9rem;
 }
 .site-footer .wrap {
-  padding-block: 2rem;
   display: flex;
-  flex-wrap: wrap;
-  gap: 1rem 1.5rem;
-  align-items: center;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+@media (min-width: 780px) {
+  .site-footer .wrap {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
 .site-footer a { color: var(--muted); }
-.site-footer a:hover { color: var(--text); }
-.footer-note {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  margin-left: auto;
+.site-footer a:hover { color: var(--accent); }
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  align-items: center;
 }
 
 .nav a,

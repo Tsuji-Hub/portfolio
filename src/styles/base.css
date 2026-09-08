@@ -145,6 +145,14 @@ a:hover {
   text-decoration: none;
 }
 
+/* The type system declares up to 600. The UA default for strong/b is 700,
+   which for JetBrains Mono matches down to the 600 face and pulled a fifth
+   font file on any page with a bold word inside mono text. */
+strong,
+b {
+  font-weight: 600;
+}
+
 a:focus-visible,
 button:focus-visible,
 [tabindex]:focus-visible {
@@ -768,6 +776,7 @@ a.tile:hover .tile-cta { color: var(--accent); }
 /* Project grid + cards */
 .section-label {
   font-family: var(--font-mono);
+  font-weight: 500;
   font-size: 0.8rem;
   letter-spacing: 0.04em;
   text-transform: lowercase;
@@ -888,6 +897,8 @@ a.card:hover .arrow { color: var(--accent); }
 .status-pill {
   display: inline-block;
   font-family: var(--font-mono);
+  /* Explicit: it sits inside the h1 and would otherwise inherit 700. */
+  font-weight: 500;
   font-size: 0.7rem;
   color: var(--accent);
   border: 1px solid var(--accent);
@@ -1658,7 +1669,6 @@ input[type='range'] {
 }
 .possess li.hasnt {
   color: var(--muted);
-  opacity: 0.5;
   text-decoration: line-through;
 }
 .possess li.leak {
@@ -1796,8 +1806,10 @@ input[type='range'] {
   padding: 0.28rem 0.6rem;
   border-radius: 5px;
   border: 1px solid var(--border);
+  /* Not dimmed with opacity: these are real cookbook names and dimming them
+     to 0.45 put them at 1.9:1. Membership is carried by the accent fill and
+     border on .in, which is a stronger signal than fading anyway. */
   color: var(--muted);
-  opacity: 0.45;
   transition: color var(--speed) ease, border-color var(--speed) ease,
     background-color var(--speed) ease, opacity var(--speed) ease;
 }
@@ -1860,14 +1872,14 @@ input[type='range'] {
 .code-out .s {
   color: var(--text);
 }
-.code-out .bad {
-  color: var(--danger);
-  font-weight: 600;
-}
+.code-out .bad,
 .code-out .good {
-  color: var(--accent);
-  font-weight: 600;
+  /* 500 is the mono weight the rest of the site already loads; 600 pulled a
+     whole extra face to bold two words inside a code block. */
+  font-weight: 500;
 }
+.code-out .bad { color: var(--danger); }
+.code-out .good { color: var(--accent); }
 .consumer {
   margin-top: 0.9rem;
   padding: 0.85rem 1.1rem;
@@ -1945,7 +1957,10 @@ input[type='range'] {
 }
 .ui-stage.stock .rcard-title {
   font-family: var(--font-body);
-  font-weight: 500;
+  /* 600, not 500: Inter 500 is the only place on the site that asked for a
+     fourth Inter face, and pulling a 25 KB font mid-render for one recreated
+     card title cost mealie 300ms of FCP. The stock look survives the change. */
+  font-weight: 600;
   font-size: 1rem;
   color: #fff;
   letter-spacing: 0;

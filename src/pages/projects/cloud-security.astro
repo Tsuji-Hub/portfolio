@@ -149,6 +149,25 @@ import Panel from '../../components/Panel.astro';
         </div>
       </div>
 
+      <div class="flow-compare" data-flow-compare hidden>
+        <div class="flow-compare-grid">
+          <div>
+            <p class="possess-label">automated &middot; Torq</p>
+            <pre class="code-out" data-cmp-auto></pre>
+          </div>
+          <div>
+            <p class="possess-label">by hand &middot; an analyst</p>
+            <pre class="code-out" data-cmp-manual></pre>
+          </div>
+        </div>
+        <p class="flow-verdict">
+          <span class="flow-vt" data-cmp-auto-t>&mdash;</span>
+          <span class="flow-vs">vs</span>
+          <span class="flow-vt slow" data-cmp-manual-t>&mdash;</span>
+          <span class="flow-ratio" data-cmp-ratio></span>
+        </p>
+      </div>
+
       <p class="sample-note">
         Both runs end with the identical payload, deliberately. The workflow does
         nothing an analyst couldn't do by hand — it does it in seconds, at 3am,

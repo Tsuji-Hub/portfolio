@@ -2131,6 +2131,62 @@ input[type='range'] {
 .flow-steps li .t { color: var(--accent); }
 .flow-steps li.slow .t { color: var(--danger); }
 
+/* The two payloads, side by side, so "identical" is something you check
+   rather than something the page asserts. */
+.flow-compare {
+  margin-top: 1.4rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--border);
+  opacity: 0;
+  transition: opacity var(--t-card) ease;
+}
+.flow-compare.is-in { opacity: 1; }
+.flow-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+}
+@media (min-width: 760px) {
+  .flow-compare-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.code-out .ln {
+  display: block;
+  border-radius: 3px;
+  transition: background-color 320ms ease, color 320ms ease;
+}
+/* A field being stamped onto the payload, and a line being checked against
+   its twin. Colour only, so both survive reduce unchanged. */
+.code-out .ln.stamp,
+.code-out .ln.pair {
+  background: rgba(var(--accent-rgb), 0.16);
+  color: var(--text);
+}
+.flow-verdict {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.6rem 0.9rem;
+  margin: 1.1rem 0 0;
+  font-family: var(--font-mono);
+}
+.flow-vt {
+  font-size: 1.5rem;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.flow-vt.slow { color: var(--danger); }
+.flow-vs {
+  font-size: 0.78rem;
+  color: var(--faint);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.flow-ratio {
+  font-size: 0.86rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---- Field: every unit of work as one cell ---- */
 .field-wrap {
   margin: 1.1rem 0 0;

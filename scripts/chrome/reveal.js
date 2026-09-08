@@ -41,7 +41,7 @@
         // Stagger within a row, matching the shell's (i % 3) * 0.08s. Halved
         // under reduce along with the durations.
         el.style.transitionDelay =
-          ((shown % 3) * (window.Motion && window.Motion.reduce ? 0.04 : 0.08)) + 's';
+          ((shown % 3) * (window.Motion && window.Motion.reduce ? 0.03 : 0.06)) + 's';
         shown++;
         el.classList.add('is-in');
       });

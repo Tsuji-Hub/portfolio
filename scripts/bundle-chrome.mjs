@@ -17,7 +17,7 @@ import { join } from 'node:path';
 
 const SRC = 'scripts/chrome';
 // motion.js first: the other parts and every per-page demo read window.Motion.
-const PARTS = ['motion.js', 'nav.js', 'reveal.js', 'topology.js'];
+const PARTS = ['motion.js', 'nav.js', 'reveal.js', 'stats.js', 'topology.js'];
 const OUT = join('dist', 'js', 'site.js');
 
 const header =

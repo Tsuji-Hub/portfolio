@@ -512,6 +512,7 @@ main {
   font-family: var(--font-mono);
   font-size: 1.45rem;
   color: var(--text);
+  font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
 .hero-stats dd {
@@ -1289,6 +1290,49 @@ a.card:hover .arrow { color: var(--accent); }
 }
 .reader-demo.is-paused .hud-dot {
   background: var(--muted);
+}
+/* The controller grows out of its own status dot when auto-scroll starts, the
+   way the app's floating control does. Under reduce it is already at full
+   width and only fades, so nothing expands. */
+.reader-hud {
+  transition: opacity var(--t-card) ease, width 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.reader-hud.is-dot {
+  opacity: 0.6;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reader-hud { transition: opacity var(--t-card) ease; }
+}
+/* The speed readout flashes on change, exactly like the app's does. */
+@keyframes hud-flash {
+  from { color: var(--accent); }
+  to { color: var(--text); }
+}
+.reader-hud .is-bumped {
+  animation: hud-flash 520ms ease-out;
+}
+
+/* Ranking rows arrive in order, and each says how many independent sources
+   put it there. Agreement is the whole ranking model, so it should be on the
+   row rather than only in the pips. */
+.rank-via {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--faint);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.rank-list li {
+  opacity: 0;
+  transform: translateY(var(--motion-shift));
+  transition: opacity var(--t-card) cubic-bezier(0.16, 1, 0.3, 1),
+    transform var(--t-card) cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rank-list li.is-in {
+  opacity: 1;
+  transform: none;
 }
 
 .reader-controls {
@@ -2639,7 +2683,7 @@ canvas.field {
 }
 .rank-list li {
   display: grid;
-  grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+  grid-template-columns: 1.6rem minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 0.75rem;
@@ -2709,6 +2753,28 @@ canvas.field {
   max-width: 20ch;
 }
 .page-hero-title .accent { color: var(--accent); }
+
+/* The accent phrase underlines itself once the headline has arrived: a rule
+   drawn left to right, not a border that was always there. background-size
+   rather than a scaled pseudo-element, so it survives the phrase wrapping
+   across two lines, and because it is paint rather than transform it is
+   information appearing over time and stays under reduce, at half the
+   duration like every other draw. */
+.page-hero-title .accent,
+.hero-lede .accent {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 2px;
+  padding-bottom: 0.08em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  animation: draw-rule var(--t-reveal) cubic-bezier(0.22, 1, 0.36, 1) 0.55s both;
+}
+@keyframes draw-rule {
+  from { background-size: 0 2px; }
+  to { background-size: 100% 2px; }
+}
 .page-hero-lede {
   font-size: var(--step-1);
   line-height: 1.55;
@@ -2746,6 +2812,9 @@ canvas.field {
   font-size: 1.3rem;
   line-height: 1.1;
   color: var(--text);
+  /* Tabular figures: a counter that reflows its own row while it runs reads
+     as a glitch rather than as a measurement. */
+  font-variant-numeric: tabular-nums;
 }
 .stat-strip dd {
   margin: 0.4rem 0 0;

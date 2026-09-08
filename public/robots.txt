@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://portfolio-vmy.pages.dev/sitemap-index.xml
+Sitemap: https://ethanjustice.pages.dev/sitemap-index.xml

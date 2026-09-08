@@ -1,26 +1,96 @@
 ---
 import Base from '../layouts/Base.astro';
 import { projects } from '../data/projects.js';
+
+// The bento's feature tile is 2x2 and has to be placed first for auto-flow to
+// land it top-left. Presentation order only; the data file is untouched.
+const ordered = [
+  ...projects.filter((p) => p.slug === 'cloud-security'),
+  ...projects.filter((p) => p.slug !== 'cloud-security'),
+];
+
+// Inline icon paths. No icon font, no library, no extra request.
+const ICONS: Record<string, string> = {
+  'cloud-security':
+    '<path d="M17.5 19a4.5 4.5 0 0 0 .5-8.97 6 6 0 0 0-11.66-1.4A4 4 0 0 0 6.5 19z"/><path d="m9.5 14.5 1.8 1.8 3.4-3.6"/>',
+  makimono:
+    '<rect x="5" y="2" width="14" height="20" rx="2.5"/><line x1="10.5" y1="18.5" x2="13.5" y2="18.5"/>',
+  homelab:
+    '<rect x="2.5" y="3" width="19" height="7" rx="1.5"/><rect x="2.5" y="14" width="19" height="7" rx="1.5"/><line x1="6.5" y1="6.5" x2="6.6" y2="6.5"/><line x1="6.5" y1="17.5" x2="6.6" y2="17.5"/>',
+  jarvis:
+    '<path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M5.5 10.5V11a6.5 6.5 0 0 0 13 0v-.5"/><line x1="12" y1="17.5" x2="12" y2="21.5"/>',
+  mealie:
+    '<path d="M4 2.5v7a2.5 2.5 0 0 0 5 0v-7"/><line x1="6.5" y1="9.5" x2="6.5" y2="21.5"/><path d="M16 2.5c-1.5 1.5-2 3.5-2 5.5s.5 3 2 3.5v10"/><path d="M20 2.5v19"/>',
+  site:
+    '<rect x="4" y="10.5" width="16" height="10.5" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
+};
 ---
 
 <Base title="Ethan Justice — Cloud Security Analyst" path="/">
   <div class="wrap">
-    <section class="hero prose">
-      <h1>Ethan Justice</h1>
-      <p class="lede">
-        Cloud security analyst. I govern cloud environments for a Fortune 500
-        insurer by day, and run my own infrastructure like production by night.
-      </p>
+    <section class="hero-split">
+      <div>
+        <p class="label hero-eyebrow">
+          Cloud security analyst · governance · automation
+        </p>
+        <h1 class="hero-title">Ethan Justice</h1>
+        <p class="hero-lede">
+          I govern cloud environments for a Fortune 500 insurer by day, and run
+          my own infrastructure <span class="accent text-glow">like production</span>
+          by night.
+        </p>
+
+        <div class="hero-actions" data-reveal>
+          <a class="btn btn-accent" href="#work">
+            See the work
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19" /><polyline points="19 12 12 19 5 12" />
+            </svg>
+          </a>
+          <a class="btn" href="/Ethan-Justice-Resume.pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+            </svg>
+            Résumé
+          </a>
+        </div>
+
+        <dl class="hero-stats" data-reveal>
+          <div>
+            <dt>1,100+</dt>
+            <dd>GCP projects governed</dd>
+          </div>
+          <div>
+            <dt>11</dt>
+            <dd>releases shipped</dd>
+          </div>
+          <div>
+            <dt>13</dt>
+            <dd>containers, tested restores</dd>
+          </div>
+          <div>
+            <dt>12.7k★</dt>
+            <dd>project, one fix of mine open</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div data-canvas>
+        <div class="hero-canvas">
+          <div class="hero-canvas-head">
+            <span class="label">homelab · live topology</span>
+            <span class="live"><span class="dot" aria-hidden="true"></span>sanitized</span>
+          </div>
+          <canvas
+            data-topology
+            role="img"
+            aria-label="Diagram of a self-hosted homelab: a hypervisor at the centre linked to storage, a GPU media VM, containers, a VPN namespace, a TLS proxy, monitoring and nightly backups."
+          ></canvas>
+        </div>
+      </div>
     </section>
 
-    <ul class="stats" aria-label="At a glance">
-      <li><strong>1,100+</strong> GCP projects brought under governance</li>
-      <li><strong>11</strong> releases of my Android fork shipped</li>
-      <li><strong>13-container</strong> stack, restore-tested backups</li>
-      <li><strong>12.7k-star</strong> project, one upstream fix of mine open</li>
-    </ul>
-
-    <section class="selftest" data-selftest>
+    <section class="selftest" id="selftest" data-selftest>
       <h2 class="section-label">this page is the first exhibit</h2>
       <p class="selftest-intro">
         I could tell you I take this seriously. Instead: attack it. Every button
@@ -29,7 +99,13 @@ import { projects } from '../data/projects.js';
         are the browser refusing, and reporting why.
       </p>
 
-      <div class="map-controls">
+      <p class="js-required">
+        These attacks run in JavaScript, and you have it switched off, so there
+        is nothing here to run. The page still works without it — which is the
+        other half of the same argument.
+      </p>
+
+      <div class="map-controls js-only">
         <button class="map-btn" type="button" data-atk="all">run all →</button>
         <span class="sep"></span>
         <button class="map-btn" type="button" data-atk="eval">eval()</button>
@@ -47,12 +123,12 @@ import { projects } from '../data/projects.js';
         <code data-policy-text></code>
       </div>
 
-      <p class="selftest-intro">
+      <p class="selftest-intro js-only">
         And here is everything this page fetched to show you itself. Not a claim
         in a footer — your browser's own record, counted against this domain.
       </p>
 
-      <div class="manifest" data-manifest>
+      <div class="manifest js-only" data-manifest>
         <div class="manifest-head">
           <span><b data-mf-count>—</b> requests</span>
           <span><b data-mf-weight>—</b> transferred</span>
@@ -62,23 +138,76 @@ import { projects } from '../data/projects.js';
       </div>
     </section>
 
-    <h2 class="section-label">projects</h2>
-    <div class="project-grid">
-      {
-        projects.map((p) => (
-          <a class="card" href={`/projects/${p.slug}/`}>
-            <h3>{p.title}</h3>
-            <p>{p.blurb}</p>
-            <ul class="tags" aria-label="Stack">
-              {p.tags.map((t) => (
-                <li>{t}</li>
-              ))}
-            </ul>
-            <span class="arrow">{p.demo} →</span>
-          </a>
-        ))
-      }
-    </div>
+    <section id="work" class="work">
+      <div class="work-head">
+        <div>
+          <p class="label">Selected work</p>
+          <h2>Things I built, and what they prove.</h2>
+        </div>
+        <svg class="shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="m9 12 2 2 4-4" />
+        </svg>
+      </div>
+
+      <div class="bento">
+        {
+          ordered.map((p) => (
+            <a
+              class:list={['tile', 'bento-tile', p.slug === 'cloud-security' && 'tile-feature']}
+              href={`/projects/${p.slug}/`}
+              data-card
+            >
+              <div class="tile-top">
+                <span class="tile-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICONS[p.slug]} />
+                </span>
+                <svg class="tile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" />
+                </svg>
+              </div>
+              <h3>{p.title}</h3>
+              <p>{p.blurb}</p>
+              {p.highlights && (
+                <ul class="tile-highlights">
+                  {p.highlights.map((h) => (
+                    <li>{h}</li>
+                  ))}
+                </ul>
+              )}
+              <ul class="tags" aria-label="Stack">
+                {p.tags.map((t) => (
+                  <li>{t}</li>
+                ))}
+              </ul>
+              <span class="tile-cta">{p.demo} →</span>
+            </a>
+          ))
+        }
+
+        <a class="tile bento-tile" href="#selftest" data-card>
+          <div class="tile-top">
+            <span class="tile-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICONS.site} />
+            </span>
+            <svg class="tile-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" />
+            </svg>
+          </div>
+          <h3>This site</h3>
+          <p>
+            Static, self-hosted fonts, zero third-party requests, strict CSP. It
+            does not ask you to believe that: it attacks itself and prints the
+            browser's own verdict.
+          </p>
+          <ul class="tags" aria-label="Stack">
+            <li>Astro</li>
+            <li>No JS frameworks</li>
+            <li>CSP</li>
+          </ul>
+          <span class="tile-cta">attack it →</span>
+        </a>
+      </div>
+    </section>
   </div>
 
   <script is:inline src="/js/selftest.js" defer></script>

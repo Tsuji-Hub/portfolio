@@ -157,7 +157,7 @@
           .catch(function (e) {
             return {
               blocked: true,
-              msg: e.name + ': refused. No connect-src is set, so it falls back to default-src none.',
+              msg: e.name + ": refused. connect-src is 'self', and example.com is not self.",
             };
           });
       },
@@ -267,5 +267,9 @@
   // stack rather than a devtools/CDP one, which matters: DevTools is permitted
   // to eval on a CSP-protected page, so driving this from a debugger reports a
   // falsely permissive result for eval().
-  if (window.location.hash === '#selftest') runAll(null);
+  function fromHash() {
+    if (window.location.hash === '#selftest') runAll(null);
+  }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
 })();

@@ -1,5 +1,14 @@
-/* Loaded only via <noscript>. Reverts the diagram to its static, no-JS layout:
-   all descriptions visible, the interactive panel and hint hidden. */
+/* Loaded only via <noscript>. Everything here restores the no-JS experience.
+
+   1. The homelab diagram reverts to its static layout: all descriptions
+      visible, the interactive panel and hint hidden.
+   2. Reveal targets are un-hidden. They default to opacity:0 so GSAP can
+      animate them in; with no JS there is nothing to animate them, so they
+      must simply be visible. This inversion is why no inline script (and so
+      no CSP hash) is needed anywhere on the site.
+   3. The nav collapses to plain visible links: the hamburger needs JS, so it
+      is hidden and the link list is shown instead. */
+
 .node-descriptions {
   display: grid !important;
 }
@@ -7,3 +16,36 @@
 .node-hint {
   display: none !important;
 }
+
+[data-reveal],
+[data-card] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* 4. The hero canvas is drawn by JS. With none, it would render as an empty
+      bordered box, which reads as broken. Hide it and let the hero go
+      single-column; the full homelab diagram on /projects/homelab has a real
+      text fallback of its own. */
+[data-canvas] {
+  display: none !important;
+}
+.hero-split {
+  grid-template-columns: 1fr !important;
+  min-height: 0 !important;
+}
+
+.nav-toggle {
+  display: none !important;
+}
+.nav {
+  display: flex !important;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* 5. The self-attack panel is JS by definition. With none, hide the inert
+      controls and say so rather than leaving a manifest reading "counting..."
+      forever. */
+.js-only { display: none !important; }
+.js-required { display: block !important; }

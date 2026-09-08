@@ -42,5 +42,14 @@ export const projects = [
       'Sanitized case studies from cloud security work at a Fortune 500 insurer.',
     tags: ['GCP', 'CSPM', 'SOAR'],
     demo: 'run the timeline',
+    // Shown only on the home page's feature tile, which is twice the size of
+    // the others and needs more than a one-line blurb. These are the case
+    // studies that page actually contains, not new claims.
+    highlights: [
+      'A container supply chain gap closed at the source, not patched downstream',
+      '1,100+ GCP projects validated and mapped to an owning application',
+      'Alert enrichment automated, so a finding arrives actionable',
+      'Recurring misconfigurations turned into policy that denies them at creation',
+    ],
   },
 ];

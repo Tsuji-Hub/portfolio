@@ -46,12 +46,59 @@
       'Defaults set alongside the palette, and the card rebuilt: photo-forward, serif title, taxonomy pill and calorie badge over the image, subtle circular actions. The category pill is a dropdown — one tap files the recipe into a cookbook. Recreated here from the real build; the app uses Fraunces for titles and real photography, neither of which I ship on this site.',
   };
 
+  var M = window.Motion;
+  var seq = M.seq();
+  var currentMode = null;
+
+  /**
+   * Not a cut. The new card is inserted still wearing the old stage class, so
+   * the shared elements have a computed style to leave from, and the class
+   * swap on the next frame transitions the radius, the elevation shadow and
+   * the typography. The structural difference (stock chips against editorial
+   * badges) rides a short crossfade, and the calorie badge counts up, because
+   * it is the number the backend change exists to produce.
+   */
   function set(mode) {
-    stage.className = 'ui-stage ' + mode;
-    stage.innerHTML = CARD[mode];
+    seq.cancel();
+    seq = M.seq();
+    var from = currentMode;
+    currentMode = mode;
     note.textContent = NOTE[mode];
     btns.forEach(function (b) {
       b.setAttribute('aria-pressed', String(b.dataset.uiMode === mode));
+    });
+
+    if (!from) {
+      stage.className = 'ui-stage ' + mode;
+      stage.innerHTML = CARD[mode];
+      countKcal();
+      return;
+    }
+
+    stage.classList.add('is-swapping');
+    stage.className = 'ui-stage ' + from + ' is-swapping';
+    stage.innerHTML = CARD[mode];
+    // Read back a layout value so the browser keeps the old styles as the
+    // transition's starting point rather than collapsing both frames into one.
+    void stage.offsetHeight;
+    requestAnimationFrame(function () {
+      // Keep the dip through the swap: dropping it on the same frame made the
+      // crossfade one frame long, which is no crossfade at all.
+      stage.className = 'ui-stage ' + mode + ' is-swapping';
+      seq.at(M.ms(190, 130), function () {
+        stage.classList.remove('is-swapping');
+      });
+      seq.at(M.ms(240, 160), countKcal);
+    });
+  }
+
+  function countKcal() {
+    var badge = stage.querySelector('.rcard-kcal');
+    if (!badge) return;
+    var target = parseInt(badge.textContent, 10);
+    if (!target) return;
+    seq.count(badge, 0, target, M.ms(900), function (n) {
+      return Math.round(n) + ' kcal';
     });
   }
 

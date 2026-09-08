@@ -5,6 +5,13 @@
 // two-day exposure really is a tenth the width of a three-week one, and the
 // prevented case really is nothing at all. That asymmetry is the argument.
 //
+// The playback is choreographed rather than just scaled: day marks light up as
+// the exposure passes them, the bar's head carries a blinking terminal cursor
+// so a long bar reads as *waiting* rather than as a long bar, and the prevented
+// case starts to draw and is cut to nothing, which is what actually happens at
+// request time. Under reduce the bar still draws, at half the timing; only the
+// blink stops.
+//
 // CSP: external, script-src 'self'. rAF + CSSOM. No eval, no library.
 (function () {
   var root = document.querySelector('[data-clock]');
@@ -19,7 +26,7 @@
   var policyBtn = root.querySelector('[data-policy]');
   var cmdbBtn = root.querySelector('[data-cmdb]');
   var runBtn = root.querySelector('[data-deploy]');
-  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var M = window.Motion;
 
   var X0 = 30;
   var X1 = 880;
@@ -29,7 +36,47 @@
 
   var policy = false;
   var cmdb = true;
-  var rafId = null;
+  var seq = null;
+
+  // Each vertical rule in the grid plus the label that follows it. Grouped
+  // here rather than in the markup so the SVG stays a plain readable scale.
+  var ticks = [];
+  (function () {
+    var grid = root.querySelector('.exp-grid');
+    if (!grid) return;
+    var kids = Array.prototype.slice.call(grid.children);
+    kids.forEach(function (el, i) {
+      if (el.tagName !== 'line') return;
+      if (el.getAttribute('x1') !== el.getAttribute('x2')) return; // the axis
+      var g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('class', 'tick');
+      el.parentNode.insertBefore(g, el);
+      g.appendChild(el);
+      var label = kids[i + 1];
+      if (label && label.tagName === 'text') g.appendChild(label);
+      ticks.push({ x: Number(el.getAttribute('x1')), g: g });
+    });
+  })();
+
+  function lightTicks(headX) {
+    for (var i = 0; i < ticks.length; i++) {
+      ticks[i].g.classList.toggle('is-passed', headX >= ticks[i].x - 0.5);
+    }
+  }
+
+  /** Reveal text one character at a time. Information over time, so it
+      survives reduce at half the rate. */
+  function type(el, text, per) {
+    el.textContent = '';
+    el.classList.add('is-typing');
+    var n = text.length;
+    seq.tween(per * n, function (_, raw) {
+      el.textContent = text.slice(0, Math.round(raw * n));
+    }, function () {
+      el.textContent = text;
+      el.classList.remove('is-typing');
+    }, function (t) { return t; });
+  }
 
   function x(h) {
     return X0 + (Math.min(h, HOURS) / HOURS) * SPAN;
@@ -64,10 +111,10 @@
   }
 
   function clearRun() {
-    if (rafId) {
-      cancelAnimationFrame(rafId);
-      rafId = null;
-    }
+    if (seq) seq.cancel();
+    seq = M.seq();
+    subOut.classList.remove('is-typing');
+    lightTicks(-1);
     bar.setAttribute('width', 0);
     head.classList.remove('is-live');
     denied.classList.remove('shown');
@@ -119,53 +166,62 @@
     var s = scenario();
 
     if (s.denied) {
-      denied.classList.add('shown');
-      windowOut.className = 'exp-window good';
-      windowOut.textContent = 'none';
-      subOut.textContent =
-        'denied at request time. the misconfiguration could not exist, so there is nothing to detect, route, or fix.';
+      // It starts to draw, then the constraint cuts it at the wrist. Seeing
+      // the bar begin and stop is the difference between "there was no
+      // exposure" and "the exposure was prevented".
+      head.classList.add('is-live');
+      windowOut.className = 'exp-window';
+      var stub = 46;
+      seq.tween(M.ms(300), function (e) {
+        bar.setAttribute('width', stub * e);
+        head.style.transform = 'translate(' + (X0 + stub * e) + 'px,0)';
+      }, function () {
+        seq.at(M.ms(140), function () {
+          bar.setAttribute('width', 0);
+          head.classList.remove('is-live');
+          denied.classList.add('shown');
+          seq.anim(denied, [{ opacity: 0 }, { opacity: 1 }], {
+            duration: M.ms(220),
+            easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+            fill: 'forwards',
+          });
+          windowOut.className = 'exp-window good';
+          windowOut.textContent = 'none';
+          type(
+            subOut,
+            'denied at request time. the misconfiguration could not exist, so there is nothing to detect, route, or fix.',
+            M.ms(13, 7)
+          );
+        });
+      });
       return;
     }
 
     head.classList.add('is-live');
     windowOut.className = 'exp-window bad';
+    subOut.textContent = '';
 
     var endH = s.end;
-    var dur = (endH / HOURS) * PLAY_MS;
+    // Under reduce the bar still draws. It used to snap to its final width,
+    // which meant the one thing this demo exists to show never happened.
+    var dur = M.ms((endH / HOURS) * PLAY_MS);
 
-    if (reduce.matches) {
-      bar.setAttribute('width', x(endH) - X0);
-      head.style.transform = 'translate(' + x(endH) + 'px,0)';
-      evLayer.querySelectorAll('.exp-ev').forEach(function (g) {
-        g.classList.add('shown');
-      });
-      windowOut.textContent = s.label;
-      subOut.textContent = s.sub;
-      return;
-    }
-
-    var start = null;
-    function tick(ts) {
-      if (!start) start = ts;
-      var p = Math.min((ts - start) / dur, 1);
-      var h = p * endH;
-      bar.setAttribute('width', Math.max(0, x(h) - X0));
-      head.style.transform = 'translate(' + x(h) + 'px,0)';
+    seq.tween(dur, function (_, raw) {
+      var h = raw * endH;
+      var hx = x(h);
+      bar.setAttribute('width', Math.max(0, hx - X0));
+      head.style.transform = 'translate(' + hx + 'px,0)';
+      lightTicks(hx);
 
       evLayer.querySelectorAll('.exp-ev').forEach(function (g) {
         if (h >= Number(g.dataset.h)) g.classList.add('shown');
       });
 
       windowOut.textContent = h < 24 ? Math.round(h) + ' h' : (h / 24).toFixed(1) + ' d';
-
-      if (p < 1) rafId = requestAnimationFrame(tick);
-      else {
-        rafId = null;
-        windowOut.textContent = s.label;
-        subOut.textContent = s.sub;
-      }
-    }
-    rafId = requestAnimationFrame(tick);
+    }, function () {
+      windowOut.textContent = s.label;
+      type(subOut, s.sub, M.ms(11, 6));
+    }, function (t) { return t; }); // real time, so the wait is the wait
   }
 
   function labels() {
@@ -190,4 +246,9 @@
 
   labels();
   reset();
+
+  // Nothing runs a frame loop off screen.
+  M.onView(root, function () {}, function () {
+    if (seq) seq.cancel();
+  });
 })();

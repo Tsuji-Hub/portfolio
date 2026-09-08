@@ -2155,14 +2155,23 @@ canvas.field {
   color: var(--accent);
   font-variant-numeric: tabular-nums;
   min-width: 7.5rem;
+  transition: color var(--t-card) ease;
+}
+/* When the counter stops being a progress number and becomes the finding, it
+   takes the colour of the eight cells it is talking about. */
+.field-count.is-finding {
+  color: var(--text);
 }
 .field-note {
+  opacity: 0;
+  transition: opacity var(--t-card) ease;
   margin-top: 0.5rem;
   font-size: 0.88rem;
   color: var(--muted);
   border-left: 2px solid var(--border);
   padding-left: 0.8rem;
 }
+.field-note.is-in { opacity: 1; }
 
 /* ---- Exposure clock (animated, fixed 3-week scale) ---- */
 .clock-wrap {
@@ -2173,6 +2182,10 @@ canvas.field {
   height: auto;
   display: block;
 }
+/* The scale stays legible the whole time, because a fixed scale is the
+   argument of this demo. What changes is that each day mark lights up as the
+   exposure passes it, so the bar is measured against something rather than
+   just being long. */
 .exp-grid line {
   stroke: var(--border);
   stroke-width: 1;
@@ -2181,6 +2194,44 @@ canvas.field {
   font-family: var(--font-mono);
   font-size: 10px;
   fill: var(--muted);
+}
+.exp-grid .tick line,
+.exp-grid .tick text {
+  opacity: 0.4;
+  transition: opacity var(--t-card) ease, stroke 300ms ease, fill 300ms ease;
+}
+.exp-grid .tick.is-passed line {
+  opacity: 1;
+  stroke: var(--text);
+}
+.exp-grid .tick.is-passed text {
+  opacity: 1;
+  fill: var(--text);
+}
+
+/* The head of a drawing bar is a terminal cursor: it is waiting, and the
+   blink says so. A blink is a loop, so under reduce it holds steady. */
+.exp-caret {
+  fill: var(--text);
+  animation: exp-blink 1s steps(1, end) infinite;
+}
+@keyframes exp-blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0.15; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .exp-caret { animation: none; opacity: 1; }
+}
+
+/* Typed captions carry their own cursor while they are being typed. */
+.is-typing::after {
+  content: '88';
+  margin-left: 1px;
+  color: var(--accent);
+  animation: exp-blink 1s steps(1, end) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .is-typing::after { animation: none; }
 }
 .exp-lane {
   fill: var(--bg-raised);

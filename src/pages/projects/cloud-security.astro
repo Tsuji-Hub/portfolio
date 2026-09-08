@@ -54,7 +54,9 @@ import Panel from '../../components/Panel.astro';
 
       <div class="field-readout">
         <span class="field-count" data-field-count>0 / 1,100</span>
-        <span>validated and mapped to an owning application</span>
+        <span data-field-label="validated and mapped to an owning application">
+          validated and mapped to an owning application
+        </span>
         <span class="sep"></span>
         <button class="map-btn" type="button" data-field-run>▶ map the estate</button>
       </div>
@@ -188,10 +190,10 @@ import Panel from '../../components/Panel.astro';
             <line x1="30" y1="76" x2="880" y2="76"></line>
             <line x1="30" y1="70" x2="30" y2="82"></line>
             <text x="30" y="18">0</text>
-            <line x1="66" y1="70" x2="66" y2="82"></line>
-            <text x="60" y="18">1d</text>
-            <line x1="132" y1="70" x2="132" y2="82"></line>
-            <text x="126" y="18">2d</text>
+            <line x1="70" y1="70" x2="70" y2="82"></line>
+            <text x="64" y="18">1d</text>
+            <line x1="111" y1="70" x2="111" y2="82"></line>
+            <text x="105" y="18">2d</text>
             <line x1="313" y1="70" x2="313" y2="82"></line>
             <text x="305" y="18">1w</text>
             <line x1="596" y1="70" x2="596" y2="82"></line>
@@ -211,6 +213,7 @@ import Panel from '../../components/Panel.astro';
 
           <g id="exp-head">
             <line x1="0" y1="46" x2="0" y2="78"></line>
+            <rect class="exp-caret" x="1" y="56" width="5" height="12"></rect>
           </g>
         </svg>
       </div>

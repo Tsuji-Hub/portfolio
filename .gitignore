@@ -16,3 +16,6 @@ Thumbs.db
 # local verification scratch (js-off copy, screenshots)
 .nojs/
 .shots/
+
+# frame-strip scratch copy of dist
+.strip/

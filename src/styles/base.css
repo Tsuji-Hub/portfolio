@@ -2106,11 +2106,19 @@ input[type='range'] {
   font-family: var(--font-mono);
   font-size: 0.7rem;
   color: var(--muted);
-  opacity: 0.35;
   margin: 0;
+  /* A step that has not run yet is hidden rather than ghosted at opacity
+     0.35: the row still reserves its space, but the text is out of the
+     accessibility tree and out of the contrast audit, which is honest — the
+     hop genuinely has not happened. */
+  visibility: hidden;
+  opacity: 0;
   transition: opacity var(--speed) ease;
 }
-.flow-steps li.shown { opacity: 1; }
+.flow-steps li.shown {
+  visibility: visible;
+  opacity: 1;
+}
 .flow-steps li .t { color: var(--accent); }
 .flow-steps li.slow .t { color: var(--danger); }
 

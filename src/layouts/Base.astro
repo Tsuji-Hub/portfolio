@@ -90,10 +90,10 @@ const LINKEDIN_PATH =
             ))
           }
           <li class="nav-socials">
-            <a href="https://github.com/Tsuji-Hub" aria-label="GitHub" rel="me">
+            <a href="https://github.com/Tsuji-Hub" aria-label="GitHub" rel="me noopener noreferrer" target="_blank">
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={GITHUB_PATH} /></svg>
             </a>
-            <a href="https://www.linkedin.com/in/justice-ethan" aria-label="LinkedIn" rel="me">
+            <a href="https://www.linkedin.com/in/justice-ethan" aria-label="LinkedIn" rel="me noopener noreferrer" target="_blank">
               <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={LINKEDIN_PATH} /></svg>
             </a>
           </li>
@@ -121,8 +121,8 @@ const LINKEDIN_PATH =
           {navLinks.map((item) => (
             <li><a href={item.href}>{item.label}</a></li>
           ))}
-          <li><a href="https://github.com/Tsuji-Hub" rel="me">github</a></li>
-          <li><a href="https://www.linkedin.com/in/justice-ethan" rel="me">linkedin</a></li>
+          <li><a href="https://github.com/Tsuji-Hub" rel="me noopener noreferrer" target="_blank">github</a></li>
+          <li><a href="https://www.linkedin.com/in/justice-ethan" rel="me noopener noreferrer" target="_blank">linkedin</a></li>
         </ul>
       </div>
     </header>
@@ -135,12 +135,12 @@ const LINKEDIN_PATH =
       <div class="wrap">
         <p>
           Static site. No trackers. Self-hosted fonts. CSP enforced.
-          <a href="https://github.com/Tsuji-Hub/portfolio">View source</a>.
+          <a href="https://github.com/Tsuji-Hub/portfolio" target="_blank" rel="noopener noreferrer">View source</a>.
         </p>
         <p class="footer-links">
           <a href="mailto:justice.ethan04@gmail.com">email</a>
-          <a href="https://www.linkedin.com/in/justice-ethan" rel="me">linkedin</a>
-          <a href="https://github.com/Tsuji-Hub" rel="me">github</a>
+          <a href="https://www.linkedin.com/in/justice-ethan" rel="me noopener noreferrer" target="_blank">linkedin</a>
+          <a href="https://github.com/Tsuji-Hub" rel="me noopener noreferrer" target="_blank">github</a>
           <span>© {year} Ethan Justice</span>
         </p>
       </div>

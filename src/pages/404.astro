@@ -1,11 +1,18 @@
 ---
 import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
 ---
 
 <Base title="Not found — Ethan Justice" path="/404/">
-  <div class="wrap prose">
-    <h1>404</h1>
-    <p>That page isn't here.</p>
-    <p><a href="/">Back to home →</a></p>
+  <div class="wrap">
+    <PageHero
+      kicker="404"
+      title="This page does not exist"
+      accent="does not exist"
+      lede="Which is the correct behaviour. Nothing here serves what it cannot find."
+    />
+    <p class="page-hero-actions">
+      <a class="btn btn-accent" href="/">Back to the work</a>
+    </p>
   </div>
 </Base>

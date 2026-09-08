@@ -138,7 +138,10 @@ a:hover {
   text-underline-offset: 3px;
 }
 .prose .project-links a,
-.prose .back-link a {
+.prose .back-link a,
+.prose .pos-card,
+.prose .btn,
+.prose .back-all {
   text-decoration: none;
 }
 
@@ -2010,38 +2013,6 @@ input[type='range'] {
 .ui-stage.editorial .rcard-icons { color: #8e8e96; }
 
 /* ---- Positions, each with a receipt ---- */
-.positions {
-  list-style: none;
-  margin: 1.25rem 0 0;
-  padding: 0;
-  display: grid;
-  gap: 0.75rem;
-}
-.positions li {
-  margin: 0;
-  padding: 1rem 1.15rem;
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
-  border-radius: var(--radius);
-  background: var(--bg-raised);
-}
-.pos-claim {
-  margin: 0;
-  font-size: 1.02rem;
-  line-height: 1.45;
-  color: var(--text);
-}
-.pos-where {
-  margin: 0.45rem 0 0;
-  font-size: 0.88rem;
-  color: var(--muted);
-}
-.pos-where a {
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-  white-space: nowrap;
-}
-
 /* ---- SOAR workflow canvas ---- */
 .flow-demo {
   margin: 1.5rem 0 0;
@@ -2383,26 +2354,6 @@ canvas.field {
 }
 
 /* Definition rows (about) */
-.facts {
-  margin: 0;
-  display: grid;
-  gap: 0.75rem 1.5rem;
-}
-.fact {
-  border-left: 2px solid var(--border);
-  padding-left: 1rem;
-}
-.fact dt {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--muted);
-  margin-bottom: 0.15rem;
-}
-.fact dd {
-  margin: 0;
-}
-.fact dd + dd { margin-top: 0.15rem; }
-
 /* Shown only when scripting is off (flipped by /noscript.css). */
 .js-required { display: none; }
 
@@ -2670,7 +2621,7 @@ canvas.field {
 }
 .prose-wide > p,
 .prose-wide > ul,
-.prose-wide > ol,
+.prose-wide > ol:not(.positions),
 .prose-wide > dl,
 .prose-wide > h3,
 .prose-wide > blockquote,
@@ -2683,4 +2634,104 @@ canvas.field {
   left: auto;
   width: auto;
   transform: none;
+}
+
+/* ---------------- About: positions as bento cards ---------------- */
+/* Same object as a home tile: a card that lifts and glows on hover and takes
+   you somewhere. Each claim links to the demo where you can watch it hold. */
+
+.positions {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 780px) {
+  .positions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.positions li { margin: 0; }
+.pos-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  height: 100%;
+  padding: 1.3rem 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raised);
+  color: inherit;
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 220ms ease, border-color 220ms ease;
+}
+.pos-card:hover {
+  text-decoration: none;
+  transform: translateY(-3px) scale(1.012);
+  box-shadow: var(--shadow-glow), var(--shadow-card);
+  border-color: rgba(var(--accent-rgb), 0.35);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pos-card, .pos-card:hover { transition: none; transform: none; }
+}
+.pos-claim {
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-wrap: balance;
+}
+.pos-where {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.pos-cta {
+  margin-top: auto;
+  padding-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+
+/* ---------------- About: credentials as stat blocks ---------------- */
+/* The stat strip's vocabulary — mono uppercase caption over the fact — for
+   things that are lists rather than numerals. */
+
+.cred-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.4rem 1.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--border);
+}
+@media (min-width: 780px) {
+  .cred-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.cred { margin: 0; }
+.cred dt {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 0.6rem;
+}
+.cred dd {
+  margin: 0 0 0.35rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+.cred .cred-note {
+  margin-top: 0.7rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* Accent button rows on pages that are not the home hero. */
+.page-hero-actions {
+  margin: 1.75rem 0 0;
 }

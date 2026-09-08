@@ -1,5 +1,74 @@
 ---
 import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import SectionHead from '../components/SectionHead.astro';
+
+// Each position links to the place on this site where you can watch it hold.
+const positions = [
+  {
+    claim: 'The guard has to be architectural, not textual.',
+    body: '"Don\'t reveal X" in a prompt fails the first time someone is clever or insistent. The only defense that holds is an agent that doesn\'t possess the thing. Send it an injection and watch it have nothing to give up.',
+    href: '/projects/jarvis/',
+    cta: 'try to break it',
+  },
+  {
+    claim: 'A backup that has never been restored is a hope, not a backup.',
+    body: 'Same for isolation. Kill the tunnel and the workloads lose the internet rather than quietly falling back to the LAN, because the fallback route does not exist.',
+    href: '/projects/homelab/#trace=bypass',
+    cta: 'watch it fail closed',
+  },
+  {
+    claim: 'Prevention beats detection, and it is not close.',
+    body: 'A control that evaluates at creation has no exposure window to measure. Detection\'s best case still costs you the lag plus however long a human takes.',
+    href: '/projects/cloud-security/',
+    cta: 'run the timeline',
+  },
+  {
+    claim: 'Measure before you optimise, or you will spend the night on the wrong thing.',
+    body: 'I instrumented my voice assistant expecting text-to-speech to be the bottleneck. It was the fastest stage in the pipeline.',
+    href: '/projects/jarvis/',
+    cta: 'build the pipeline',
+  },
+  {
+    claim: 'Run what you build.',
+    body: 'I ship my own images of the recipe app my household actually eats from, so every regression I write lands on the machine I use at dinner. It is the fastest feedback loop I have.',
+    href: '/projects/mealie/',
+    cta: 'see the bug',
+  },
+  {
+    claim: 'Own the code, and "I wish it had X" becomes a thing you just do.',
+    body: 'Eleven releases of a manga reader later, that has been true every time.',
+    href: '/projects/makimono/',
+    cta: 'drive the reader',
+  },
+];
+
+const credentials = [
+  {
+    label: 'Education',
+    items: [
+      'M.S. Cybersecurity, Lewis University, 2025',
+      'B.S. Cybersecurity, Lewis University, 2024 (4+1 program)',
+    ],
+  },
+  {
+    label: 'Certifications',
+    items: [
+      'Google Cloud Digital Leader',
+      'ISC2 Certified in Cybersecurity (CC)',
+      'Torq Automation Practitioner',
+    ],
+  },
+  {
+    label: 'Competitions · 2021–22',
+    items: [
+      'Department of Energy CyberForce, twice',
+      'Lewis University CTF, 1st',
+      'CCDC',
+    ],
+    note: 'Where the instinct came from, and old enough now that the work above is the better argument.',
+  },
+];
 ---
 
 <Base
@@ -7,133 +76,90 @@ import Base from '../layouts/Base.astro';
   path="/about/"
   description="Ethan Justice — cloud security analyst. What I think about building systems that fail safely, and the projects where I proved it."
 >
-  <div class="wrap prose">
-    <h1>About</h1>
+  <div class="wrap">
+    <PageHero
+      kicker="About"
+      title="About"
+      headline="The interesting part is never the exploit"
+      accent="never the exploit"
+      lede="I'm a cloud security analyst. I govern cloud environments for a Fortune 500 insurer by day, and run my own infrastructure like production by night."
+    />
 
-    <p class="lede">
-      I'm a cloud security analyst. I govern cloud environments for a Fortune
-      500 insurer by day, and run my own infrastructure like production by
-      night.
-    </p>
-    <p>
-      The through-line, if there is one: the interesting part of security is
-      never the exploit. It's whether the thing was built so the exploit had
-      somewhere to go. That's a design question, and it gets decided long before
-      anyone attacks you.
-    </p>
+    <div class="prose prose-wide">
+      <p>
+        The exploit is never the interesting part. What matters is whether the
+        thing was built so the exploit had somewhere to go. That's a design
+        question, and it gets decided long before anyone attacks you.
+      </p>
 
-    <h2>What I actually think</h2>
-    <p>
-      Anyone can assert these. So each one links to the place on this site where
-      you can watch it hold.
-    </p>
+      <SectionHead label="Positions" title="What I actually think">
+        <p>
+          Anyone can assert these. So each one links to the place on this site
+          where you can watch it hold.
+        </p>
+      </SectionHead>
 
-    <ol class="positions">
-      <li>
-        <p class="pos-claim">
-          The guard has to be architectural, not textual.
-        </p>
-        <p class="pos-where">
-          "Don't reveal X" in a prompt fails the first time someone is clever or
-          insistent. The only defense that holds is an agent that doesn't
-          possess the thing. Send it an injection and watch it have nothing to
-          give up. <a href="/projects/jarvis/">try to break it →</a>
-        </p>
-      </li>
-      <li>
-        <p class="pos-claim">
-          A backup that has never been restored is a hope, not a backup.
-        </p>
-        <p class="pos-where">
-          Same for isolation. Kill the tunnel and the workloads lose the
-          internet rather than quietly falling back to the LAN, because the
-          fallback route doesn't exist.
-          <a href="/projects/homelab/#trace=bypass">watch it fail closed →</a>
-        </p>
-      </li>
-      <li>
-        <p class="pos-claim">
-          Prevention beats detection, and it isn't close.
-        </p>
-        <p class="pos-where">
-          A control that evaluates at creation has no exposure window to
-          measure. Detection's best case still costs you the lag plus however
-          long a human takes.
-          <a href="/projects/cloud-security/">run the timeline →</a>
-        </p>
-      </li>
-      <li>
-        <p class="pos-claim">
-          Measure before you optimise, or you'll spend the night on the wrong
-          thing.
-        </p>
-        <p class="pos-where">
-          I instrumented my voice assistant expecting text-to-speech to be the
-          bottleneck. It was the fastest stage in the pipeline.
-          <a href="/projects/jarvis/">build the pipeline →</a>
-        </p>
-      </li>
-      <li>
-        <p class="pos-claim">
-          Run what you build.
-        </p>
-        <p class="pos-where">
-          I ship my own images of the recipe app my household actually eats
-          from, so every regression I write lands on the machine I use at
-          dinner. It's the fastest feedback loop I have.
-          <a href="/projects/mealie/">see the bug →</a>
-        </p>
-      </li>
-      <li>
-        <p class="pos-claim">
-          Own the code, and "I wish it had X" becomes a thing you just do.
-        </p>
-        <p class="pos-where">
-          Eleven releases of a manga reader later, that has been true every
-          time. <a href="/projects/makimono/">drive the reader →</a>
-        </p>
-      </li>
-    </ol>
+      <ol class="positions">
+        {
+          positions.map((p) => (
+            <li>
+              <a class="pos-card" href={p.href} data-card>
+                <span class="pos-claim">{p.claim}</span>
+                <span class="pos-where">{p.body}</span>
+                <span class="pos-cta">{p.cta} →</span>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
 
-    <h2>The credentials, briefly</h2>
-    <dl class="facts">
-      <div class="fact">
-        <dt>Education</dt>
-        <dd>M.S. Cybersecurity, Lewis University, 2025</dd>
-        <dd>B.S. Cybersecurity, Lewis University, 2024 (4+1 program)</dd>
+      <SectionHead label="Credentials" title="On paper, briefly" />
+
+      <div class="cred-grid" data-reveal>
+        {
+          credentials.map((c) => (
+            <dl class="cred">
+              <dt>{c.label}</dt>
+              {c.items.map((i) => (
+                <dd>{i}</dd>
+              ))}
+              {c.note && <dd class="cred-note">{c.note}</dd>}
+            </dl>
+          ))
+        }
       </div>
-      <div class="fact">
-        <dt>Certifications</dt>
-        <dd>Google Cloud Digital Leader</dd>
-        <dd>ISC2 Certified in Cybersecurity (CC)</dd>
-        <dd>Torq Automation Practitioner</dd>
-      </div>
-    </dl>
-    <p class="muted fineprint">
-      Earlier, 2021–2022: 5th of 160 and 10th of 120 at the Department of Energy
-      CyberForce, 1st in the Lewis University CTF, and CCDC. Where the instinct
-      came from, and old enough now that the work above is the better argument.
-    </p>
 
-    <h2>Beyond work</h2>
-    <p>
-      PADI certified diver. I read a lot of manga, which is how the Makimono
-      fork started: an itch to fix the reader I use every day.
-    </p>
+      <p class="page-hero-actions">
+        <a class="btn btn-accent" href="/Ethan-Justice-Resume.pdf">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+          </svg>
+          Download résumé (PDF)
+        </a>
+      </p>
+      <p class="muted fineprint">
+        Web version: no phone number, no street address.
+      </p>
 
-    <h2>Contact</h2>
-    <p>
-      <a href="mailto:justice.ethan04@gmail.com">justice.ethan04@gmail.com</a>
-      &nbsp;·&nbsp;
-      <a href="https://www.linkedin.com/in/justice-ethan">LinkedIn</a>
-      &nbsp;·&nbsp;
-      <a href="https://github.com/Tsuji-Hub">GitHub</a>
-    </p>
-    <p>
-      <a href="/Ethan-Justice-Resume.pdf">Download résumé (PDF)</a>
-    </p>
-    <p class="muted fineprint">
-      Web version: no phone number, no street address.
-    </p>
+      <SectionHead label="Beyond work" title="The rest of it" />
+      <p>
+        PADI certified diver. I read a lot of manga, which is how the Makimono
+        fork started: an itch to fix the reader I use every day.
+      </p>
+
+      <SectionHead label="Contact" title="Where to find me" />
+      <p>
+        <a href="mailto:justice.ethan04@gmail.com">justice.ethan04@gmail.com</a>
+        &nbsp;·&nbsp;
+        <a href="https://www.linkedin.com/in/justice-ethan">LinkedIn</a>
+        &nbsp;·&nbsp;
+        <a href="https://github.com/Tsuji-Hub">GitHub</a>
+      </p>
+    </div>
+
+    <div class="page-foot">
+      <p class="label">More</p>
+      <p><a class="back-all" href="/#work">← back to the work</a></p>
+    </div>
   </div>
 </Base>

@@ -11,15 +11,15 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Reduced motion is handled per-rule, not with a blanket
+   `animation-duration: 0.001ms !important` on `*`. That one line is how the
+   whole site became motionless for anyone with animation effects switched off
+   in Windows, including its author: fills, counters and stroke draws are
+   information delivered over time, and they should still run, just calmer.
+   What goes is travel across the screen, so smooth scrolling goes. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    transition-duration: 0.001ms !important;
   }
 }
 
@@ -57,11 +57,11 @@ body {
    no inline script is needed, so the CSP needs no hash. */
 
 @keyframes reveal-in {
-  from { opacity: 0; transform: translateY(18px); }
+  from { opacity: 0; transform: translateY(var(--motion-shift)); }
   to   { opacity: 1; transform: none; }
 }
 @keyframes canvas-in {
-  from { opacity: 0; transform: scale(0.98); }
+  from { opacity: 0; transform: scale(var(--motion-scale)); }
   to   { opacity: 1; transform: none; }
 }
 
@@ -72,37 +72,31 @@ body {
    elements are what stagger in around it. */
 [data-reveal] {
   opacity: 0;
-  animation: reveal-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
+  animation: reveal-in var(--t-reveal) cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
 }
 [data-reveal]:nth-child(5) { animation-delay: 0.21s; }
 
 [data-canvas] {
   opacity: 0;
-  animation: canvas-in 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.4s forwards;
+  animation: canvas-in var(--t-canvas) cubic-bezier(0.22, 1, 0.36, 1)
+    var(--t-canvas-delay) forwards;
 }
 
 /* Cards wait for the viewport; reveal.js adds .is-in. */
 [data-card] {
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(var(--motion-shift));
+  transition: opacity var(--t-card) cubic-bezier(0.16, 1, 0.3, 1),
+    transform var(--t-card) cubic-bezier(0.16, 1, 0.3, 1);
 }
 [data-card].is-in {
   opacity: 1;
   transform: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  [data-reveal],
-  [data-canvas],
-  [data-card] {
-    opacity: 1;
-    transform: none;
-    animation: none;
-    transition: none;
-  }
-}
+/* Under reduce these still fade in, on the halved --t-* timings, with
+   --motion-shift at 0 so nothing slides. They are not pinned to their final
+   state any more; noscript.css still does that for the no-JS case. */
 
 h1,
 h2,

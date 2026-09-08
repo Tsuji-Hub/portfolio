@@ -7,17 +7,15 @@
 // Measured against main on the same server, LCP went 2.1s -> 2.7s. The whole
 // effect is a keyframe and eleven lines of IntersectionObserver.
 //
-// Reduced motion is handled entirely in CSS, which is more reliable than a JS
-// media query because it also covers the case where this file never loads.
+// This runs under reduced motion too. The CSS keeps the fade and drops the
+// travel (--motion-shift goes to 0, --t-card halves), so a card still arrives
+// rather than being pinned to its final state before you get there. With no
+// JS at all, /noscript.css un-hides everything.
 //
 // CSP: external file, script-src 'self'. No eval, no inline handlers.
 (function () {
   var cards = document.querySelectorAll('[data-card]');
   if (!cards.length) return;
-
-  // If the user prefers reduced motion the CSS has already put them in their
-  // final state; there is nothing to observe.
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   if (!('IntersectionObserver' in window)) {
     for (var i = 0; i < cards.length; i++) cards[i].classList.add('is-in');
@@ -28,11 +26,22 @@
     function (entries) {
       var shown = 0;
       entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
         var el = entry.target;
+        if (!entry.isIntersecting) {
+          // Already scrolled past. A jump scroll, a #anchor, or a restored
+          // scroll position can land below a card without it ever
+          // intersecting, and it would then stay at opacity 0 forever.
+          if (entry.boundingClientRect.bottom < 0) {
+            io.unobserve(el);
+            el.classList.add('is-in');
+          }
+          return;
+        }
         io.unobserve(el);
-        // Stagger within a row, matching the shell's (i % 3) * 0.08s.
-        el.style.transitionDelay = (shown % 3) * 0.08 + 's';
+        // Stagger within a row, matching the shell's (i % 3) * 0.08s. Halved
+        // under reduce along with the durations.
+        el.style.transitionDelay =
+          ((shown % 3) * (window.Motion && window.Motion.reduce ? 0.04 : 0.08)) + 's';
         shown++;
         el.classList.add('is-in');
       });

@@ -2,7 +2,10 @@
 //
 // Purposeful rather than decorative: the nodes are the real roles in the stack,
 // sanitized — no hostnames, no addresses, no VM ids. Pulses travel the edges to
-// suggest traffic. Under reduced motion it renders one static frame.
+// suggest traffic. Under reduced motion the graph still draws itself in, edges
+// growing from the hub outward and nodes fading up behind them, at half the
+// timing; what stops is the drifting and the travelling pulses. A static frame
+// was the old behaviour and it read as a dead image.
 //
 // Ported from the React component on redesign/agency-shell. Colours are read
 // from the CSS custom properties instead of hardcoded, so the graph follows the
@@ -61,10 +64,25 @@
   var w = 0, h = 0, dpr = 1, raf = 0;
   var t0 = performance.now();
 
+  // The graph draws itself in once, in both motion modes. Edges grow from the
+  // first node toward the second, then the nodes and labels fade up behind
+  // them, so the picture assembles instead of appearing.
+  var introMs = window.Motion ? window.Motion.ms(1600, 900) : 1600;
+  // The panel itself fades in first (--t-canvas-delay). Starting the draw
+  // underneath that fade means nobody ever sees it, which is how the graph
+  // read as a static image even with the intro running.
+  var introDelay = window.Motion ? window.Motion.ms(380, 200) : 380;
+  // Quadratic, not cubic. A cubic ease-out puts 90% of a stroke draw into the
+  // first third of its duration, which reads as a cut rather than a draw.
+  function easeOut(x) { return 1 - Math.pow(1 - x, 2); }
+
   function px(n) { return { x: n.x * w, y: n.y * h }; }
 
   function draw(now) {
     var t = (now - t0) / 1000;
+    var intro = easeOut(Math.max(0, Math.min(1, (now - t0 - introDelay) / introMs)));
+    // Labels and nodes trail the edges rather than arriving with them.
+    var late = Math.max(0, Math.min(1, (intro - 0.35) / 0.65));
     ctx.clearRect(0, 0, w, h);
 
     if (!reduce) {
@@ -84,7 +102,7 @@
       var B = px(byId[EDGES[e][1]]);
       ctx.beginPath();
       ctx.moveTo(A.x, A.y);
-      ctx.lineTo(B.x, B.y);
+      ctx.lineTo(A.x + (B.x - A.x) * intro, A.y + (B.y - A.y) * intro);
       ctx.stroke();
     }
 
@@ -109,6 +127,7 @@
     }
 
     // nodes + labels
+    ctx.globalAlpha = late;
     ctx.textBaseline = 'middle';
     ctx.font = '500 11px ui-monospace, "JetBrains Mono", monospace';
     for (var j = 0; j < nodes.length; j++) {
@@ -133,8 +152,10 @@
       ctx.textAlign = flip ? 'right' : 'left';
       ctx.fillText(node.label, flip ? P.x - node.r - 8 : tx, P.y);
     }
+    ctx.globalAlpha = 1;
 
-    if (!reduce) raf = requestAnimationFrame(draw);
+    // Under reduce the loop runs only until the graph has finished drawing.
+    if (running && (!reduce || intro < 1)) raf = requestAnimationFrame(draw);
   }
 
   // Setting canvas.width clears the bitmap, so under reduced motion (where there
@@ -156,7 +177,25 @@
   ro.observe(canvas);
   resize();
 
-  if (!reduce) raf = requestAnimationFrame(draw);
+  // Nothing runs a frame loop off screen. Scrolling the hero away stops the
+  // graph; scrolling back resumes it where it was, and a graph that had
+  // finished drawing itself in does not start over.
+  var running = false;
+  var elapsed = 0;
+  function start() {
+    if (running) return;
+    running = true;
+    t0 = performance.now() - elapsed;
+    raf = requestAnimationFrame(draw);
+  }
+  function stop() {
+    if (!running) return;
+    running = false;
+    elapsed = performance.now() - t0;
+    cancelAnimationFrame(raf);
+  }
+  if (window.Motion) window.Motion.onView(canvas, start, stop);
+  else start();
 
   // Repaint on theme flip so the graph picks up the new palette.
   var scheme = window.matchMedia('(prefers-color-scheme: dark)');

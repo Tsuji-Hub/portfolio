@@ -19,6 +19,7 @@
   --accent-deep: #0aa9c2;
   --accent-ink: #07080a; /* text on an accent fill */
   --danger: #ff5f6d; /* blocked/denied state only. Not decoration. */
+  --danger-rgb: 255, 95, 109;
 
   /* Accent as channels, for rgba() composition in canvas and glows */
   --accent-rgb: 46, 230, 255;
@@ -75,6 +76,7 @@
     --accent-deep: #05606f;
     --accent-ink: #ffffff;
     --danger: #d1242f;
+    --danger-rgb: 209, 36, 47;
 
     --accent-rgb: 7, 135, 160;
 

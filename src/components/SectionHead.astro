@@ -1,0 +1,15 @@
+---
+/** Mono label over a sentence-case heading. Replaces the bare bold h2. */
+interface Props {
+  label: string;
+  title: string;
+  id?: string;
+}
+const { label, title, id } = Astro.props;
+---
+
+<div class="sec-head" id={id}>
+  <span class="label">{label}</span>
+  <h2>{title}</h2>
+  <slot />
+</div>

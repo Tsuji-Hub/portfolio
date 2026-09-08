@@ -1,0 +1,38 @@
+---
+/** Prev / next pair in nav order, so a page is never a dead end. Wraps around. */
+import { projects } from '../data/projects.js';
+
+interface Props {
+  slug: string;
+}
+const { slug } = Astro.props;
+
+const i = projects.findIndex((p) => p.slug === slug);
+const prev = i >= 0 ? projects[(i - 1 + projects.length) % projects.length] : null;
+const next = i >= 0 ? projects[(i + 1) % projects.length] : null;
+---
+
+<nav class="page-foot" aria-label="More projects">
+  <span class="label">More work</span>
+  <div class="next-pair">
+    {
+      prev && (
+        <a class="next-card is-prev" href={`/projects/${prev.slug}/`} data-card>
+          <span class="dir">← previous</span>
+          <span class="name">{prev.title}</span>
+          <span class="blurb">{prev.demo}</span>
+        </a>
+      )
+    }
+    {
+      next && (
+        <a class="next-card" href={`/projects/${next.slug}/`} data-card>
+          <span class="dir">next →</span>
+          <span class="name">{next.title}</span>
+          <span class="blurb">{next.demo}</span>
+        </a>
+      )
+    }
+  </div>
+  <p class="back-all"><a href="/#work">← back to the work</a></p>
+</nav>

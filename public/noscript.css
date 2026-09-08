@@ -2,7 +2,7 @@
 
    1. The homelab diagram reverts to its static layout: all descriptions
       visible, the interactive panel and hint hidden.
-   2. Reveal targets are un-hidden. They default to opacity:0 so GSAP can
+   2. Reveal targets are un-hidden. They default to opacity:0 so reveal.js can
       animate them in; with no JS there is nothing to animate them, so they
       must simply be visible. This inversion is why no inline script (and so
       no CSP hash) is needed anywhere on the site.

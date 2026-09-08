@@ -7,14 +7,15 @@
 // score matches main exactly.
 //
 // This runs at BUILD time rather than being a hand-maintained merged file, so
-// nav.js / reveal.js / topology.js stay the editable sources. A checked-in
+// nav.js / reveal.js / topology.js in scripts/chrome/ stay the editable sources
+// (kept out of public/ so the unbundled parts never ship to dist unreferenced). A checked-in
 // concatenation would rot the moment someone edited one of the parts and
 // wondered why nothing changed.
 
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-const SRC = 'public/js';
+const SRC = 'scripts/chrome';
 const PARTS = ['nav.js', 'reveal.js', 'topology.js'];
 const OUT = join('dist', 'js', 'site.js');
 

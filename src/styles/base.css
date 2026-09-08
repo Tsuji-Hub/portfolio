@@ -1398,11 +1398,31 @@ input[type='range'] {
   background: var(--bg-raised);
   margin: 0;
 }
+.atk-row {
+  /* Rows arrive one at a time rather than all at once, so each verdict is
+     read rather than scanned. */
+  opacity: 0;
+  transition: opacity var(--t-card) ease;
+}
+.atk-row.is-in { opacity: 1; }
 .atk-row.blocked {
   border-left-color: var(--accent);
+  --flash-rgb: var(--accent-rgb);
 }
 .atk-row.through {
   border-left-color: var(--danger);
+  --flash-rgb: var(--danger-rgb);
+}
+/* The verdict landing. A single wash in the colour of the outcome. */
+@keyframes atk-land {
+  from { background: rgba(var(--flash-rgb), 0.24); }
+  to { background: var(--bg-raised); }
+}
+.atk-row.flash {
+  animation: atk-land 620ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .atk-row.flash { animation: none; }
 }
 .atk-verdict {
   font-family: var(--font-mono);
@@ -1819,6 +1839,34 @@ input[type='range'] {
   border-color: var(--danger);
   background: color-mix(in srgb, var(--danger) 16%, transparent);
 }
+/* The running count of folders this toggle has silently dropped. It sits with
+   the shelf it is counting, and it is the thing that ticks while the strikes
+   land one at a time. */
+.wipe-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--faint);
+  transition: color var(--t-card) ease;
+}
+.wipe-count.hurt { color: var(--danger); }
+
+/* A folder being struck off, and a folder being checked as kept. Both are
+   colour and a mark, no travel, so reduce keeps them unchanged. */
+.folder.going {
+  background: rgba(var(--danger-rgb), 0.3);
+  border-color: var(--danger);
+}
+.folder.ok::after {
+  content: ' ¹3';
+  color: var(--accent);
+}
+.folder.checking {
+  background: rgba(var(--accent-rgb), 0.22);
+}
+.wipe-damage {
+  opacity: 0;
+  transition: opacity var(--t-card) ease;
+}
+.wipe-damage.is-in { opacity: 1; }
 .wipe-damage {
   margin-top: 0.9rem;
   font-family: var(--font-mono);

@@ -19,6 +19,7 @@ interface Props {
   lede: string;
   tags: string[];
   kicker?: string;
+  headline?: string;
   accent?: string;
   stats?: Stat[];
   slug?: string;
@@ -34,6 +35,7 @@ const {
   lede,
   tags,
   kicker = 'Project',
+  headline,
   accent,
   stats = [],
   slug,
@@ -48,12 +50,19 @@ const {
     <PageHero
       kicker={kicker}
       title={title}
+      headline={headline}
       accent={accent}
       lede={lede}
       tags={tags}
       stats={stats}
       status={status}
-    />
+      split={Astro.slots.has('hero-aside')}
+    >
+      {/* Astro registers a slot from the markup that forwards it, not from
+          whether the page filled it, so PageHero cannot detect an empty aside
+          on its own — hence the explicit split prop above. */}
+      <slot name="hero-aside" slot="aside" />
+    </PageHero>
 
     <div class="prose prose-wide">
       <slot />

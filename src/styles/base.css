@@ -2501,9 +2501,11 @@ canvas.field {
 
 /* ---------------- Panel surface ---------------- */
 /* The "homelab · live topology" treatment, generalised. Every demo
-   sits on one of these instead of bare on the background. */
+   sits on one of these instead of bare on the background.
+   Named .demo-panel, not .panel: the makimono reader's manga frames have
+   owned .panel since the first build and a collision would restyle them. */
 
-.panel {
+.demo-panel {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--bg-raised);
@@ -2511,7 +2513,7 @@ canvas.field {
   overflow: hidden;
   margin-top: 1.25rem;
 }
-.panel-head {
+.demo-panel-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2520,8 +2522,8 @@ canvas.field {
   border-bottom: 1px solid var(--border);
   background: var(--bg-sunken);
 }
-.panel-head .label { margin: 0; }
-.panel-status {
+.demo-panel-head .label { margin: 0; }
+.demo-panel-status {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -2530,7 +2532,7 @@ canvas.field {
   color: var(--faint);
   white-space: nowrap;
 }
-.panel-status .dot {
+.demo-panel-status .dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -2538,16 +2540,16 @@ canvas.field {
   box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.9);
   flex: none;
 }
-.panel-body {
+.demo-panel-body {
   padding: 1.25rem;
 }
 @media (min-width: 700px) {
-  .panel-body { padding: 1.5rem; }
+  .demo-panel-body { padding: 1.5rem; }
 }
 /* Demos already carry their own top margin; inside a panel it doubles up. */
-.panel-body > .map-controls:first-child,
-.panel-body > *:first-child { margin-top: 0; }
-.panel-body .sample-note:last-child { margin-bottom: 0; }
+.demo-panel-body > .map-controls:first-child,
+.demo-panel-body > *:first-child { margin-top: 0; }
+.demo-panel-body .sample-note:last-child { margin-bottom: 0; }
 
 /* ---------------- Next / prev project footer ---------------- */
 

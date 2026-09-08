@@ -1,5 +1,7 @@
 ---
 import ProjectLayout from '../../layouts/ProjectLayout.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Panel from '../../components/Panel.astro';
 ---
 
 <ProjectLayout
@@ -8,9 +10,19 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
   description="Sanitized case studies from cloud security work at a Fortune 500 insurer. No employer name, no environment details beyond the tool names."
   lede="Case studies from cloud security work at a Fortune 500 insurer. Sanitized: no employer name, and no environment details beyond the tool names."
   tags={['GCP', 'CSPM', 'SOAR', 'Governance', 'Wiz', 'Torq / Tines']}
+  kicker="Day job · sanitized"
+  headline="Cloud security, at scale"
+  accent="at scale"
+  slug="cloud-security"
+  stats={[
+    { n: '1,100+', l: 'GCP projects governed' },
+    { n: '46', l: 'controls mapped' },
+    { n: '8', l: 'service entries triaged' },
+    { n: 'minutes', l: 'exposure window, was hours' },
+  ]}
   demonstrates="Cloud governance at scale, security automation, and a bias toward prevention: closing gaps at the source and turning findings into policy instead of an endless ticket queue."
 >
-  <h2>Container supply chain</h2>
+  <SectionHead label="Case study 01" title="Container supply chain" />
   <p>
     Unapproved, unhardened images were making their way toward production, with
     no gate to stop them. I coordinated between vendors and internal teams and
@@ -19,7 +31,7 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     instead of being patched downstream every time it recurred.
   </p>
 
-  <h2>Cloud asset governance</h2>
+  <SectionHead label="Case study 02" title="Cloud asset governance" />
   <p>
     Every cell below is one GCP project that existed with no reliable link to
     the business application it belonged to. Not a rounding error, not a
@@ -27,35 +39,37 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     route, because nothing recorded who owned it.
   </p>
 
-  <div class="field-wrap bleed">
-    <canvas
-      class="field"
-      data-field
-      data-total="1100"
-      data-cols="50"
-      data-special="8"
-      data-mode="fill"
-      role="img"
-      aria-label="A field of 1,100 cells, one per unmapped GCP project, filling in as each is validated and mapped to its owning application"
-    ></canvas>
+  <Panel label="estate · 1,100 unmapped projects" status="one cell = one project">
+    <div class="field-wrap">
+      <canvas
+        class="field"
+        data-field
+        data-total="1100"
+        data-cols="50"
+        data-special="8"
+        data-mode="fill"
+        role="img"
+        aria-label="A field of 1,100 cells, one per unmapped GCP project, filling in as each is validated and mapped to its owning application"
+      ></canvas>
 
-    <div class="field-readout">
-      <span class="field-count" data-field-count>0 / 1,100</span>
-      <span>validated and mapped to an owning application</span>
-      <span class="sep"></span>
-      <button class="map-btn" type="button" data-field-run>▶ map the estate</button>
+      <div class="field-readout">
+        <span class="field-count" data-field-count>0 / 1,100</span>
+        <span>validated and mapped to an owning application</span>
+        <span class="sep"></span>
+        <button class="map-btn" type="button" data-field-run>▶ map the estate</button>
+      </div>
+
+      <p class="field-note" data-field-note hidden>
+        The eight lighter cells are Technical Service entries that did not exist
+        and had to be created before their projects had anything to point at. This
+        is the least glamorous work I have ever done and it is the reason the
+        timeline further down reads two days instead of three weeks: a finding
+        cannot route to an owner that was never written down.
+      </p>
     </div>
+  </Panel>
 
-    <p class="field-note" data-field-note hidden>
-      The eight lighter cells are Technical Service entries that did not exist
-      and had to be created before their projects had anything to point at. This
-      is the least glamorous work I have ever done and it is the reason the
-      timeline further down reads two days instead of three weeks: a finding
-      cannot route to an owner that was never written down.
-    </p>
-  </div>
-
-  <h2>SOAR proof of concept</h2>
+  <SectionHead label="Case study 03" title="SOAR proof of concept" />
   <p>
     A cloud vulnerability alert arrives knowing almost nothing: something is
     wrong, somewhere, in a project named after a number. Everything that makes
@@ -69,81 +83,83 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     argument is the payload getting fatter at every hop.
   </p>
 
-  <div class="flow-demo bleed" data-flow>
-    <div class="map-controls">
-      <span class="ctl-label">run it</span>
-      <button class="map-btn" type="button" data-flow-mode="auto" aria-pressed="true">automated · Torq</button>
-      <button class="map-btn" type="button" data-flow-mode="manual" aria-pressed="false">by hand · an analyst</button>
-      <span class="sep"></span>
-      <button class="map-btn" type="button" data-flow-run>▶ raise a finding</button>
-    </div>
-
-    <svg viewBox="0 0 900 120" data-flow-svg role="img" aria-label="A five step enrichment workflow: Wiz finding, CMDB lookup, context enrichment, deduplication, case creation">
-      <path class="flow-edge" d="M 180 62 H 195"></path>
-      <path class="flow-edge" d="M 355 62 H 370"></path>
-      <path class="flow-edge" d="M 530 62 H 545"></path>
-      <path class="flow-edge" d="M 705 62 H 720"></path>
-
-      <g class="flow-node">
-        <rect x="20" y="34" width="160" height="56" rx="7"></rect>
-        <text x="100" y="58" text-anchor="middle">Wiz finding</text>
-        <text class="fn-sub" x="100" y="74" text-anchor="middle">trigger</text>
-      </g>
-      <g class="flow-node">
-        <rect x="195" y="34" width="160" height="56" rx="7"></rect>
-        <text x="275" y="58" text-anchor="middle">CMDB lookup</text>
-        <text class="fn-sub" x="275" y="74" text-anchor="middle">who owns this?</text>
-      </g>
-      <g class="flow-node">
-        <rect x="370" y="34" width="160" height="56" rx="7"></rect>
-        <text x="450" y="58" text-anchor="middle">Enrich</text>
-        <text class="fn-sub" x="450" y="74" text-anchor="middle">severity · context</text>
-      </g>
-      <g class="flow-node">
-        <rect x="545" y="34" width="160" height="56" rx="7"></rect>
-        <text x="625" y="58" text-anchor="middle">Dedupe</text>
-        <text class="fn-sub" x="625" y="74" text-anchor="middle">already open?</text>
-      </g>
-      <g class="flow-node">
-        <rect x="720" y="34" width="160" height="56" rx="7"></rect>
-        <text x="800" y="58" text-anchor="middle">Open case</text>
-        <text class="fn-sub" x="800" y="74" text-anchor="middle">assigned to owner</text>
-      </g>
-
-      <circle id="flow-token" cx="0" cy="62" r="5"></circle>
-    </svg>
-
-    <div class="flow-grid">
-      <div>
-        <p class="possess-label">what it cost</p>
-        <div class="flow-clock" data-flow-clock>—</div>
-        <p class="flow-cost" data-flow-cost></p>
-        <ol class="flow-steps" data-flow-steps>
-          <li><span class="t"></span><span class="n"></span></li>
-          <li><span class="t"></span><span class="n"></span></li>
-          <li><span class="t"></span><span class="n"></span></li>
-          <li><span class="t"></span><span class="n"></span></li>
-          <li><span class="t"></span><span class="n"></span></li>
-        </ol>
+  <Panel label="torq · automation run" status="step through it">
+    <div class="flow-demo" data-flow>
+      <div class="map-controls">
+        <span class="ctl-label">run it</span>
+        <button class="map-btn" type="button" data-flow-mode="auto" aria-pressed="true">automated · Torq</button>
+        <button class="map-btn" type="button" data-flow-mode="manual" aria-pressed="false">by hand · an analyst</button>
+        <span class="sep"></span>
+        <button class="map-btn" type="button" data-flow-run>▶ raise a finding</button>
       </div>
-      <div>
-        <p class="possess-label">the alert, as it travels</p>
-        <pre class="code-out" data-flow-payload aria-live="polite"></pre>
+
+      <svg viewBox="0 0 900 120" data-flow-svg role="img" aria-label="A five step enrichment workflow: Wiz finding, CMDB lookup, context enrichment, deduplication, case creation">
+        <path class="flow-edge" d="M 180 62 H 195"></path>
+        <path class="flow-edge" d="M 355 62 H 370"></path>
+        <path class="flow-edge" d="M 530 62 H 545"></path>
+        <path class="flow-edge" d="M 705 62 H 720"></path>
+
+        <g class="flow-node">
+          <rect x="20" y="34" width="160" height="56" rx="7"></rect>
+          <text x="100" y="58" text-anchor="middle">Wiz finding</text>
+          <text class="fn-sub" x="100" y="74" text-anchor="middle">trigger</text>
+        </g>
+        <g class="flow-node">
+          <rect x="195" y="34" width="160" height="56" rx="7"></rect>
+          <text x="275" y="58" text-anchor="middle">CMDB lookup</text>
+          <text class="fn-sub" x="275" y="74" text-anchor="middle">who owns this?</text>
+        </g>
+        <g class="flow-node">
+          <rect x="370" y="34" width="160" height="56" rx="7"></rect>
+          <text x="450" y="58" text-anchor="middle">Enrich</text>
+          <text class="fn-sub" x="450" y="74" text-anchor="middle">severity · context</text>
+        </g>
+        <g class="flow-node">
+          <rect x="545" y="34" width="160" height="56" rx="7"></rect>
+          <text x="625" y="58" text-anchor="middle">Dedupe</text>
+          <text class="fn-sub" x="625" y="74" text-anchor="middle">already open?</text>
+        </g>
+        <g class="flow-node">
+          <rect x="720" y="34" width="160" height="56" rx="7"></rect>
+          <text x="800" y="58" text-anchor="middle">Open case</text>
+          <text class="fn-sub" x="800" y="74" text-anchor="middle">assigned to owner</text>
+        </g>
+
+        <circle id="flow-token" cx="0" cy="62" r="5"></circle>
+      </svg>
+
+      <div class="flow-grid">
+        <div>
+          <p class="possess-label">what it cost</p>
+          <div class="flow-clock" data-flow-clock>—</div>
+          <p class="flow-cost" data-flow-cost></p>
+          <ol class="flow-steps" data-flow-steps>
+            <li><span class="t"></span><span class="n"></span></li>
+            <li><span class="t"></span><span class="n"></span></li>
+            <li><span class="t"></span><span class="n"></span></li>
+            <li><span class="t"></span><span class="n"></span></li>
+            <li><span class="t"></span><span class="n"></span></li>
+          </ol>
+        </div>
+        <div>
+          <p class="possess-label">the alert, as it travels</p>
+          <pre class="code-out" data-flow-payload aria-live="polite"></pre>
+        </div>
       </div>
+
+      <p class="sample-note">
+        Both runs end with the identical payload, deliberately. The workflow does
+        nothing an analyst couldn't do by hand — it does it in seconds, at 3am,
+        for every alert, without getting bored, and it never mistypes the project
+        id. Note the second step: it can only resolve an owner because of the
+        mapping work above it. Automation cannot look up a fact nobody wrote down.
+        Illustrative timings and a redacted resource; the shape of the workflow is
+        the real one.
+      </p>
     </div>
+  </Panel>
 
-    <p class="sample-note">
-      Both runs end with the identical payload, deliberately. The workflow does
-      nothing an analyst couldn't do by hand — it does it in seconds, at 3am,
-      for every alert, without getting bored, and it never mistypes the project
-      id. Note the second step: it can only resolve an owner because of the
-      mapping work above it. Automation cannot look up a fact nobody wrote down.
-      Illustrative timings and a redacted resource; the shape of the workflow is
-      the real one.
-    </p>
-  </div>
-
-  <h2>Prevention over reaction</h2>
+  <SectionHead label="The argument" title="Prevention over reaction" />
   <p>
     CSPM findings (Wiz) told us what was already misconfigured, which is useful
     but always after the fact. I turned recurring findings into GCP Organization
@@ -157,60 +173,62 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     and watch the exposure window change.
   </p>
 
-  <div class="prevent-demo bleed" data-clock>
-    <div class="map-controls">
-      <button class="map-btn" type="button" data-policy aria-pressed="false">org policy: not enforced</button>
-      <button class="map-btn" type="button" data-cmdb aria-pressed="true">cmdb owner: mapped</button>
-      <span class="sep"></span>
-      <button class="map-btn" type="button" data-deploy>▶ deploy a public bucket</button>
+  <Panel label="exposure window · detect vs prevent" status="run it">
+    <div class="prevent-demo" data-clock>
+      <div class="map-controls">
+        <button class="map-btn" type="button" data-policy aria-pressed="false">org policy: not enforced</button>
+        <button class="map-btn" type="button" data-cmdb aria-pressed="true">cmdb owner: mapped</button>
+        <span class="sep"></span>
+        <button class="map-btn" type="button" data-deploy>▶ deploy a public bucket</button>
+      </div>
+
+      <div class="clock-wrap">
+        <svg viewBox="0 0 900 110" role="img" aria-label="Exposure window on a fixed three-week scale">
+          <g class="exp-grid">
+            <line x1="30" y1="76" x2="880" y2="76"></line>
+            <line x1="30" y1="70" x2="30" y2="82"></line>
+            <text x="30" y="18">0</text>
+            <line x1="66" y1="70" x2="66" y2="82"></line>
+            <text x="60" y="18">1d</text>
+            <line x1="132" y1="70" x2="132" y2="82"></line>
+            <text x="126" y="18">2d</text>
+            <line x1="313" y1="70" x2="313" y2="82"></line>
+            <text x="305" y="18">1w</text>
+            <line x1="596" y1="70" x2="596" y2="82"></line>
+            <text x="588" y="18">2w</text>
+            <line x1="880" y1="70" x2="880" y2="82"></line>
+            <text x="880" y="18" text-anchor="end">3w</text>
+          </g>
+
+          <rect class="exp-lane" x="30" y="54" width="850" height="16" rx="4"></rect>
+          <rect id="exp-bar" x="30" y="54" width="0" height="16" rx="4"></rect>
+
+          <g data-events></g>
+
+          <g class="exp-denied">
+            <text x="40" y="66">DENIED at creation — nothing exists to be exposed</text>
+          </g>
+
+          <g id="exp-head">
+            <line x1="0" y1="46" x2="0" y2="78"></line>
+          </g>
+        </svg>
+      </div>
+
+      <div class="exp-readout">
+        <span class="exp-window" data-exp-window>—</span>
+        <span class="exp-sub" data-exp-sub></span>
+      </div>
+
+      <p class="sample-note">
+        One fixed three-week scale for every scenario, so the bars are actually
+        comparable instead of each being rescaled to look the same size. Timings
+        are illustrative; the mechanics are real. The constraint evaluates at
+        creation, which is why the prevented case has no bar at all rather than a
+        short one.
+      </p>
     </div>
-
-    <div class="clock-wrap">
-      <svg viewBox="0 0 900 110" role="img" aria-label="Exposure window on a fixed three-week scale">
-        <g class="exp-grid">
-          <line x1="30" y1="76" x2="880" y2="76"></line>
-          <line x1="30" y1="70" x2="30" y2="82"></line>
-          <text x="30" y="18">0</text>
-          <line x1="66" y1="70" x2="66" y2="82"></line>
-          <text x="60" y="18">1d</text>
-          <line x1="132" y1="70" x2="132" y2="82"></line>
-          <text x="126" y="18">2d</text>
-          <line x1="313" y1="70" x2="313" y2="82"></line>
-          <text x="305" y="18">1w</text>
-          <line x1="596" y1="70" x2="596" y2="82"></line>
-          <text x="588" y="18">2w</text>
-          <line x1="880" y1="70" x2="880" y2="82"></line>
-          <text x="880" y="18" text-anchor="end">3w</text>
-        </g>
-
-        <rect class="exp-lane" x="30" y="54" width="850" height="16" rx="4"></rect>
-        <rect id="exp-bar" x="30" y="54" width="0" height="16" rx="4"></rect>
-
-        <g data-events></g>
-
-        <g class="exp-denied">
-          <text x="40" y="66">DENIED at creation — nothing exists to be exposed</text>
-        </g>
-
-        <g id="exp-head">
-          <line x1="0" y1="46" x2="0" y2="78"></line>
-        </g>
-      </svg>
-    </div>
-
-    <div class="exp-readout">
-      <span class="exp-window" data-exp-window>—</span>
-      <span class="exp-sub" data-exp-sub></span>
-    </div>
-
-    <p class="sample-note">
-      One fixed three-week scale for every scenario, so the bars are actually
-      comparable instead of each being rescaled to look the same size. Timings
-      are illustrative; the mechanics are real. The constraint evaluates at
-      creation, which is why the prevented case has no bar at all rather than a
-      short one.
-    </p>
-  </div>
+  </Panel>
 
   <script is:inline src="/js/field.js" defer></script>
   <script is:inline src="/js/soar-flow.js" defer></script>

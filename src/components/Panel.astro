@@ -13,12 +13,12 @@ interface Props {
 const { label, status = 'interactive' } = Astro.props;
 ---
 
-<div class="panel" data-card>
-  <div class="panel-head">
+<div class="demo-panel" data-card>
+  <div class="demo-panel-head">
     <span class="label">{label}</span>
-    <span class="panel-status"><span class="dot" aria-hidden="true"></span>{status}</span>
+    <span class="demo-panel-status"><span class="dot" aria-hidden="true"></span>{status}</span>
   </div>
-  <div class="panel-body">
+  <div class="demo-panel-body">
     <slot />
   </div>
 </div>

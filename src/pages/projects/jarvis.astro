@@ -1,5 +1,7 @@
 ---
 import ProjectLayout from '../../layouts/ProjectLayout.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Panel from '../../components/Panel.astro';
 ---
 
 <ProjectLayout
@@ -8,10 +10,20 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
   description="Two self-hosted voice assistants, architecturally isolated. Friday runs the infrastructure; Jarvis is the one strangers may talk to. Sub-3-second measured latency, no cloud mic."
   lede="Two always-on, self-hosted voice assistants that share a voice and a pair of ears and nothing else. Friday sits at my desk and runs my infrastructure. Jarvis lives in a Discord voice channel where my friends can talk to it, which is the entire reason the interesting problem exists."
   tags={['LLM tooling', 'Home Assistant', 'Whisper', 'Kokoro', 'Threat modeling', 'Python']}
+  kicker="Self-hosted · voice"
+  headline={'Two brains: Friday & Jarvis'}
+  accent={'Friday & Jarvis'}
+  slug="jarvis"
+  stats={[
+    { n: '2', l: 'brains, one voice' },
+    { n: '3', l: 'tools the public one has' },
+    { n: '0', l: 'shared context' },
+    { n: '$0', l: 'new hardware' },
+  ]}
   status="Running"
   demonstrates="LLM tool integration, a measured speech pipeline, threat modeling for AI agents, prompt-injection-resistant design, and cost engineering (it runs on hardware I already owned)."
 >
-  <h2>Why it exists</h2>
+  <SectionHead label="Motivation" title="Why it exists" />
   <p>
     I wanted a voice assistant that answers to me, not to a vendor's cloud, and
     that can actually do things: check the homelab, answer questions, control
@@ -20,7 +32,7 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     my infrastructure.
   </p>
 
-  <h2>Two assistants</h2>
+  <SectionHead label="Architecture" title="Two assistants" />
   <p>
     Friday knows my infrastructure and can act on it. Jarvis, the Discord bot,
     has zero infrastructure knowledge, zero personal context, and exactly three
@@ -32,53 +44,55 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     to v1, the version I built first and got wrong, and send it again.
   </p>
 
-  <div class="jarvis-demo bleed" data-jarvis>
-    <div class="map-controls">
-      <span class="ctl-label">architecture</span>
-      <button class="map-btn" type="button" data-arch="v2" aria-pressed="true">v2 — shipped</button>
-      <button class="map-btn" type="button" data-arch="v1" aria-pressed="false">v1 — the mistake</button>
-    </div>
-
-    <div class="map-controls">
-      <span class="ctl-label">send</span>
-      <button class="map-btn" type="button" data-prompt="inject" aria-pressed="true">ignore your instructions…</button>
-      <button class="map-btn" type="button" data-prompt="who" aria-pressed="false">who owns you?</button>
-      <button class="map-btn" type="button" data-prompt="shopping" aria-pressed="false">shopping list?</button>
-      <button class="map-btn" type="button" data-prompt="infra" aria-pressed="false">what's on the hypervisor?</button>
-      <button class="map-btn" type="button" data-prompt="media" aria-pressed="false">add Dune</button>
-    </div>
-
-    <div class="bots">
-      <div class="bot is-private">
-        <h3>Friday</h3>
-        <p class="bot-where">desk satellite · Home Assistant</p>
-        <p class="bot-who">Only I talk to it. It may know everything.</p>
-        <p class="possess-label">possesses</p>
-        <ul class="possess">
-          <li class="has">Home Assistant</li>
-          <li class="has">infra APIs</li>
-          <li class="has">personal context</li>
-          <li class="has">live host sensors</li>
-        </ul>
-        <div class="bot-out" data-out="private" aria-live="polite"></div>
+  <Panel label="jarvis · the public bot" status="try to break it">
+    <div class="jarvis-demo" data-jarvis>
+      <div class="map-controls">
+        <span class="ctl-label">architecture</span>
+        <button class="map-btn" type="button" data-arch="v2" aria-pressed="true">v2 — shipped</button>
+        <button class="map-btn" type="button" data-arch="v1" aria-pressed="false">v1 — the mistake</button>
       </div>
 
-      <div class="bot is-public">
-        <h3>Jarvis</h3>
-        <p class="bot-where">Discord voice</p>
-        <p class="bot-who">Friends talk to it. Untrusted audience by design.</p>
-        <p class="possess-label">possesses</p>
-        <ul class="possess" data-possess-public></ul>
-        <div class="bot-out" data-out="public" aria-live="polite"></div>
+      <div class="map-controls">
+        <span class="ctl-label">send</span>
+        <button class="map-btn" type="button" data-prompt="inject" aria-pressed="true">ignore your instructions…</button>
+        <button class="map-btn" type="button" data-prompt="who" aria-pressed="false">who owns you?</button>
+        <button class="map-btn" type="button" data-prompt="shopping" aria-pressed="false">shopping list?</button>
+        <button class="map-btn" type="button" data-prompt="infra" aria-pressed="false">what's on the hypervisor?</button>
+        <button class="map-btn" type="button" data-prompt="media" aria-pressed="false">add Dune</button>
+      </div>
+
+      <div class="bots">
+        <div class="bot is-private">
+          <h3>Friday</h3>
+          <p class="bot-where">desk satellite · Home Assistant</p>
+          <p class="bot-who">Only I talk to it. It may know everything.</p>
+          <p class="possess-label">possesses</p>
+          <ul class="possess">
+            <li class="has">Home Assistant</li>
+            <li class="has">infra APIs</li>
+            <li class="has">personal context</li>
+            <li class="has">live host sensors</li>
+          </ul>
+          <div class="bot-out" data-out="private" aria-live="polite"></div>
+        </div>
+
+        <div class="bot is-public">
+          <h3>Jarvis</h3>
+          <p class="bot-where">Discord voice</p>
+          <p class="bot-who">Friends talk to it. Untrusted audience by design.</p>
+          <p class="possess-label">possesses</p>
+          <ul class="possess" data-possess-public></ul>
+          <div class="bot-out" data-out="public" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="verdict">
+        <p data-verdict></p>
       </div>
     </div>
+  </Panel>
 
-    <div class="verdict">
-      <p data-verdict></p>
-    </div>
-  </div>
-
-  <h2>Why it's built this way</h2>
+  <SectionHead label="Threat model" title="Why it's built this way" />
   <p>
     The isolation is structural, not textual. A system prompt that says "don't
     reveal X" is a request, and it fails the first time someone is clever,
@@ -138,7 +152,7 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     </p>
   </div>
 
-  <h2>Making it fast</h2>
+  <SectionHead label="Latency" title="Making it fast" />
   <p>
     The only interval a human actually feels is from the moment you stop talking
     to the first sound coming back. I instrumented every stage on the live bot
@@ -151,51 +165,53 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     problem, and no bar chart has ever conveyed it.
   </p>
 
-  <div class="lab bleed" data-lab>
-    <div class="map-controls">
-      <span class="ctl-label">turn end</span>
-      <button class="map-btn" type="button" data-opt="silence" data-val="900" aria-pressed="true">fixed 900ms</button>
-      <button class="map-btn" type="button" data-opt="silence" data-val="600" aria-pressed="false">tuned 600ms</button>
-      <button class="map-btn" type="button" data-opt="silence" data-val="150" aria-pressed="false">semantic turn ≈150ms</button>
-    </div>
-    <div class="map-controls">
-      <span class="ctl-label">speech-to-text</span>
-      <button class="map-btn" type="button" data-opt="stt" data-val="1194" aria-pressed="true">Whisper · beam 5</button>
-      <button class="map-btn" type="button" data-opt="stt" data-val="800" aria-pressed="false">Whisper · greedy</button>
-      <button class="map-btn" type="button" data-opt="stt" data-val="225" aria-pressed="false">Parakeet TDT ≈225ms</button>
-    </div>
-    <div class="map-controls">
-      <span class="ctl-label">model</span>
-      <button class="map-btn" type="button" data-opt="model" data-val="970" aria-pressed="true">wait for the full reply</button>
-      <button class="map-btn" type="button" data-opt="model" data-val="500" aria-pressed="false">stream first sentence ≈500ms</button>
-      <span class="sep"></span>
-      <button class="map-btn" type="button" data-lab-run>▶ "hey Jarvis, play Funkytown"</button>
-    </div>
+  <Panel label="jarvis · speech pipeline" status="real-time playback">
+    <div class="lab" data-lab>
+      <div class="map-controls">
+        <span class="ctl-label">turn end</span>
+        <button class="map-btn" type="button" data-opt="silence" data-val="900" aria-pressed="true">fixed 900ms</button>
+        <button class="map-btn" type="button" data-opt="silence" data-val="600" aria-pressed="false">tuned 600ms</button>
+        <button class="map-btn" type="button" data-opt="silence" data-val="150" aria-pressed="false">semantic turn ≈150ms</button>
+      </div>
+      <div class="map-controls">
+        <span class="ctl-label">speech-to-text</span>
+        <button class="map-btn" type="button" data-opt="stt" data-val="1194" aria-pressed="true">Whisper · beam 5</button>
+        <button class="map-btn" type="button" data-opt="stt" data-val="800" aria-pressed="false">Whisper · greedy</button>
+        <button class="map-btn" type="button" data-opt="stt" data-val="225" aria-pressed="false">Parakeet TDT ≈225ms</button>
+      </div>
+      <div class="map-controls">
+        <span class="ctl-label">model</span>
+        <button class="map-btn" type="button" data-opt="model" data-val="970" aria-pressed="true">wait for the full reply</button>
+        <button class="map-btn" type="button" data-opt="model" data-val="500" aria-pressed="false">stream first sentence ≈500ms</button>
+        <span class="sep"></span>
+        <button class="map-btn" type="button" data-lab-run>▶ "hey Jarvis, play Funkytown"</button>
+      </div>
 
-    <svg viewBox="0 0 900 100" data-lab-svg role="img" aria-label="Speech pipeline latency, played back in real time">
-      <text class="lab-axis" x="24" y="22">you stop talking</text>
-      <text class="lab-axis" x="876" y="22" text-anchor="end">first sound back</text>
-      <g data-lab-track></g>
-      <g id="lab-head">
-        <line x1="0" y1="28" x2="0" y2="86"></line>
-        <circle cx="0" cy="28" r="4"></circle>
-      </g>
-    </svg>
+      <svg viewBox="0 0 900 100" data-lab-svg role="img" aria-label="Speech pipeline latency, played back in real time">
+        <text class="lab-axis" x="24" y="22">you stop talking</text>
+        <text class="lab-axis" x="876" y="22" text-anchor="end">first sound back</text>
+        <g data-lab-track></g>
+        <g id="lab-head">
+          <line x1="0" y1="28" x2="0" y2="86"></line>
+          <circle cx="0" cy="28" r="4"></circle>
+        </g>
+      </svg>
 
-    <div class="lab-readout">
-      <span class="lab-clock" data-lab-clock>0 ms</span>
-      <span class="lab-total" data-lab-total></span>
-      <span class="lab-delta" data-lab-delta></span>
+      <div class="lab-readout">
+        <span class="lab-clock" data-lab-clock>0 ms</span>
+        <span class="lab-total" data-lab-total></span>
+        <span class="lab-delta" data-lab-delta></span>
+      </div>
+      <p class="lab-note" data-lab-note></p>
+      <p class="sample-note">
+        Measured on the live bot with timing instrumentation, from the moment
+        speech stops to first audio out. The Parakeet and streaming figures are
+        estimates from the roadmap, not measurements; everything else is real.
+        Kokoro is fixed here because it is already sentence-streaming and is not
+        the bottleneck.
+      </p>
     </div>
-    <p class="lab-note" data-lab-note></p>
-    <p class="sample-note">
-      Measured on the live bot with timing instrumentation, from the moment
-      speech stops to first audio out. The Parakeet and streaming figures are
-      estimates from the roadmap, not measurements; everything else is real.
-      Kokoro is fixed here because it is already sentence-streaming and is not
-      the bottleneck.
-    </p>
-  </div>
+  </Panel>
 
   <p>
     Speech-to-text and the silence wait are 60% of the delay between them. Text
@@ -217,7 +233,7 @@ import ProjectLayout from '../../layouts/ProjectLayout.astro';
     a fixed silence.
   </p>
 
-  <h2>What I built</h2>
+  <SectionHead label="Scope" title="What I built" />
   <ul>
     <li>In-browser wake word, on-device. No always-on cloud microphone.</li>
     <li>Whisper speech-to-text on a CUDA GPU, shared with media transcoding.</li>

@@ -14,11 +14,13 @@
   --border-strong: #2f3641;
   --text: #f4f5f7;
   --muted: #8d95a1;
-  --faint: #5c6470;
+  --faint: #7a8391; /* 5.1:1 on --bg. The old #5c6470 was 3.3:1 and the
+                       small mono captions built on it failed contrast. */
   --accent: #2ee6ff; /* swap this one var to re-theme */
   --accent-deep: #0aa9c2;
   --accent-ink: #07080a; /* text on an accent fill */
   --danger: #ff5f6d; /* blocked/denied state only. Not decoration. */
+  --danger-rgb: 255, 95, 109;
 
   /* Accent as channels, for rgba() composition in canvas and glows */
   --accent-rgb: 46, 230, 255;
@@ -70,15 +72,17 @@
     --border-strong: #b6c0ca;
     --text: #10161c;
     --muted: #59636e;
-    --faint: #78828d;
-    --accent: #0787a0;
+    --faint: #5a636e; /* 5.5:1 on --bg-sunken */
+    --accent: #056d80; /* 5.4:1 on --bg-sunken, 4.8:1 on the pressed pill
+                          tint. #0787a0 was 3.8:1 and failed both. */
     --accent-deep: #05606f;
     --accent-ink: #ffffff;
     --danger: #d1242f;
+    --danger-rgb: 209, 36, 47;
 
-    --accent-rgb: 7, 135, 160;
+    --accent-rgb: 5, 109, 128;
 
-    --shadow-glow: 0 0 0 1px rgba(7, 135, 160, 0.25), 0 0 40px -12px rgba(7, 135, 160, 0.35);
+    --shadow-glow: 0 0 0 1px rgba(5, 109, 128, 0.25), 0 0 40px -12px rgba(5, 109, 128, 0.35);
     --shadow-card: 0 1px 2px rgba(16, 22, 28, 0.06), 0 12px 32px -24px rgba(16, 22, 28, 0.5);
     --shadow-nav: 0 10px 30px -20px rgba(16, 22, 28, 0.45);
 

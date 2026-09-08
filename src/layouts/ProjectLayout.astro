@@ -1,9 +1,15 @@
 ---
 import Base from './Base.astro';
+import PageHero from '../components/PageHero.astro';
+import NextProject from '../components/NextProject.astro';
 
 interface LinkItem {
   label: string;
   href: string;
+}
+interface Stat {
+  n: string;
+  l: string;
 }
 
 interface Props {
@@ -12,33 +18,59 @@ interface Props {
   description: string;
   lede: string;
   tags: string[];
+  kicker?: string;
+  headline?: string;
+  accent?: string;
+  stats?: Stat[];
+  slug?: string;
   status?: string;
   demonstrates?: string;
   links?: LinkItem[];
 }
 
-const { title, path, description, lede, tags, status, demonstrates, links } =
-  Astro.props;
+const {
+  title,
+  path,
+  description,
+  lede,
+  tags,
+  kicker = 'Project',
+  headline,
+  accent,
+  stats = [],
+  slug,
+  status,
+  demonstrates,
+  links,
+} = Astro.props;
 ---
 
 <Base title={`${title} — Ethan Justice`} path={path} description={description}>
-  <div class="wrap prose">
-    <div class="project-head">
-      <h1>
-        {title}
-        {status && <span class="status-pill">{status}</span>}
-      </h1>
-      <p class="lede">{lede}</p>
-      <ul class="tags stack-row" aria-label="Stack">
-        {tags.map((t) => <li>{t}</li>)}
-      </ul>
-    </div>
+  <div class="wrap">
+    <PageHero
+      kicker={kicker}
+      title={title}
+      headline={headline}
+      accent={accent}
+      lede={lede}
+      tags={tags}
+      stats={stats}
+      status={status}
+      split={Astro.slots.has('hero-aside')}
+    >
+      {/* Astro registers a slot from the markup that forwards it, not from
+          whether the page filled it, so PageHero cannot detect an empty aside
+          on its own — hence the explicit split prop above. */}
+      <slot name="hero-aside" slot="aside" />
+    </PageHero>
 
-    <slot />
+    <div class="prose prose-wide">
+      <slot />
+    </div>
 
     {
       demonstrates && (
-        <div class="demonstrates">
+        <div class="demonstrates" data-card>
           <p class="label">what it demonstrates</p>
           <p>{demonstrates}</p>
         </div>
@@ -55,8 +87,6 @@ const { title, path, description, lede, tags, status, demonstrates, links } =
       )
     }
 
-    <p class="back-link">
-      <a href="/">← all projects</a>
-    </p>
+    {slug && <NextProject slug={slug} />}
   </div>
 </Base>

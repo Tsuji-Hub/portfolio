@@ -30,7 +30,8 @@
 [data-canvas] {
   display: none !important;
 }
-.hero-split {
+.hero-split,
+.page-hero-split {
   grid-template-columns: 1fr !important;
   min-height: 0 !important;
 }

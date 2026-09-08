@@ -1,5 +1,7 @@
 ---
 import ProjectLayout from '../../layouts/ProjectLayout.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Panel from '../../components/Panel.astro';
 
 const panels = [
   'tall', 'mid', 'short', 'tall', 'mid', 'tall', 'short', 'mid',
@@ -13,12 +15,22 @@ const panelsAfter = ['tall', 'mid', 'tall', 'short', 'mid', 'tall'];
   description="A feature-driven fork of Mihon, the open-source Android manga reader. 11 releases, real users, self-updating."
   lede="A feature-driven fork of Mihon, the open-source Android manga reader written in Kotlin. It installs alongside the stock app, updates itself, and has shipped 11 releases to real users."
   tags={['Kotlin', 'Android', 'Compose', 'Release engineering', 'API integration']}
+  kicker="Android · fork"
+  headline="Makimono, my Android manga reader"
+  accent="Android manga reader"
+  slug="makimono"
+  stats={[
+    { n: '11', l: 'releases shipped' },
+    { n: '5', l: 'recommendation sources' },
+    { n: 'in-app', l: 'update channel' },
+    { n: '8+', l: 'android version floor' },
+  ]}
   demonstrates="Kotlin and Android at feature scale, release engineering (signed APKs, a self-update channel, changelogs), API integration across five services, and maintaining a fork against an active upstream without falling behind it."
   links={[
     { label: 'Releases', href: 'https://github.com/Tsuji-Hub/makimono/releases' },
   ]}
 >
-  <h2>The auto-scroll engine</h2>
+  <SectionHead label="The feature" title="The auto-scroll engine" />
   <p>
     Webtoons are one long vertical strip, and reading one by thumb-flicking is
     miserable. So the reader scrolls itself, at a speed you set, and gets out of
@@ -26,54 +38,56 @@ const panelsAfter = ['tall', 'mid', 'tall', 'short', 'mid', 'tall'];
     pause, and watch what it does at a chapter seam.
   </p>
 
-  <div class="reader-demo bleed" data-reader>
-    <div class="phone">
-      <div class="phone-screen" data-screen role="presentation">
-        <div class="strip" data-strip>
-          {panels.map((h) => (
-            <div class={`panel ${h}`}>
-              <span class="p-fig"></span>
-              <span class="p-bub"></span>
-              <span class="p-line"></span>
-            </div>
-          ))}
-          <div class="chapter-end" data-boundary>— end of chapter 12 —</div>
-          {panelsAfter.map((h) => (
-            <div class={`panel ${h}`}>
-              <span class="p-fig"></span>
-              <span class="p-bub"></span>
-              <span class="p-line"></span>
-            </div>
-          ))}
+  <Panel label="makimono · reader" status="drive it">
+    <div class="reader-demo" data-reader>
+      <div class="phone">
+        <div class="phone-screen" data-screen role="presentation">
+          <div class="strip" data-strip>
+            {panels.map((h) => (
+              <div class={`panel ${h}`}>
+                <span class="p-fig"></span>
+                <span class="p-bub"></span>
+                <span class="p-line"></span>
+              </div>
+            ))}
+            <div class="chapter-end" data-boundary>— end of chapter 12 —</div>
+            {panelsAfter.map((h) => (
+              <div class={`panel ${h}`}>
+                <span class="p-fig"></span>
+                <span class="p-bub"></span>
+                <span class="p-line"></span>
+              </div>
+            ))}
+          </div>
+          <div class="reader-hud">
+            <span class="hud-dot"></span>
+            <span data-hud-speed>1.2×</span>
+          </div>
         </div>
-        <div class="reader-hud">
-          <span class="hud-dot"></span>
-          <span data-hud-speed>1.2×</span>
+      </div>
+
+      <div class="reader-controls">
+        <div class="ctl-row">
+          <button class="map-btn" type="button" data-play aria-pressed="false">play</button>
+          <span class="ctl-label">tap screen too</span>
         </div>
+        <div class="ctl-row">
+          <label class="ctl-label" for="speed">speed</label>
+          <input id="speed" type="range" data-speed min="20" max="400" step="10" value="120" />
+          <output class="ctl-out" data-speed-out>120 px/s</output>
+        </div>
+        <p class="reader-status" data-status>press play, or tap the screen.</p>
+        <p class="sample-note">
+          Panels are synthetic placeholders. What is real here is the scroll
+          engine: speed control that applies mid-scroll, pause-on-touch, and
+          stopping at the chapter seam rather than sliding through it. In the app
+          the same controller also binds to the volume keys and a two-finger tap.
+        </p>
       </div>
     </div>
+  </Panel>
 
-    <div class="reader-controls">
-      <div class="ctl-row">
-        <button class="map-btn" type="button" data-play aria-pressed="false">play</button>
-        <span class="ctl-label">tap screen too</span>
-      </div>
-      <div class="ctl-row">
-        <label class="ctl-label" for="speed">speed</label>
-        <input id="speed" type="range" data-speed min="20" max="400" step="10" value="120" />
-        <output class="ctl-out" data-speed-out>120 px/s</output>
-      </div>
-      <p class="reader-status" data-status>press play, or tap the screen.</p>
-      <p class="sample-note">
-        Panels are synthetic placeholders. What is real here is the scroll
-        engine: speed control that applies mid-scroll, pause-on-touch, and
-        stopping at the chapter seam rather than sliding through it. In the app
-        the same controller also binds to the volume keys and a two-finger tap.
-      </p>
-    </div>
-  </div>
-
-  <h2>Why it exists</h2>
+  <SectionHead label="Motivation" title="Why it exists" />
   <p>
     I read a lot of manga, and the reader I used every day was missing things I
     wanted. Rather than file feature requests and wait, I forked it. The rule I
@@ -81,7 +95,7 @@ const panelsAfter = ['tall', 'mid', 'tall', 'short', 'mid', 'tall'];
     using it never feels like running a science project.
   </p>
 
-  <h2>Similar titles, ranked by agreement</h2>
+  <SectionHead label="Recommendations" title="Similar titles, ranked by agreement" />
   <p>
     Any one service will happily recommend whatever is trending. The useful
     signal is when services that do not talk to each other independently
@@ -93,28 +107,30 @@ const panelsAfter = ['tall', 'mid', 'tall', 'short', 'mid', 'tall'];
     collapse; titles multiple sources agree on hold their place.
   </p>
 
-  <div class="rank-demo" data-rank>
-    <div class="rank-sources">
-      <button class="map-btn" type="button" data-source="AniList" aria-pressed="true">AniList</button>
-      <button class="map-btn" type="button" data-source="MyAnimeList" aria-pressed="true">MyAnimeList</button>
-      <button class="map-btn" type="button" data-source="MangaUpdates" aria-pressed="true">MangaUpdates</button>
-      <button class="map-btn" type="button" data-source="MangaDex" aria-pressed="true">MangaDex</button>
-      <button class="map-btn" type="button" data-source="Comick" aria-pressed="true">Comick</button>
-      <span class="sep"></span>
-      <button class="map-btn" type="button" data-gems aria-pressed="false">hidden gems</button>
+  <Panel label="makimono · recommendations" status="sample data">
+    <div class="rank-demo" data-rank>
+      <div class="rank-sources">
+        <button class="map-btn" type="button" data-source="AniList" aria-pressed="true">AniList</button>
+        <button class="map-btn" type="button" data-source="MyAnimeList" aria-pressed="true">MyAnimeList</button>
+        <button class="map-btn" type="button" data-source="MangaUpdates" aria-pressed="true">MangaUpdates</button>
+        <button class="map-btn" type="button" data-source="MangaDex" aria-pressed="true">MangaDex</button>
+        <button class="map-btn" type="button" data-source="Comick" aria-pressed="true">Comick</button>
+        <span class="sep"></span>
+        <button class="map-btn" type="button" data-gems aria-pressed="false">hidden gems</button>
+      </div>
+
+      <ol class="rank-list" data-rank-list></ol>
+
+      <p class="sample-note">
+        Sample data, not live API output. The ranking is the real approach: a
+        title earns weight per independent source that recommends it, so
+        agreement beats any one service's enthusiasm. Hidden gems inverts the
+        popularity filter to surface what the big lists bury.
+      </p>
     </div>
+  </Panel>
 
-    <ol class="rank-list" data-rank-list></ol>
-
-    <p class="sample-note">
-      Sample data, not live API output. The ranking is the real approach: a
-      title earns weight per independent source that recommends it, so
-      agreement beats any one service's enthusiasm. Hidden gems inverts the
-      popularity filter to surface what the big lists bury.
-    </p>
-  </div>
-
-  <h2>What else I built</h2>
+  <SectionHead label="Scope" title="What else I built" />
   <ul>
     <li>
       <strong>Discover.</strong> AniList catalog browsing with include and

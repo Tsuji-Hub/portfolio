@@ -138,8 +138,19 @@ a:hover {
   text-underline-offset: 3px;
 }
 .prose .project-links a,
-.prose .back-link a {
+.prose .back-link a,
+.prose .pos-card,
+.prose .btn,
+.prose .back-all {
   text-decoration: none;
+}
+
+/* The type system declares up to 600. The UA default for strong/b is 700,
+   which for JetBrains Mono matches down to the 600 face and pulled a fifth
+   font file on any page with a bold word inside mono text. */
+strong,
+b {
+  font-weight: 600;
 }
 
 a:focus-visible,
@@ -765,6 +776,7 @@ a.tile:hover .tile-cta { color: var(--accent); }
 /* Project grid + cards */
 .section-label {
   font-family: var(--font-mono);
+  font-weight: 500;
   font-size: 0.8rem;
   letter-spacing: 0.04em;
   text-transform: lowercase;
@@ -885,6 +897,8 @@ a.card:hover .arrow { color: var(--accent); }
 .status-pill {
   display: inline-block;
   font-family: var(--font-mono);
+  /* Explicit: it sits inside the h1 and would otherwise inherit 700. */
+  font-weight: 500;
   font-size: 0.7rem;
   color: var(--accent);
   border: 1px solid var(--accent);
@@ -1655,7 +1669,6 @@ input[type='range'] {
 }
 .possess li.hasnt {
   color: var(--muted);
-  opacity: 0.5;
   text-decoration: line-through;
 }
 .possess li.leak {
@@ -1793,8 +1806,10 @@ input[type='range'] {
   padding: 0.28rem 0.6rem;
   border-radius: 5px;
   border: 1px solid var(--border);
+  /* Not dimmed with opacity: these are real cookbook names and dimming them
+     to 0.45 put them at 1.9:1. Membership is carried by the accent fill and
+     border on .in, which is a stronger signal than fading anyway. */
   color: var(--muted);
-  opacity: 0.45;
   transition: color var(--speed) ease, border-color var(--speed) ease,
     background-color var(--speed) ease, opacity var(--speed) ease;
 }
@@ -1857,14 +1872,14 @@ input[type='range'] {
 .code-out .s {
   color: var(--text);
 }
-.code-out .bad {
-  color: var(--danger);
-  font-weight: 600;
-}
+.code-out .bad,
 .code-out .good {
-  color: var(--accent);
-  font-weight: 600;
+  /* 500 is the mono weight the rest of the site already loads; 600 pulled a
+     whole extra face to bold two words inside a code block. */
+  font-weight: 500;
 }
+.code-out .bad { color: var(--danger); }
+.code-out .good { color: var(--accent); }
 .consumer {
   margin-top: 0.9rem;
   padding: 0.85rem 1.1rem;
@@ -1942,7 +1957,10 @@ input[type='range'] {
 }
 .ui-stage.stock .rcard-title {
   font-family: var(--font-body);
-  font-weight: 500;
+  /* 600, not 500: Inter 500 is the only place on the site that asked for a
+     fourth Inter face, and pulling a 25 KB font mid-render for one recreated
+     card title cost mealie 300ms of FCP. The stock look survives the change. */
+  font-weight: 600;
   font-size: 1rem;
   color: #fff;
   letter-spacing: 0;
@@ -2010,38 +2028,6 @@ input[type='range'] {
 .ui-stage.editorial .rcard-icons { color: #8e8e96; }
 
 /* ---- Positions, each with a receipt ---- */
-.positions {
-  list-style: none;
-  margin: 1.25rem 0 0;
-  padding: 0;
-  display: grid;
-  gap: 0.75rem;
-}
-.positions li {
-  margin: 0;
-  padding: 1rem 1.15rem;
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
-  border-radius: var(--radius);
-  background: var(--bg-raised);
-}
-.pos-claim {
-  margin: 0;
-  font-size: 1.02rem;
-  line-height: 1.45;
-  color: var(--text);
-}
-.pos-where {
-  margin: 0.45rem 0 0;
-  font-size: 0.88rem;
-  color: var(--muted);
-}
-.pos-where a {
-  font-family: var(--font-mono);
-  font-size: 0.82rem;
-  white-space: nowrap;
-}
-
 /* ---- SOAR workflow canvas ---- */
 .flow-demo {
   margin: 1.5rem 0 0;
@@ -2135,11 +2121,19 @@ input[type='range'] {
   font-family: var(--font-mono);
   font-size: 0.7rem;
   color: var(--muted);
-  opacity: 0.35;
   margin: 0;
+  /* A step that has not run yet is hidden rather than ghosted at opacity
+     0.35: the row still reserves its space, but the text is out of the
+     accessibility tree and out of the contrast audit, which is honest — the
+     hop genuinely has not happened. */
+  visibility: hidden;
+  opacity: 0;
   transition: opacity var(--speed) ease;
 }
-.flow-steps li.shown { opacity: 1; }
+.flow-steps li.shown {
+  visibility: visible;
+  opacity: 1;
+}
 .flow-steps li .t { color: var(--accent); }
 .flow-steps li.slow .t { color: var(--danger); }
 
@@ -2383,25 +2377,384 @@ canvas.field {
 }
 
 /* Definition rows (about) */
-.facts {
-  margin: 0;
-  display: grid;
-  gap: 0.75rem 1.5rem;
-}
-.fact {
-  border-left: 2px solid var(--border);
-  padding-left: 1rem;
-}
-.fact dt {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--muted);
-  margin-bottom: 0.15rem;
-}
-.fact dd {
-  margin: 0;
-}
-.fact dd + dd { margin-top: 0.15rem; }
-
 /* Shown only when scripting is off (flipped by /noscript.css). */
 .js-required { display: none; }
+
+/* ================================================================
+   PHASE 2 — the home page's system, applied to every other page.
+   Extracted from .hero-split / .work-head / .hero-canvas / .tile,
+   not reinvented. Same tokens, same scale, same restraint.
+   ================================================================ */
+
+/* ---------------- Shared page hero ---------------- */
+
+.page-hero {
+  padding-block: 0 clamp(2rem, 4vw, 3rem);
+}
+.page-hero-kicker {
+  margin: 0 0 1.1rem;
+}
+.page-hero-title {
+  font-size: clamp(2.3rem, 5.2vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  margin: 0 0 1.15rem;
+  max-width: 20ch;
+}
+.page-hero-title .accent { color: var(--accent); }
+.page-hero-lede {
+  font-size: var(--step-1);
+  line-height: 1.55;
+  color: var(--muted);
+  max-width: 58ch;
+  margin: 0 0 1.6rem;
+}
+.page-hero-tags {
+  margin: 0 0 2rem;
+}
+.page-hero .status-pill {
+  vertical-align: middle;
+  margin-left: 0.6rem;
+}
+
+/* Stat strip: 3 or 4 mono numerals, tiny uppercase captions. Same
+   treatment as the home hero's, sized to fit either count. */
+.stat-strip {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.3rem 1.75rem;
+  margin: 0;
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--border);
+}
+/* Column count via attribute, not an inline style: style="" is blocked by the
+   CSP and would fail the build's csp-gate. */
+@media (min-width: 720px) {
+  .stat-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .stat-strip[data-cols='3'] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stat-strip[data-cols='2'] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.stat-strip dt {
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+  line-height: 1.1;
+  color: var(--text);
+}
+.stat-strip dd {
+  margin: 0.4rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  line-height: 1.45;
+}
+
+/* ---------------- Section headers ---------------- */
+/* Replaces the bare bold h2. Mono label over a sentence-case heading. */
+
+.sec-head {
+  margin: clamp(3rem, 6vw, 4.5rem) 0 1.35rem;
+}
+.sec-head .label {
+  display: block;
+  margin: 0 0 0.55rem;
+}
+.sec-head h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+.sec-head p {
+  margin: 0.8rem 0 0;
+  color: var(--muted);
+  max-width: var(--measure);
+}
+
+/* ---------------- Panel surface ---------------- */
+/* The "homelab · live topology" treatment, generalised. Every demo
+   sits on one of these instead of bare on the background.
+   Named .demo-panel, not .panel: the makimono reader's manga frames have
+   owned .panel since the first build and a collision would restyle them. */
+
+.demo-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  margin-top: 1.25rem;
+}
+.demo-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 1.15rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-sunken);
+}
+.demo-panel-head .label { margin: 0; }
+.demo-panel-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--faint);
+  white-space: nowrap;
+}
+.demo-panel-status .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.9);
+  flex: none;
+}
+.demo-panel-body {
+  padding: 1.25rem;
+}
+@media (min-width: 700px) {
+  .demo-panel-body { padding: 1.5rem; }
+}
+/* Demos already carry their own top margin; inside a panel it doubles up. */
+.demo-panel-body > .map-controls:first-child,
+.demo-panel-body > *:first-child { margin-top: 0; }
+.demo-panel-body .sample-note:last-child { margin-bottom: 0; }
+
+/* ---------------- Next / prev project footer ---------------- */
+
+.page-foot {
+  margin-top: clamp(3.5rem, 7vw, 5rem);
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+.page-foot .label { display: block; margin-bottom: 1rem; }
+.next-pair {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 700px) {
+  .next-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.next-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.15rem 1.3rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raised);
+  color: inherit;
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 220ms ease, border-color 220ms ease;
+}
+.next-card:hover {
+  text-decoration: none;
+  transform: translateY(-3px) scale(1.012);
+  box-shadow: var(--shadow-glow), var(--shadow-card);
+  border-color: rgba(var(--accent-rgb), 0.35);
+}
+@media (prefers-reduced-motion: reduce) {
+  .next-card, .next-card:hover { transition: none; transform: none; }
+}
+.next-card .dir {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.next-card .name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.next-card .blurb {
+  font-size: 0.86rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.next-card.is-prev { text-align: left; }
+.page-foot .back-all {
+  margin: 1.5rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+
+/* Hero-side canvas panel reused on the homelab page. */
+.page-hero-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.25rem;
+  align-items: center;
+}
+@media (min-width: 1000px) {
+  .page-hero-split { grid-template-columns: 7fr 5fr; gap: 3rem; }
+}
+
+/* ---------------- Demo controls, restyled ---------------- */
+/* Same pill vocabulary as the home hero's buttons. The pressed state gets a
+   tinted fill so a group of toggles reads as one segmented control instead of
+   three unrelated outlines. Markup unchanged: still .map-btn[aria-pressed]. */
+
+.map-btn {
+  background: var(--bg-sunken);
+  transition: color var(--speed) ease, border-color var(--speed) ease,
+    background-color var(--speed) ease, box-shadow var(--speed) ease;
+}
+.map-btn:hover {
+  background: var(--bg-raised);
+}
+.map-btn[aria-pressed='true'] {
+  background: rgba(var(--accent-rgb), 0.12);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.25);
+}
+.map-btn[data-toggle][aria-pressed='true'] {
+  background: rgba(var(--danger-rgb), 0.12);
+  box-shadow: inset 0 0 0 1px rgba(var(--danger-rgb), 0.25);
+}
+.map-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* The label that names a toggle group, sitting inside the panel's controls. */
+.map-controls > .ctl-label {
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.66rem;
+  color: var(--faint);
+}
+
+/* ---------------- Prose that lets panels breathe ---------------- */
+/* The old article template capped the whole column at the reading measure, so
+   a full-width demo had to escape with .bleed — which centres on the prose,
+   not on the page grid, and lands visibly off-axis. Instead: the column runs
+   the full wrap, and the measure is applied to the reading elements only.
+   Panels then align with the h1 on the left and the grid on the right, with
+   no 100vw arithmetic and no horizontal overflow. */
+
+.prose-wide {
+  max-width: none;
+}
+.prose-wide > p,
+.prose-wide > ul,
+.prose-wide > ol:not(.positions),
+.prose-wide > dl,
+.prose-wide > h3,
+.prose-wide > blockquote,
+.prose-wide > figure > figcaption {
+  max-width: var(--measure);
+}
+/* Anything that used to escape the measure no longer needs to. */
+.prose-wide .bleed {
+  position: static;
+  left: auto;
+  width: auto;
+  transform: none;
+}
+
+/* ---------------- About: positions as bento cards ---------------- */
+/* Same object as a home tile: a card that lifts and glows on hover and takes
+   you somewhere. Each claim links to the demo where you can watch it hold. */
+
+.positions {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 780px) {
+  .positions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.positions li { margin: 0; }
+.pos-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  height: 100%;
+  padding: 1.3rem 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raised);
+  color: inherit;
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 220ms ease, border-color 220ms ease;
+}
+.pos-card:hover {
+  text-decoration: none;
+  transform: translateY(-3px) scale(1.012);
+  box-shadow: var(--shadow-glow), var(--shadow-card);
+  border-color: rgba(var(--accent-rgb), 0.35);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pos-card, .pos-card:hover { transition: none; transform: none; }
+}
+.pos-claim {
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-wrap: balance;
+}
+.pos-where {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.pos-cta {
+  margin-top: auto;
+  padding-top: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+
+/* ---------------- About: credentials as stat blocks ---------------- */
+/* The stat strip's vocabulary — mono uppercase caption over the fact — for
+   things that are lists rather than numerals. */
+
+.cred-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.4rem 1.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--border);
+}
+@media (min-width: 780px) {
+  .cred-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.cred { margin: 0; }
+.cred dt {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 0.6rem;
+}
+.cred dd {
+  margin: 0 0 0.35rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+.cred .cred-note {
+  margin-top: 0.7rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* Accent button rows on pages that are not the home hero. */
+.page-hero-actions {
+  margin: 1.75rem 0 0;
+}

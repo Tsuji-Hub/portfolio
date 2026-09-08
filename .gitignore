@@ -12,3 +12,7 @@ node_modules/
 Thumbs.db
 # cowork handoff (working file, not tracked)
 .claude/cowork-notes.md
+
+# local verification scratch (js-off copy, screenshots)
+.nojs/
+.shots/

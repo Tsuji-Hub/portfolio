@@ -1,6 +1,18 @@
 /* Self-hosted fonts, latin subset, woff2 only. Stable paths under /fonts so the
    critical faces can be <link rel="preload">ed (see Base.astro) — that lets them
-   arrive before first paint and avoids font-swap layout shift. */
+   arrive before first paint and avoids font-swap layout shift.
+
+   Exactly four faces are declared, and Base.astro preloads all four. That is
+   deliberate: a face that is declared but not preloaded gets discovered
+   mid-render and costs ~300ms of FCP on the page that trips it. Inter 500 and
+   JetBrains Mono 600 used to be declared; the only things reaching for them
+   were an inherited `font-weight: bold` inside mono text and one recreated
+   card title. Undeclaring them makes bold match down to a face that is
+   already in flight, and makes it impossible to add a fifth request by
+   accident. The two woff2 files stay in public/fonts, unreferenced, in case
+   the palette ever wants them back.
+
+   If you add a face here, add its preload in Base.astro in the same commit. */
 
 @font-face {
   font-family: 'Inter';
@@ -8,13 +20,6 @@
   font-weight: 400;
   font-display: swap;
   src: url('/fonts/inter-latin-400-normal.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('/fonts/inter-latin-500-normal.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Inter';
@@ -36,11 +41,4 @@
   font-weight: 500;
   font-display: swap;
   src: url('/fonts/jetbrains-mono-latin-500-normal.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'JetBrains Mono';
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url('/fonts/jetbrains-mono-latin-600-normal.woff2') format('woff2');
 }

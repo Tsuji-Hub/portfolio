@@ -1,0 +1,24 @@
+---
+/**
+ * The "homelab · live topology" surface, generalised. Every demo sits on one of
+ * these instead of bare on the page background.
+ *
+ * Wraps only: the demo markup and its hooks go through the slot untouched, so
+ * none of the eight demo scripts need to know this exists.
+ */
+interface Props {
+  label: string;
+  status?: string;
+}
+const { label, status = 'interactive' } = Astro.props;
+---
+
+<div class="demo-panel" data-card>
+  <div class="demo-panel-head">
+    <span class="label">{label}</span>
+    <span class="demo-panel-status"><span class="dot" aria-hidden="true"></span>{status}</span>
+  </div>
+  <div class="demo-panel-body">
+    <slot />
+  </div>
+</div>

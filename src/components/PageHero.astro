@@ -1,0 +1,86 @@
+---
+/**
+ * The home hero's treatment, shared by every other page: mono kicker, a title
+ * carrying exactly one accent phrase, muted lead, tag pills, stat strip.
+ *
+ * The kicker, title and lead deliberately carry NO [data-reveal]. On the home
+ * page the lead is the LCP element, and fading it in cost 4 Lighthouse points
+ * because LCP does not count an element painted at opacity 0. Same reasoning
+ * here: the headline is simply there, and the supporting rows animate in.
+ */
+interface Stat {
+  n: string;
+  l: string;
+}
+interface Props {
+  kicker: string;
+  title: string;
+  /** Hero headline when it should differ from the document title. */
+  headline?: string;
+  accent?: string;
+  lede: string;
+  tags?: string[];
+  stats?: Stat[];
+  status?: string;
+  /** Two-column hero. Astro registers a slot from the markup that forwards it,
+      not from whether it has content, so the caller has to say so. */
+  split?: boolean;
+}
+
+const {
+  kicker,
+  title,
+  headline,
+  accent,
+  lede,
+  tags = [],
+  stats = [],
+  status,
+  split = false,
+} = Astro.props;
+
+// Split the headline so exactly one phrase takes the accent colour.
+const head = headline ?? title;
+const at = accent ? head.indexOf(accent) : -1;
+const pre = at >= 0 ? head.slice(0, at) : head;
+const mid = at >= 0 ? accent : '';
+const post = at >= 0 ? head.slice(at + (accent as string).length) : '';
+---
+
+<header class:list={['page-hero', split && 'page-hero-split']}>
+  <div>
+    <p class="label page-hero-kicker">{kicker}</p>
+
+    <h1 class="page-hero-title">
+      {pre}{mid && <span class="accent text-glow">{mid}</span>}{post}
+      {status && <span class="status-pill">{status}</span>}
+    </h1>
+
+    <p class="page-hero-lede">{lede}</p>
+
+    {
+      tags.length > 0 && (
+        <ul class="tags page-hero-tags" aria-label="Stack" data-reveal>
+          {tags.map((t) => (
+            <li>{t}</li>
+          ))}
+        </ul>
+      )
+    }
+
+    {
+      stats.length > 0 && (
+        <dl class="stat-strip" data-reveal data-cols={String(stats.length)}>
+          {stats.map((s) => (
+            <div>
+              <dt>{s.n}</dt>
+              <dd>{s.l}</dd>
+            </div>
+          ))}
+        </dl>
+      )
+    }
+  </div>
+
+  {split && <slot name="aside" />}
+</header>

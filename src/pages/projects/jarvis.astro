@@ -202,6 +202,19 @@ import Panel from '../../components/Panel.astro';
         <span class="lab-total" data-lab-total></span>
         <span class="lab-delta" data-lab-delta></span>
       </div>
+      <div class="lab-compare" data-lab-compare hidden>
+        <div class="lab-cmp-row">
+          <span class="lab-cmp-name">as measured</span>
+          <span class="lab-cmp-bar"><i data-cmp-base-bar></i></span>
+          <span class="lab-cmp-t" data-cmp-base-t></span>
+        </div>
+        <div class="lab-cmp-row">
+          <span class="lab-cmp-name" data-cmp-now-name>this pipeline</span>
+          <span class="lab-cmp-bar"><i class="now" data-cmp-now-bar></i></span>
+          <span class="lab-cmp-t" data-cmp-now-t></span>
+        </div>
+      </div>
+
       <p class="lab-note" data-lab-note></p>
       <p class="sample-note">
         Measured on the live bot with timing instrumentation, from the moment

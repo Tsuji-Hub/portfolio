@@ -37,9 +37,26 @@
       status.innerHTML = html;
     }
 
+    var M = window.Motion;
+    var hud = root.querySelector('.reader-hud');
+
     function setPlaying(on) {
+      var starting = on && !playing;
       playing = on;
       root.classList.toggle('is-paused', !on);
+      // The controller grows out of its status dot when scrolling starts, the
+      // way the app's floating control does.
+      if (hud && starting && !M.reduce) {
+        var full = hud.scrollWidth;
+        hud.classList.add('is-dot');
+        hud.style.width = '18px';
+        void hud.offsetWidth;
+        hud.classList.remove('is-dot');
+        hud.style.width = full + 'px';
+        window.setTimeout(function () {
+          hud.style.width = '';
+        }, 360);
+      }
       playBtn.textContent = on ? 'pause' : 'play';
       playBtn.setAttribute('aria-pressed', String(on));
       if (on) {
@@ -105,10 +122,23 @@
       );
     });
 
+    var bumpTimer = null;
+    function bump() {
+      // Same flash the app gives its speed readout when you change it.
+      hudSpeed.classList.remove('is-bumped');
+      void hudSpeed.offsetWidth;
+      hudSpeed.classList.add('is-bumped');
+      window.clearTimeout(bumpTimer);
+      bumpTimer = window.setTimeout(function () {
+        hudSpeed.classList.remove('is-bumped');
+      }, 560);
+    }
+
     speedIn.addEventListener('input', function () {
       speed = Number(speedIn.value);
       speedOut.textContent = speed + ' px/s';
       hudSpeed.textContent = (speed / 100).toFixed(1) + '×';
+      bump();
       if (playing) setStatus('scrolling at <strong>' + speed + ' px/s</strong>.');
     });
 
@@ -160,7 +190,12 @@
     });
     var gems = false;
 
+    var seq = null;
+
     function render() {
+      var active = SOURCES.filter(function (s) {
+        return enabled[s];
+      }).length;
       var rows = TITLES.map(function (item) {
         var agree = item.by.filter(function (s) {
           return enabled[s];
@@ -201,15 +236,7 @@
         bar.className = 'rank-bar';
         // role is required: aria-label is prohibited on a generic span.
         bar.setAttribute('role', 'img');
-        bar.setAttribute(
-          'aria-label',
-          r.score +
-            ' of ' +
-            SOURCES.filter(function (s) {
-              return enabled[s];
-            }).length +
-            ' active sources agree'
-        );
+        bar.setAttribute('aria-label', r.score + ' of ' + active + ' active sources agree');
         SOURCES.forEach(function (s) {
           var pip = document.createElement('span');
           var on = enabled[s] && r.item.by.indexOf(s) !== -1;
@@ -217,11 +244,31 @@
           bar.appendChild(pip);
         });
 
+        var via = document.createElement('span');
+        via.className = 'rank-via';
+        via.textContent = 'via ' + r.score + ' of ' + active;
+
         li.appendChild(pos);
         li.appendChild(title);
         li.appendChild(bar);
+        li.appendChild(via);
         list.appendChild(li);
       });
+
+      // The order is the output of the model, so the rows arrive in it rather
+      // than all at once. Agreement first, popularity only as a tiebreak.
+      var M = window.Motion;
+      if (seq) seq.cancel();
+      seq = M.seq();
+      var step = M.ms(55, 32);
+      var kids = list.children;
+      for (var i = 0; i < kids.length; i++) {
+        (function (el, d) {
+          seq.at(d, function () {
+            el.classList.add('is-in');
+          });
+        })(kids[i], i * step);
+      }
     }
 
     srcBtns.forEach(function (b) {

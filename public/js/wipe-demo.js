@@ -8,6 +8,12 @@
 // The fix is unglamorous: read the current list, merge, send the whole thing.
 // Flip the mode and watch the shelf.
 //
+// The whole point is that the damage is silent, so it is staged rather than
+// applied all at once: the PATCH types out first, then the folders it is about
+// to drop are struck off one at a time while a counter ticks, and only then
+// does the verdict arrive. Watching two folders you did not touch disappear is
+// a different experience from reading that they did.
+//
 // CSP: external, script-src 'self'. No eval, no inline handlers.
 (function () {
   var root = document.querySelector('[data-wipe]');
@@ -20,6 +26,9 @@
   var modeBtns = root.querySelectorAll('[data-mode]');
   var resetBtn = root.querySelector('[data-reset]');
   var pill = root.querySelector('[data-pill]');
+  var countEl = root.querySelector('[data-wipe-count]');
+  var M = window.Motion;
+  var seq = null;
 
   // His real cookbook set, category-backed so the pill files into the matching
   // cookbook automatically.
@@ -44,6 +53,12 @@
   var current = START.slice();
   var lost = [];
   var lostTotal = 0;
+  // What the shelf is showing right now, which trails `current` while the
+  // folders are being struck off one by one.
+  var displayed = START.slice();
+  // Folders checked off as kept on the fixed path. Part of the shelf's
+  // state, or the settle repaint wipes the ticks the walk just applied.
+  var checked = [];
 
   function renderMenu() {
     menuList.innerHTML = '';
@@ -72,13 +87,25 @@
       var li = document.createElement('li');
       var d = document.createElement('span');
       var cls = 'folder';
-      if (current.indexOf(c) !== -1) cls += ' in';
+      if (displayed.indexOf(c) !== -1) cls += ' in';
       else if (lost.indexOf(c) !== -1) cls += ' lost';
+      if (checked.indexOf(c) !== -1) cls += ' ok';
       d.className = cls;
       d.textContent = c;
+      d.dataset.folder = c;
       li.appendChild(d);
       shelf.appendChild(li);
     });
+  }
+
+  function folderEl(cat) {
+    return shelf.querySelector('[data-folder="' + cat.replace(/"/g, '\\"') + '"]');
+  }
+
+  function setCount(n) {
+    if (!countEl) return;
+    countEl.textContent = n ? '· ' + n + ' lost' : '';
+    countEl.classList.toggle('hurt', n > 0);
   }
 
   function renderPill() {
@@ -87,12 +114,7 @@
       : '+ Category';
   }
 
-  function renderWire(body, result) {
-    wire.innerHTML = '';
-    if (!body) {
-      wire.textContent = 'tap a category in the menu.';
-      return;
-    }
+  function wireText(body, result) {
     var lines = [
       'PATCH /api/recipes',
       '[',
@@ -105,7 +127,25 @@
       '// server stores exactly what you sent:',
       '// recipeCategory = [' + result.map(quote).join(', ') + ']',
     ];
-    wire.textContent = lines.join('\n');
+    return lines.join('\n');
+  }
+
+  /** The request types out, so you read it before the damage lands. */
+  function typeWire(body, result, done) {
+    if (!body) {
+      wire.textContent = 'tap a category in the menu.';
+      if (done) done();
+      return;
+    }
+    var text = wireText(body, result);
+    wire.classList.add('is-typing');
+    seq.tween(M.ms(760, 420), function (_, raw) {
+      wire.textContent = text.slice(0, Math.round(raw * text.length));
+    }, function () {
+      wire.textContent = text;
+      wire.classList.remove('is-typing');
+      if (done) done();
+    }, function (t) { return t; });
   }
 
   function quote(s) {
@@ -113,6 +153,10 @@
     }
 
   function renderDamage() {
+    damage.classList.remove('is-in');
+    requestAnimationFrame(function () {
+      damage.classList.add('is-in');
+    });
     if (mode === 'additive') {
       damage.className = 'wipe-damage safe';
       damage.textContent =
@@ -133,6 +177,9 @@
   }
 
   function toggle(cat) {
+    if (seq) seq.cancel();
+    seq = M.seq();
+
     var isIn = current.indexOf(cat) !== -1;
     var body;
 
@@ -150,15 +197,65 @@
       lost = current.filter(function (c) {
         return body.indexOf(c) === -1;
       });
-      lostTotal += lost.length;
     }
 
+    var before = current.slice();
+    checked = [];
     current = body.slice(); // patchMany replaces wholesale
     renderMenu();
-    renderShelf();
     renderPill();
-    renderWire(body, current);
-    renderDamage();
+
+    // The shelf still shows what the recipe was in a moment ago. It is taken
+    // apart one folder at a time once the request has been sent.
+    displayed = before.slice();
+    renderShelf();
+    damage.classList.remove('is-in');
+
+    typeWire(body, current, function () {
+      var step = M.ms(260, 150);
+      var lostSoFar = lostTotal;
+
+      if (mode === 'additive') {
+        // Nothing is dropped, so every folder it was already in gets checked
+        // off instead. Same walk, opposite outcome.
+        before.forEach(function (c, i) {
+          seq.at(i * step, function () {
+            var el = folderEl(c);
+            if (!el) return;
+            checked.push(c);
+            el.classList.add('checking', 'ok');
+            seq.at(M.ms(360, 220), function () {
+              el.classList.remove('checking');
+            });
+          });
+        });
+        seq.at(before.length * step + M.ms(320, 200), settle);
+        return;
+      }
+
+      lost.forEach(function (c, i) {
+        seq.at(i * step, function () {
+          var el = folderEl(c);
+          if (el) {
+            el.classList.remove('in');
+            el.classList.add('lost', 'going');
+            seq.at(M.ms(420, 260), function () {
+              el.classList.remove('going');
+            });
+          }
+          lostSoFar++;
+          lostTotal = lostSoFar;
+          setCount(lostSoFar);
+        });
+      });
+      seq.at(lost.length * step + M.ms(360, 220), settle);
+    });
+
+    function settle() {
+      displayed = current.slice();
+      renderShelf();
+      renderDamage();
+    }
   }
 
   menuList.addEventListener('click', function (e) {
@@ -177,16 +274,25 @@
   });
 
   function reset() {
+    if (seq) seq.cancel();
+    seq = M.seq();
     current = START.slice();
+    displayed = START.slice();
+    checked = [];
     lost = [];
     lostTotal = 0;
+    setCount(0);
     renderMenu();
     renderShelf();
     renderPill();
-    renderWire(null);
+    wire.textContent = 'tap a category in the menu.';
     renderDamage();
   }
 
   resetBtn.addEventListener('click', reset);
   reset();
+
+  M.onView(root, function () {}, function () {
+    if (seq) seq.cancel();
+  });
 })();

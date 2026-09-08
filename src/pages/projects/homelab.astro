@@ -217,9 +217,11 @@ import Panel from '../../components/Panel.astro';
         <!-- Animated packet + block marker (last, so they paint on top) -->
         <circle id="packet" r="5" cx="0" cy="0"></circle>
         <g id="block-mark">
+          <circle class="bm-burst" cx="0" cy="0" r="9"></circle>
           <circle cx="0" cy="0" r="9"></circle>
           <line x1="-4" y1="-4" x2="4" y2="4"></line>
           <line x1="4" y1="-4" x2="-4" y2="4"></line>
+          <text class="bm-label" x="14" y="4">no route</text>
         </g>
       </svg>
 

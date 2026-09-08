@@ -11,15 +11,15 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Reduced motion is handled per-rule, not with a blanket
+   `animation-duration: 0.001ms !important` on `*`. That one line is how the
+   whole site became motionless for anyone with animation effects switched off
+   in Windows, including its author: fills, counters and stroke draws are
+   information delivered over time, and they should still run, just calmer.
+   What goes is travel across the screen, so smooth scrolling goes. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    transition-duration: 0.001ms !important;
   }
 }
 
@@ -57,11 +57,11 @@ body {
    no inline script is needed, so the CSP needs no hash. */
 
 @keyframes reveal-in {
-  from { opacity: 0; transform: translateY(18px); }
+  from { opacity: 0; transform: translateY(var(--motion-shift)); }
   to   { opacity: 1; transform: none; }
 }
 @keyframes canvas-in {
-  from { opacity: 0; transform: scale(0.98); }
+  from { opacity: 0; transform: scale(var(--motion-scale)); }
   to   { opacity: 1; transform: none; }
 }
 
@@ -72,37 +72,31 @@ body {
    elements are what stagger in around it. */
 [data-reveal] {
   opacity: 0;
-  animation: reveal-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
+  animation: reveal-in var(--t-reveal) cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
 }
 [data-reveal]:nth-child(5) { animation-delay: 0.21s; }
 
 [data-canvas] {
   opacity: 0;
-  animation: canvas-in 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.4s forwards;
+  animation: canvas-in var(--t-canvas) cubic-bezier(0.22, 1, 0.36, 1)
+    var(--t-canvas-delay) forwards;
 }
 
 /* Cards wait for the viewport; reveal.js adds .is-in. */
 [data-card] {
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(var(--motion-shift));
+  transition: opacity var(--t-card) cubic-bezier(0.16, 1, 0.3, 1),
+    transform var(--t-card) cubic-bezier(0.16, 1, 0.3, 1);
 }
 [data-card].is-in {
   opacity: 1;
   transform: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  [data-reveal],
-  [data-canvas],
-  [data-card] {
-    opacity: 1;
-    transform: none;
-    animation: none;
-    transition: none;
-  }
-}
+/* Under reduce these still fade in, on the halved --t-* timings, with
+   --motion-shift at 0 so nothing slides. They are not pinned to their final
+   state any more; noscript.css still does that for the no-JS case. */
 
 h1,
 h2,
@@ -518,6 +512,7 @@ main {
   font-family: var(--font-mono);
   font-size: 1.45rem;
   color: var(--text);
+  font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
 .hero-stats dd {
@@ -1024,6 +1019,23 @@ a.card:hover .arrow { color: var(--accent); }
   stroke: var(--danger);
   stroke-width: 1.5;
 }
+/* The packet stopping is the finding, so it gets said in words too. */
+#block-mark .bm-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  fill: var(--danger);
+}
+#block-mark .bm-burst {
+  fill: none;
+  stroke: var(--danger);
+  stroke-width: 1.5;
+  opacity: 0;
+}
+/* A node that was actually reached, acknowledging the packet's arrival. */
+.node.reached rect {
+  stroke: var(--accent);
+}
+.node.reached { filter: drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.55)); }
 .host-box {
   fill: none;
   stroke: var(--border);
@@ -1279,6 +1291,49 @@ a.card:hover .arrow { color: var(--accent); }
 .reader-demo.is-paused .hud-dot {
   background: var(--muted);
 }
+/* The controller grows out of its own status dot when auto-scroll starts, the
+   way the app's floating control does. Under reduce it is already at full
+   width and only fades, so nothing expands. */
+.reader-hud {
+  transition: opacity var(--t-card) ease, width 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.reader-hud.is-dot {
+  opacity: 0.6;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reader-hud { transition: opacity var(--t-card) ease; }
+}
+/* The speed readout flashes on change, exactly like the app's does. */
+@keyframes hud-flash {
+  from { color: var(--accent); }
+  to { color: var(--text); }
+}
+.reader-hud .is-bumped {
+  animation: hud-flash 520ms ease-out;
+}
+
+/* Ranking rows arrive in order, and each says how many independent sources
+   put it there. Agreement is the whole ranking model, so it should be on the
+   row rather than only in the pips. */
+.rank-via {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--faint);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.rank-list li {
+  opacity: 0;
+  transform: translateY(var(--motion-shift));
+  transition: opacity var(--t-card) cubic-bezier(0.16, 1, 0.3, 1),
+    transform var(--t-card) cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rank-list li.is-in {
+  opacity: 1;
+  transform: none;
+}
 
 .reader-controls {
   display: flex;
@@ -1360,7 +1415,7 @@ input[type='range'] {
 }
 .manifest-list li {
   display: grid;
-  grid-template-columns: 3.6rem minmax(0, 1fr) 4.6rem 4.2rem;
+  grid-template-columns: 3.6rem minmax(0, 1fr) 3.4rem 4.6rem 4.2rem;
   gap: 0.7rem;
   align-items: baseline;
   padding: 0.25rem 0.6rem;
@@ -1374,6 +1429,33 @@ input[type='range'] {
 .mf-name { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mf-size { color: var(--muted); text-align: right; }
 .mf-origin { color: var(--accent); text-align: right; }
+/* Each request's weight, drawn rather than only written. Fonts dominate, and
+   the bars are the only place that is obvious at a glance. */
+.mf-bar {
+  align-self: center;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+.mf-bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.manifest-list li.third .mf-bar i { background: var(--danger); }
+.manifest-list li {
+  opacity: 0;
+  transition: opacity var(--t-card) ease;
+}
+.manifest-list li.is-in { opacity: 1; }
+.manifest-verdict {
+  opacity: 0;
+  transition: opacity var(--t-card) ease;
+}
+.manifest-verdict.is-in { opacity: 1; }
 .manifest-list li.third .mf-origin { color: var(--danger); }
 
 /* ---- Live self-attack panel ---- */
@@ -1404,11 +1486,31 @@ input[type='range'] {
   background: var(--bg-raised);
   margin: 0;
 }
+.atk-row {
+  /* Rows arrive one at a time rather than all at once, so each verdict is
+     read rather than scanned. */
+  opacity: 0;
+  transition: opacity var(--t-card) ease;
+}
+.atk-row.is-in { opacity: 1; }
 .atk-row.blocked {
   border-left-color: var(--accent);
+  --flash-rgb: var(--accent-rgb);
 }
 .atk-row.through {
   border-left-color: var(--danger);
+  --flash-rgb: var(--danger-rgb);
+}
+/* The verdict landing. A single wash in the colour of the outcome. */
+@keyframes atk-land {
+  from { background: rgba(var(--flash-rgb), 0.24); }
+  to { background: var(--bg-raised); }
+}
+.atk-row.flash {
+  animation: atk-land 620ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .atk-row.flash { animation: none; }
 }
 .atk-verdict {
   font-family: var(--font-mono);
@@ -1529,6 +1631,49 @@ input[type='range'] {
 .lab-delta { font-size: 0.8rem; }
 .lab-delta.better { color: var(--accent); }
 .lab-delta.worse { color: var(--danger); }
+/* Each stage fills while it is running, so a bar that is merely long and a
+   bar that is currently costing you time look different. */
+.lab-seg .lab-fill {
+  opacity: 0.55;
+}
+/* The two pipelines end up next to each other at the same scale, because
+   "3.4s versus 1.2s" is a sentence and two bars are an argument. */
+.lab-compare {
+  margin-top: 0.9rem;
+  display: grid;
+  gap: 0.4rem;
+  opacity: 0;
+  transition: opacity var(--t-card) ease;
+}
+.lab-compare.is-in { opacity: 1; }
+.lab-cmp-row {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr) 4.5rem;
+  gap: 0.7rem;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.lab-cmp-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+.lab-cmp-bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 4px;
+  background: var(--faint);
+}
+.lab-cmp-bar i.now { background: var(--accent); }
+.lab-cmp-t {
+  text-align: right;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
 .lab-note {
   margin-top: 0.6rem;
   font-size: 0.9rem;
@@ -1670,6 +1815,46 @@ input[type='range'] {
 .possess li.hasnt {
   color: var(--muted);
   text-decoration: line-through;
+}
+/* The caret that runs down the public bot's context while it is being
+   searched. Colour and a marker, so it survives reduce unchanged. */
+.possess li {
+  position: relative;
+  transition: color var(--speed) ease, opacity var(--t-card) ease;
+}
+.possess li.scanning::before {
+  content: 'A';
+  position: absolute;
+  left: -0.75rem;
+  color: var(--accent);
+}
+/* A leaked field is not there until the scan finds it. */
+.possess li.leak {
+  opacity: 0;
+}
+.possess li.leak.found {
+  opacity: 1;
+}
+/* The question in flight, from the button that asked it to the bot that has
+   to answer it. Positioned by CSSOM, which the CSP allows; a style attribute
+   would not be. */
+.jd-chip {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 0.24rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--bg-raised);
+  color: var(--accent);
+  white-space: nowrap;
+  opacity: 0;
+}
+.jarvis-demo { position: relative; }
+.leak-count {
+  font-variant-numeric: tabular-nums;
 }
 .possess li.leak {
   color: var(--danger);
@@ -1825,6 +2010,34 @@ input[type='range'] {
   border-color: var(--danger);
   background: color-mix(in srgb, var(--danger) 16%, transparent);
 }
+/* The running count of folders this toggle has silently dropped. It sits with
+   the shelf it is counting, and it is the thing that ticks while the strikes
+   land one at a time. */
+.wipe-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--faint);
+  transition: color var(--t-card) ease;
+}
+.wipe-count.hurt { color: var(--danger); }
+
+/* A folder being struck off, and a folder being checked as kept. Both are
+   colour and a mark, no travel, so reduce keeps them unchanged. */
+.folder.going {
+  background: rgba(var(--danger-rgb), 0.3);
+  border-color: var(--danger);
+}
+.folder.ok::after {
+  content: ' ¹3';
+  color: var(--accent);
+}
+.folder.checking {
+  background: rgba(var(--accent-rgb), 0.22);
+}
+.wipe-damage {
+  opacity: 0;
+  transition: opacity var(--t-card) ease;
+}
+.wipe-damage.is-in { opacity: 1; }
 .wipe-damage {
   margin-top: 0.9rem;
   font-family: var(--font-mono);
@@ -1949,6 +2162,36 @@ input[type='range'] {
 .rcard-icons { display: flex; gap: 0.5rem; opacity: 0.75; font-size: 0.85rem; }
 
 /* --- STOCK: what the app rendered regardless of palette --- */
+/* The two cards are not just recoloured, they are shaped differently, which
+   is the argument. Transitioning the shape properties lets you watch the
+   4px radius and the elevation shadow resolve instead of cutting to the
+   answer. The structural difference (chips vs badges) is covered by a short
+   crossfade in mealie-demo.js. */
+.ui-stage .rcard,
+.ui-stage .rcard-photo,
+.ui-stage .rcard-title,
+.ui-stage .rcard-yield,
+.ui-stage .rcard-icons {
+  transition: background-color 500ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 500ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 500ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 500ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 500ms ease, font-size 500ms ease, letter-spacing 500ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-stage .rcard,
+  .ui-stage .rcard-photo,
+  .ui-stage .rcard-title,
+  .ui-stage .rcard-yield,
+  .ui-stage .rcard-icons {
+    transition-duration: 250ms;
+  }
+}
+.ui-stage {
+  transition: opacity 180ms ease;
+}
+.ui-stage.is-swapping { opacity: 0.35; }
+
 .ui-stage.stock .rcard {
   background: #1e1e1e;
   border-radius: 4px;
@@ -2137,6 +2380,62 @@ input[type='range'] {
 .flow-steps li .t { color: var(--accent); }
 .flow-steps li.slow .t { color: var(--danger); }
 
+/* The two payloads, side by side, so "identical" is something you check
+   rather than something the page asserts. */
+.flow-compare {
+  margin-top: 1.4rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--border);
+  opacity: 0;
+  transition: opacity var(--t-card) ease;
+}
+.flow-compare.is-in { opacity: 1; }
+.flow-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.9rem;
+}
+@media (min-width: 760px) {
+  .flow-compare-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.code-out .ln {
+  display: block;
+  border-radius: 3px;
+  transition: background-color 320ms ease, color 320ms ease;
+}
+/* A field being stamped onto the payload, and a line being checked against
+   its twin. Colour only, so both survive reduce unchanged. */
+.code-out .ln.stamp,
+.code-out .ln.pair {
+  background: rgba(var(--accent-rgb), 0.16);
+  color: var(--text);
+}
+.flow-verdict {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.6rem 0.9rem;
+  margin: 1.1rem 0 0;
+  font-family: var(--font-mono);
+}
+.flow-vt {
+  font-size: 1.5rem;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.flow-vt.slow { color: var(--danger); }
+.flow-vs {
+  font-size: 0.78rem;
+  color: var(--faint);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.flow-ratio {
+  font-size: 0.86rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---- Field: every unit of work as one cell ---- */
 .field-wrap {
   margin: 1.1rem 0 0;
@@ -2161,14 +2460,23 @@ canvas.field {
   color: var(--accent);
   font-variant-numeric: tabular-nums;
   min-width: 7.5rem;
+  transition: color var(--t-card) ease;
+}
+/* When the counter stops being a progress number and becomes the finding, it
+   takes the colour of the eight cells it is talking about. */
+.field-count.is-finding {
+  color: var(--text);
 }
 .field-note {
+  opacity: 0;
+  transition: opacity var(--t-card) ease;
   margin-top: 0.5rem;
   font-size: 0.88rem;
   color: var(--muted);
   border-left: 2px solid var(--border);
   padding-left: 0.8rem;
 }
+.field-note.is-in { opacity: 1; }
 
 /* ---- Exposure clock (animated, fixed 3-week scale) ---- */
 .clock-wrap {
@@ -2179,6 +2487,10 @@ canvas.field {
   height: auto;
   display: block;
 }
+/* The scale stays legible the whole time, because a fixed scale is the
+   argument of this demo. What changes is that each day mark lights up as the
+   exposure passes it, so the bar is measured against something rather than
+   just being long. */
 .exp-grid line {
   stroke: var(--border);
   stroke-width: 1;
@@ -2187,6 +2499,44 @@ canvas.field {
   font-family: var(--font-mono);
   font-size: 10px;
   fill: var(--muted);
+}
+.exp-grid .tick line,
+.exp-grid .tick text {
+  opacity: 0.4;
+  transition: opacity var(--t-card) ease, stroke 300ms ease, fill 300ms ease;
+}
+.exp-grid .tick.is-passed line {
+  opacity: 1;
+  stroke: var(--text);
+}
+.exp-grid .tick.is-passed text {
+  opacity: 1;
+  fill: var(--text);
+}
+
+/* The head of a drawing bar is a terminal cursor: it is waiting, and the
+   blink says so. A blink is a loop, so under reduce it holds steady. */
+.exp-caret {
+  fill: var(--text);
+  animation: exp-blink 1s steps(1, end) infinite;
+}
+@keyframes exp-blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0.15; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .exp-caret { animation: none; opacity: 1; }
+}
+
+/* Typed captions carry their own cursor while they are being typed. */
+.is-typing::after {
+  content: '88';
+  margin-left: 1px;
+  color: var(--accent);
+  animation: exp-blink 1s steps(1, end) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .is-typing::after { animation: none; }
 }
 .exp-lane {
   fill: var(--bg-raised);
@@ -2333,7 +2683,7 @@ canvas.field {
 }
 .rank-list li {
   display: grid;
-  grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+  grid-template-columns: 1.6rem minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 0.75rem;
@@ -2403,6 +2753,28 @@ canvas.field {
   max-width: 20ch;
 }
 .page-hero-title .accent { color: var(--accent); }
+
+/* The accent phrase underlines itself once the headline has arrived: a rule
+   drawn left to right, not a border that was always there. background-size
+   rather than a scaled pseudo-element, so it survives the phrase wrapping
+   across two lines, and because it is paint rather than transform it is
+   information appearing over time and stays under reduce, at half the
+   duration like every other draw. */
+.page-hero-title .accent,
+.hero-lede .accent {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 2px;
+  padding-bottom: 0.08em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  animation: draw-rule var(--t-reveal) cubic-bezier(0.22, 1, 0.36, 1) 0.55s both;
+}
+@keyframes draw-rule {
+  from { background-size: 0 2px; }
+  to { background-size: 100% 2px; }
+}
 .page-hero-lede {
   font-size: var(--step-1);
   line-height: 1.55;
@@ -2440,6 +2812,9 @@ canvas.field {
   font-size: 1.3rem;
   line-height: 1.1;
   color: var(--text);
+  /* Tabular figures: a counter that reflows its own row while it runs reads
+     as a glitch rather than as a measurement. */
+  font-variant-numeric: tabular-nums;
 }
 .stat-strip dd {
   margin: 0.4rem 0 0;

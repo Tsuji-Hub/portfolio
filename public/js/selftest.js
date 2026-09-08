@@ -17,6 +17,8 @@
   var policyBox = root.querySelector('[data-policy]');
   var policyText = root.querySelector('[data-policy-text]');
   var btns = root.querySelectorAll('[data-atk]');
+  var M = window.Motion;
+  var seq = M.seq();
 
   var lastViol = null;
   var sawAnyViolation = false;
@@ -220,34 +222,85 @@
     list.appendChild(li);
   }
 
+  /**
+   * The row arrives, then its verdict types in behind a cursor, then the row
+   * takes a wash of colour in the outcome's own hue. Under reduce the typing
+   * and the fade stay; only the wash goes.
+   */
+  function land(li) {
+    return new Promise(function (resolve) {
+      var v = li.querySelector('.atk-verdict');
+      var text = v.textContent;
+      v.textContent = '';
+      v.classList.add('is-typing');
+      list.appendChild(li);
+      requestAnimationFrame(function () {
+        li.classList.add('is-in');
+      });
+      seq.tween(M.ms(260, 170), function (_, raw) {
+        v.textContent = text.slice(0, Math.round(raw * text.length));
+      }, function () {
+        v.textContent = text;
+        v.classList.remove('is-typing');
+        li.classList.add('flash');
+        seq.at(700, function () {
+          li.classList.remove('flash');
+        });
+        resolve();
+      }, function (t) { return t; });
+    });
+  }
+
   // Run the attack, let any violation event land, then report what happened.
   function exec(a) {
     lastViol = null;
     return a.run().then(function (res) {
       a.__res = res;
       return settle().then(function () {
-        list.appendChild(row(a, res, lastViol));
+        return land(row(a, res, lastViol));
       });
     });
   }
 
+  function pause(ms) {
+    return new Promise(function (r) {
+      seq.at(ms, r);
+    });
+  }
+
   function runAll(only) {
+    seq.cancel();
+    seq = M.seq();
     list.innerHTML = '';
     btns.forEach(function (b) {
       b.disabled = true;
     });
-    var seq = only ? [only] : ATTACKS;
+    var run = only ? [only] : ATTACKS;
     var chain = Promise.resolve();
-    seq.forEach(function (a) {
-      chain = chain.then(function () {
-        return exec(a);
-      });
+    run.forEach(function (a, i) {
+      chain = chain
+        .then(function () {
+          // Staggered, not fired in one burst: six verdicts appearing at once
+          // is a wall of text, six arriving in turn is a demonstration.
+          return i ? pause(M.ms(250, 160)) : null;
+        })
+        .then(function () {
+          return exec(a);
+        });
     });
     return chain.then(function () {
       warnNoCsp();
       btns.forEach(function (b) {
         b.disabled = false;
       });
+      if (!policyBox.hidden) {
+        seq.at(M.ms(320, 200), function () {
+          policyBox.scrollIntoView({
+            block: 'nearest',
+            behavior: M.reduce ? 'auto' : 'smooth',
+          });
+        });
+      }
     });
   }
 

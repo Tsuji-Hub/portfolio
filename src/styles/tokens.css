@@ -47,6 +47,20 @@
   --radius-lg: 1.25rem;
   --speed: 120ms;
 
+  /* Motion.
+     Reduced motion means calm, not none. Anything that reveals information
+     over time (a fill, a counter, a fade, a stroke drawing itself) keeps
+     running at roughly half speed; anything that moves across the screen,
+     scales, or loops is dropped. --motion-shift and --motion-scale go to
+     their identity values under reduce, which takes the travel out of a
+     keyframe without needing a second copy of it. */
+  --motion-shift: 18px;
+  --motion-scale: 0.98;
+  --t-reveal: 0.9s;
+  --t-card: 0.8s;
+  --t-canvas: 1.4s;
+  --t-canvas-delay: 0.4s;
+
   /* Depth */
   --shadow-glow: 0 0 0 1px rgba(46, 230, 255, 0.25), 0 0 40px -8px rgba(46, 230, 255, 0.45);
   --shadow-card: 0 1px 0 0 rgba(255, 255, 255, 0.03) inset, 0 20px 50px -30px rgba(0, 0, 0, 0.8);
@@ -57,6 +71,17 @@
   --glass-bg-strong: rgba(11, 13, 16, 0.78);
   --glass-edge: rgba(255, 255, 255, 0.06);
   --glass-edge-strong: rgba(255, 255, 255, 0.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-shift: 0px;
+    --motion-scale: 1;
+    --t-reveal: 0.45s;
+    --t-card: 0.4s;
+    --t-canvas: 0.6s;
+    --t-canvas-delay: 0.15s;
+  }
 }
 
 /* The shell is dark-only. Main has always supported a light preference, so it

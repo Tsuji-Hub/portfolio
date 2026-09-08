@@ -21,7 +21,13 @@
   var note = root.querySelector('[data-lab-note]');
   var runBtn = root.querySelector('[data-lab-run]');
   var optBtns = root.querySelectorAll('[data-opt]');
-  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var M = window.Motion;
+  var seq = M.seq();
+  var cmp = root.querySelector('[data-lab-compare]');
+  var cmpBaseBar = root.querySelector('[data-cmp-base-bar]');
+  var cmpNowBar = root.querySelector('[data-cmp-now-bar]');
+  var cmpBaseT = root.querySelector('[data-cmp-base-t]');
+  var cmpNowT = root.querySelector('[data-cmp-now-t]');
 
   var X0 = 24;
   var X1 = 876;
@@ -73,6 +79,18 @@
       r.setAttribute('rx', 5);
       g.appendChild(r);
 
+      // The level meter for this stage, filled as it runs.
+      var fill = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      fill.setAttribute('class', 'lab-fill');
+      fill.setAttribute('x', x);
+      fill.setAttribute('y', 34);
+      fill.setAttribute('width', 0);
+      fill.setAttribute('height', 46);
+      fill.setAttribute('rx', 5);
+      fill.dataset.fill = k;
+      fill.dataset.full = Math.max(2, w - 2);
+      g.appendChild(fill);
+
       if (w > 74) {
         var label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         label.setAttribute('x', x + w / 2 - 1);
@@ -106,6 +124,15 @@
   var rafId = null;
 
   function stop() {
+    seq.cancel();
+    seq = M.seq();
+    if (cmp) {
+      cmp.classList.remove('is-in');
+      cmp.hidden = true;
+    }
+    root.querySelectorAll('.lab-fill').forEach(function (f) {
+      f.setAttribute('width', 0);
+    });
     if (anim) {
       anim.cancel();
       anim = null;
@@ -120,49 +147,65 @@
     });
   }
 
+  /** Both pipelines at the same scale, once you have waited out this one. */
+  function resolve(t) {
+    if (!cmp) return;
+    var worst = Math.max(BASELINE, t);
+    cmpBaseT.textContent = fmt(BASELINE);
+    cmpNowT.textContent = fmt(t);
+    cmp.hidden = false;
+    requestAnimationFrame(function () {
+      cmp.classList.add('is-in');
+    });
+    seq.tween(M.ms(760), function (e) {
+      cmpBaseBar.style.width = ((BASELINE / worst) * 100 * e).toFixed(2) + '%';
+      cmpNowBar.style.width = ((t / worst) * 100 * e).toFixed(2) + '%';
+    });
+  }
+
   function run() {
     stop();
     var t = total();
     head.classList.add('is-live');
 
-    if (reduce.matches) {
+    // Real time in both motion modes, deliberately. Everywhere else on the
+    // site reduce halves the timing; here the duration IS the measurement, and
+    // playing 3.4 seconds of waiting in 1.7 would be a lie about the thing the
+    // demo exists to show. What reduce drops is the head sliding along the
+    // track. The bars still fill and the clock still counts.
+    if (!M.reduce) {
+      anim = head.animate(
+        [
+          { transform: 'translate(' + X0 + 'px,0)' },
+          { transform: 'translate(' + X1 + 'px,0)' },
+        ],
+        { duration: t, easing: 'linear', fill: 'forwards' }
+      );
+    } else {
       head.style.transform = 'translate(' + X1 + 'px,0)';
-      clock.textContent = fmt(t);
-      root.querySelectorAll('.lab-seg').forEach(function (g) {
-        g.classList.add('done');
-      });
-      return;
     }
 
-    anim = head.animate(
-      [
-        { transform: 'translate(' + X0 + 'px,0)' },
-        { transform: 'translate(' + X1 + 'px,0)' },
-      ],
-      { duration: t, easing: 'linear', fill: 'forwards' }
-    );
-
-    var start = null;
     var order = ['silence', 'stt', 'model', 'tts'];
-    function tick(ts) {
-      if (!start) start = ts;
-      var el = Math.min(ts - start, t);
+    seq.tween(t, function (_, raw) {
+      var el = raw * t;
       clock.textContent = fmt(el);
 
       var acc = 0;
       order.forEach(function (k) {
-        acc += cfg[k];
+        var seg = cfg[k];
+        var into = Math.max(0, Math.min(seg, el - acc));
+        acc += seg;
+        var f = root.querySelector('.lab-fill[data-fill="' + k + '"]');
+        if (f) f.setAttribute('width', (Number(f.dataset.full) * (into / seg)).toFixed(1));
         var g = root.querySelector('.lab-seg[data-seg="' + k + '"]');
         if (g) g.classList.toggle('done', el >= acc);
       });
-
-      if (el < t) rafId = requestAnimationFrame(tick);
-      else {
-        rafId = null;
-        clock.textContent = fmt(t);
-      }
-    }
-    rafId = requestAnimationFrame(tick);
+    }, function () {
+      clock.textContent = fmt(t);
+      seq.at(M.ms(420, 260), function () {
+        resolve(t);
+      });
+    }, function (x) { return x; });
   }
 
   optBtns.forEach(function (b) {

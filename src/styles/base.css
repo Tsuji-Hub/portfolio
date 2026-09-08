@@ -1018,6 +1018,23 @@ a.card:hover .arrow { color: var(--accent); }
   stroke: var(--danger);
   stroke-width: 1.5;
 }
+/* The packet stopping is the finding, so it gets said in words too. */
+#block-mark .bm-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  fill: var(--danger);
+}
+#block-mark .bm-burst {
+  fill: none;
+  stroke: var(--danger);
+  stroke-width: 1.5;
+  opacity: 0;
+}
+/* A node that was actually reached, acknowledging the packet's arrival. */
+.node.reached rect {
+  stroke: var(--accent);
+}
+.node.reached { filter: drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.55)); }
 .host-box {
   fill: none;
   stroke: var(--border);
@@ -1570,6 +1587,49 @@ input[type='range'] {
 .lab-delta { font-size: 0.8rem; }
 .lab-delta.better { color: var(--accent); }
 .lab-delta.worse { color: var(--danger); }
+/* Each stage fills while it is running, so a bar that is merely long and a
+   bar that is currently costing you time look different. */
+.lab-seg .lab-fill {
+  opacity: 0.55;
+}
+/* The two pipelines end up next to each other at the same scale, because
+   "3.4s versus 1.2s" is a sentence and two bars are an argument. */
+.lab-compare {
+  margin-top: 0.9rem;
+  display: grid;
+  gap: 0.4rem;
+  opacity: 0;
+  transition: opacity var(--t-card) ease;
+}
+.lab-compare.is-in { opacity: 1; }
+.lab-cmp-row {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr) 4.5rem;
+  gap: 0.7rem;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.lab-cmp-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+.lab-cmp-bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 4px;
+  background: var(--faint);
+}
+.lab-cmp-bar i.now { background: var(--accent); }
+.lab-cmp-t {
+  text-align: right;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
 .lab-note {
   margin-top: 0.6rem;
   font-size: 0.9rem;
@@ -1711,6 +1771,46 @@ input[type='range'] {
 .possess li.hasnt {
   color: var(--muted);
   text-decoration: line-through;
+}
+/* The caret that runs down the public bot's context while it is being
+   searched. Colour and a marker, so it survives reduce unchanged. */
+.possess li {
+  position: relative;
+  transition: color var(--speed) ease, opacity var(--t-card) ease;
+}
+.possess li.scanning::before {
+  content: 'A';
+  position: absolute;
+  left: -0.75rem;
+  color: var(--accent);
+}
+/* A leaked field is not there until the scan finds it. */
+.possess li.leak {
+  opacity: 0;
+}
+.possess li.leak.found {
+  opacity: 1;
+}
+/* The question in flight, from the button that asked it to the bot that has
+   to answer it. Positioned by CSSOM, which the CSP allows; a style attribute
+   would not be. */
+.jd-chip {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 0.24rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--bg-raised);
+  color: var(--accent);
+  white-space: nowrap;
+  opacity: 0;
+}
+.jarvis-demo { position: relative; }
+.leak-count {
+  font-variant-numeric: tabular-nums;
 }
 .possess li.leak {
   color: var(--danger);

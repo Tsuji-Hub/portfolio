@@ -16,6 +16,8 @@
   var possessPub = root.querySelector('[data-possess-public]');
   var verdict = root.querySelector('[data-verdict]');
 
+  var M = window.Motion;
+  var seq = M.seq();
   var arch = 'v2';
 
   var POSSESS = {
@@ -145,26 +147,108 @@
     });
   }
 
-  function say(el, r) {
+  function say(el, r, delay) {
     el.innerHTML = '';
     var p = document.createElement('p');
     p.className = 'bot-say';
-    p.textContent = r.say;
     var t = document.createElement('p');
     t.className = 'bot-trace';
-    t.innerHTML = r.trace;
     el.appendChild(p);
     el.appendChild(t);
+    // The reply types out. It is an answer being given, not a label.
+    seq.at(delay || 0, function () {
+      p.classList.add('is-typing');
+      seq.tween(M.ms(Math.min(1100, r.say.length * 22)), function (_, raw) {
+        p.textContent = r.say.slice(0, Math.round(raw * r.say.length));
+      }, function () {
+        p.textContent = r.say;
+        p.classList.remove('is-typing');
+        t.innerHTML = r.trace;
+      }, function (x) { return x; });
+    });
+  }
+
+  /**
+   * The question travels from the button that asked it to the bot that has to
+   * answer it. Under reduce it fades in place instead of crossing the panel:
+   * same beat, no flight.
+   */
+  function travel(btn) {
+    if (!btn || !outPub) return;
+    var from = btn.getBoundingClientRect();
+    var to = outPub.getBoundingClientRect();
+    var chip = document.createElement('span');
+    chip.className = 'jd-chip';
+    chip.textContent = btn.textContent.trim();
+    root.appendChild(chip);
+    var rootBox = root.getBoundingClientRect();
+    chip.style.left = from.left - rootBox.left + 'px';
+    chip.style.top = from.top - rootBox.top + 'px';
+    var dx = M.move(to.left + 18 - from.left);
+    var dy = M.move(to.top + 14 - from.top);
+    var a = seq.anim(
+      chip,
+      [
+        { opacity: 0, transform: 'translate(0,0)' },
+        { opacity: 1, offset: 0.25 },
+        { opacity: 0, transform: 'translate(' + dx + 'px,' + dy + 'px)' },
+      ],
+      { duration: M.ms(620), easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+    );
+    var drop = function () {
+      if (chip.parentNode) chip.parentNode.removeChild(chip);
+    };
+    if (a) a.onfinish = drop;
+    seq.at(M.ms(900), drop);
+  }
+
+  /**
+   * The bot's context is searched in front of you, one entry at a time. In v2
+   * the search finds nothing it should not have. In v1 the same search turns
+   * up the things it was never supposed to hold, one by one, and counts them.
+   */
+  function scan(after) {
+    var items = possessPub.querySelectorAll('li');
+    var step = M.ms(110, 70);
+    var found = 0;
+    items.forEach(function (li, i) {
+      seq.at(i * step, function () {
+        li.classList.add('scanning');
+        if (li.classList.contains('leak')) {
+          li.classList.add('found');
+          found++;
+          verdict.textContent =
+            found + (found === 1 ? ' thing' : ' things') + ' it should never have had';
+        }
+        seq.at(M.ms(320, 200), function () {
+          li.classList.remove('scanning');
+        });
+      });
+    });
+    seq.at(items.length * step + M.ms(260, 160), function () {
+      if (!found) verdict.textContent = VERDICT[arch];
+      if (after) after();
+    });
+    return items.length * step + M.ms(260, 160);
   }
 
   function ask(key) {
     var p = PROMPTS[key];
     if (!p) return;
+    seq.cancel();
+    seq = M.seq();
+    var btn = null;
     promptBtns.forEach(function (b) {
-      b.setAttribute('aria-pressed', String(b.dataset.prompt === key));
+      var on = b.dataset.prompt === key;
+      b.setAttribute('aria-pressed', String(on));
+      if (on) btn = b;
     });
-    say(outPriv, p.priv);
-    say(outPub, arch === 'v1' ? p.pubV1 : p.pubV2);
+    renderPossess();
+    verdict.textContent = '';
+    travel(btn);
+    var scanned = M.ms(420, 260) + scan();
+    say(outPriv, p.priv, M.ms(420, 260));
+    say(outPub, arch === 'v1' ? p.pubV1 : p.pubV2, scanned);
   }
 
   function setArch(next) {
@@ -174,7 +258,6 @@
       b.setAttribute('aria-pressed', String(b.dataset.arch === arch));
     });
     renderPossess();
-    verdict.textContent = VERDICT[arch];
     var active = root.querySelector('[data-prompt][aria-pressed="true"]');
     if (active) ask(active.dataset.prompt);
   }
@@ -192,4 +275,8 @@
 
   setArch('v2');
   ask('inject');
+
+  M.onView(root, function () {}, function () {
+    seq.cancel();
+  });
 })();

@@ -17,7 +17,9 @@
   var traceBtns = root.querySelectorAll('[data-trace]');
   var tunnelBtn = root.querySelector('[data-toggle="tunnel"]');
   var tunnelNode = root.querySelector('.node[data-node="tunnel"]');
-  var motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var M = window.Motion;
+  var burst = root.querySelector('#block-mark .bm-burst');
+  var seq = M.seq();
 
   var desc = {};
   root.querySelectorAll('[data-desc]').forEach(function (d) {
@@ -31,12 +33,14 @@
   var TRACES = {
     normal: {
       route: 'route-normal',
+      dest: 'internet',
       title: 'Normal service egress',
       body:
         'The Media VM reaches the internet the ordinary way: through the reverse proxy and out the LAN gateway. Nothing exotic. This is precisely the path the isolated workloads are not permitted to take.',
     },
     isolated: {
       route: 'route-isolated',
+      dest: 'internet',
       title: 'Isolated workload egress',
       body:
         'The only way out of the namespace is the tunnel, to the VPN provider, then the internet. Not the preferred route. The only route that exists.',
@@ -89,8 +93,10 @@
     });
     packet.classList.remove('is-live', 'is-blocked');
     blockMark.classList.remove('is-live');
+    seq.cancel();
+    seq = M.seq();
     nodes.forEach(function (n) {
-      n.classList.remove('active');
+      n.classList.remove('active', 'reached');
     });
     traceBtns.forEach(function (b) {
       b.setAttribute('aria-pressed', 'false');
@@ -121,22 +127,54 @@
     if (t.blocked) packet.classList.add('is-blocked');
 
     var len = path.getTotalLength();
-    var dur = Math.max(650, Math.min(2200, len * 2.6));
-    var reduce = motionQuery.matches;
+    var dur = M.ms(Math.max(650, Math.min(2200, len * 2.6)));
+    var reduce = M.reduce;
 
     path.style.strokeDasharray = len + ' ' + len;
 
-    if (reduce) {
-      // Static alternative: final state, no motion. Route drawn, packet resting
-      // where it actually ends up (destination, or the point it dies).
-      path.style.strokeDashoffset = '0';
-      var end = path.getPointAtLength(len);
-      packet.style.transform = 'translate(' + end.x + 'px,' + end.y + 'px)';
+    /** Where the trace ends: a mark and a word, or an acknowledged arrival. */
+    function land() {
       if (t.blocked) {
         blockMark.style.transform =
           'translate(' + t.blockAt[0] + 'px,' + t.blockAt[1] + 'px)';
         blockMark.classList.add('is-live');
+        // The packet reaches the point where a fallback route would be, and
+        // stops. Under reduce the burst is a fade at a fixed radius; there is
+        // nothing expanding.
+        seq.anim(
+          burst,
+          reduce
+            ? [{ opacity: 0 }, { opacity: 0.9 }, { opacity: 0 }]
+            : [
+                { opacity: 0.9, transform: 'scale(0.4)' },
+                { opacity: 0, transform: 'scale(2.6)' },
+              ],
+          { duration: M.ms(620), easing: 'cubic-bezier(0.16, 1, 0.3, 1)' }
+        );
+        return;
       }
+      if (!t.dest) return;
+      var node = root.querySelector('.node[data-node="' + t.dest + '"]');
+      if (!node) return;
+      node.classList.add('reached');
+      seq.at(M.ms(900, 700), function () {
+        node.classList.remove('reached');
+      });
+    }
+
+    if (reduce) {
+      // The route still draws itself, at half the timing. What goes is the
+      // packet flying along it: the drawn stroke already says where traffic
+      // went, so the packet just waits at the end.
+      path.style.strokeDashoffset = String(len);
+      var end = path.getPointAtLength(len);
+      packet.style.transform = 'translate(' + end.x + 'px,' + end.y + 'px)';
+      seq.anim(path, [{ strokeDashoffset: len }, { strokeDashoffset: 0 }], {
+        duration: dur,
+        easing: 'ease-in-out',
+        fill: 'forwards',
+      });
+      seq.at(dur, land);
       return;
     }
 
@@ -162,18 +200,7 @@
       })
     );
 
-    if (t.blocked) {
-      blockMark.style.transform =
-        'translate(' + t.blockAt[0] + 'px,' + t.blockAt[1] + 'px)';
-      blockMark.classList.add('is-live');
-      anims.push(
-        blockMark.animate([{ opacity: 0 }, { opacity: 1 }], {
-          duration: 180,
-          delay: dur,
-          fill: 'both',
-        })
-      );
-    }
+    seq.at(dur, land);
   }
 
   function selectNode(id) {

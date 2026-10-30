@@ -134,8 +134,9 @@
 
   // Mirrors the real property. Before:
   //   f"{recipe_yield_quantity} {recipe_yield}".strip()
-  // where an unset quantity is coerced to 0 by the validator. After:
-  //   quantity = recipe_yield_quantity or recipe_servings
+  // where an unset quantity is coerced to 0 by the validator. After (as merged
+  // in v3.27.0):
+  //   quantity = recipe_yield_quantity or (recipe_servings if not recipe_yield else 0)
   //   number   = f"{quantity:g}" if quantity else ""
   //   f"{number} {recipe_yield or ''}".strip()
   function yieldValue() {

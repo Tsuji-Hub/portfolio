@@ -15,7 +15,7 @@ import Panel from '../../components/Panel.astro';
   accent="like production"
   slug="homelab"
   stats={[
-    { n: '13', l: 'containers and VMs' },
+    { n: '31', l: 'containers on 7 guests' },
     { n: '2', l: 'mirrored ZFS pools' },
     { n: 'nightly', l: 'backups' },
     { n: 'restore', l: 'tested, not assumed' },
@@ -147,7 +147,7 @@ import Panel from '../../components/Panel.astro';
         <g class="node" data-node="workloads" role="button" tabindex="0">
           <rect class="node-box" x="100" y="402" width="266" height="40" rx="6"></rect>
           <text class="node-title" x="233" y="419" text-anchor="middle">Isolated workloads</text>
-          <text class="node-sub" x="233" y="435" text-anchor="middle">no default route</text>
+          <text class="node-sub" x="233" y="435" text-anchor="middle">default-drop firewall</text>
         </g>
 
         <g class="node" data-node="mealie" role="button" tabindex="0">
@@ -237,25 +237,25 @@ import Panel from '../../components/Panel.astro';
           <p>
             Two egress paths reach it, and they are not interchangeable. Ordinary
             services leave through the LAN gateway. Isolated workloads can only
-            leave through the VPN provider, because inside their namespace no
-            other route exists.
+            reach it through the VPN provider, because the firewall inside their
+            namespace drops everything else.
           </p>
         </article>
         <article data-desc="vpn-endpoint">
           <h3>VPN provider endpoint</h3>
           <p>
-            The single egress for the isolated namespace. The tunnel interface is
-            the only interface those workloads can see, so this is not the
-            preferred path out. It is the only path out.
+            The single internet egress for the isolated namespace. Anything else
+            headed for the internet is dropped before it leaves the namespace, so
+            this is not the preferred path out. It is the only one allowed.
           </p>
         </article>
         <article data-desc="gateway">
           <h3>LAN gateway</h3>
           <p>
             The normal route to the internet for ordinary services. The isolated
-            workloads cannot reach it: their namespace has no interface attached
-            to the LAN and no default route pointing at it, so there is nothing
-            for a misconfigured app to fall back to.
+            workloads cannot use it to get out: their namespace's firewall drops
+            by default and accepts only the tunnel, the VPN handshake, and the
+            local subnet the media stack talks to.
           </p>
         </article>
         <article data-desc="hypervisor">
@@ -270,27 +270,29 @@ import Panel from '../../components/Panel.astro';
         <article data-desc="container-host">
           <h3>Container host (LXC)</h3>
           <p>
-            Runs the containerized workloads. It holds the egress-controlled
-            network namespace, which is what makes the isolation structural
-            instead of a setting somebody could toggle off.
+            Runs the containerized workloads, including the download stack, which
+            shares one network namespace with the VPN container instead of having
+            a network of its own.
           </p>
         </article>
         <article data-desc="tunnel">
           <h3>VPN tunnel</h3>
           <p>
-            Owns the only interface inside the namespace. Everything the isolated
-            workloads send leaves through here. If it drops, they do not fall back
-            to the LAN, they simply lose connectivity, which is the correct
-            failure mode.
+            Everything the isolated workloads send to the internet leaves through
+            here. If it drops, they do not fall back to the home connection, they
+            lose the internet until it comes back, which is the correct failure
+            mode. I killed it six times to check: 45 probes during the outages,
+            none answered, and it recovered on its own in 23 to 61 seconds.
           </p>
         </article>
         <article data-desc="workloads">
           <h3>Isolated workloads</h3>
           <p>
-            Containers that need internet access but must never touch it directly.
-            They run inside the namespace with no default route of their own. A
-            leak would require a route that does not exist, so there is no
-            configuration mistake available to make.
+            Containers that need internet access but must never use the home
+            connection. They share the VPN container's network namespace, where
+            the firewall's default is drop. A leak would need a rule that is not
+            there, and I check that by killing the tunnel, not by reading the
+            config.
           </p>
         </article>
         <article data-desc="proxy">
@@ -305,8 +307,9 @@ import Panel from '../../components/Panel.astro';
           <h3>Requests LXC</h3>
           <p>
             The user-facing intake, kept separate from the workloads that act on
-            what it receives. A blast-radius decision: the part strangers touch is
-            not the part with credentials and disk access.
+            what it receives. A blast-radius decision: the part strangers touch
+            holds the API keys it needs to queue a download, but has no media
+            library and no download clients on its disk.
           </p>
         </article>
         <article data-desc="media">
@@ -404,10 +407,10 @@ import Panel from '../../components/Panel.astro';
       cluster firewall. One landmine avoided, and the guests stay portable.
     </li>
     <li>
-      <strong>Egress isolation by network namespace, not by configuration.</strong>
-      The workloads that must not leak have no route that bypasses the tunnel.
-      Fail-closed is a property of the topology, so it holds even when the
-      tunnel dies.
+      <strong>Egress isolation that fails closed, and is tested.</strong>
+      The workloads that must not leak share the VPN container's namespace,
+      whose firewall drops anything not headed into the tunnel. Six tunnel
+      kills, 45 probes while it was down, zero answers.
     </li>
     <li>
       <strong>TLS terminates at a dedicated reverse proxy.</strong> Services are

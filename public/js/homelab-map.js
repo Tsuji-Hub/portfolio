@@ -43,7 +43,7 @@
       dest: 'internet',
       title: 'Isolated workload egress',
       body:
-        'The only way out of the namespace is the tunnel, to the VPN provider, then the internet. Not the preferred route. The only route that exists.',
+        'The only way from the namespace to the internet is the tunnel, to the VPN provider. Not the preferred route. The only one the namespace\'s firewall lets through.',
     },
     isolatedDown: {
       route: 'route-tunneldown',
@@ -51,16 +51,16 @@
       blockAt: [233, 388],
       title: 'Tunnel down: fail-closed',
       body:
-        'With the tunnel down, the workloads lose the internet entirely. They do not fall back to the LAN gateway, because inside the namespace there is no other interface and no default route to fall back to. Losing connectivity is the correct failure. It holds because of the topology, not because of a rule someone remembered to write.',
+        'With the tunnel down, the workloads lose the internet entirely. They do not fall back to the LAN gateway: the namespace\'s firewall drops by default and accepts only traffic into the tunnel. Losing connectivity is the correct failure, and it is measured, not assumed: six tunnel kills, 45 probes while it was down, none answered.',
     },
     bypass: {
       route: 'route-bypass',
       ghost: 'ghost-bypass',
       blocked: true,
       blockAt: [382, 422],
-      title: 'Bypass attempt: no route',
+      title: 'Bypass attempt: dropped',
       body:
-        'A workload trying to reach the LAN gateway directly gets nowhere. No interface inside this namespace is attached to the LAN, and no route points at it, so the packet has nowhere to be sent. Blocking this took no firewall rule. The path was simply never built.',
+        'A workload trying to reach the internet through the LAN gateway gets nowhere. The packet has a route to the gateway, but the namespace\'s firewall drops it before it leaves. The local subnet the media stack talks to is allowed; using it as a way out is not.',
     },
     trust: {
       route: 'route-trust',
@@ -69,7 +69,7 @@
       blockAt: [398, 486],
       title: 'Public bot → Friday: nothing to travel on',
       body:
-        'The Discord bot my friends talk to sits on this host, a few centimetres from an assistant that can read my calendar and drive my house. It cannot reach it. It holds no Home Assistant token and has no code path to one, so this is not a firewall decision that could be misconfigured — the credential and the route simply do not exist in that container. Compromise it completely and it still has nothing worth taking. That is the same principle as the tunnel above: absence, not permission.',
+        'The Discord bot my friends talk to sits on this host, a few centimetres from an assistant that can read my calendar and drive my house. It cannot reach it. It holds no Home Assistant token and has no code path to one, so this is not a firewall decision that could be misconfigured — the credential and the route simply do not exist in that container. Compromise it completely and it still has nothing worth taking. Absence, not permission.',
     },
   };
 

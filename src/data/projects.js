@@ -7,7 +7,7 @@ export const projects = [
     slug: 'makimono',
     title: 'Makimono',
     blurb:
-      'A feature-driven fork of Mihon, the open-source Android manga reader. 11 releases, real users, updates itself.',
+      'A feature-driven fork of Mihon, the open-source Android manga reader. 21 releases, real users, updates itself.',
     tags: ['Kotlin', 'Android', 'Release eng'],
     demo: 'drive the reader',
   },

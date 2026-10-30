@@ -17,6 +17,11 @@ const {
 } = Astro.props;
 
 const site = Astro.site?.toString().replace(/\/$/, '') ?? '';
+
+// Build stamp: the commit this page was built from (set by GitHub Actions) and
+// the build date. Local builds have no SHA, so the stamp is left out.
+const buildSha = (process.env.GITHUB_SHA ?? '').slice(0, 7);
+const buildDate = new Date().toISOString().slice(0, 10);
 const canonical = site + path;
 
 const navLinks = [
@@ -149,6 +154,12 @@ const LINKEDIN_PATH =
           <a href="https://github.com/Tsuji-Hub" rel="me noopener noreferrer" target="_blank">github</a>
           <span>© {year} Ethan Justice</span>
         </p>
+        {buildSha && (
+          <p class="footer-build">
+            built {buildDate} from
+            <a href={`https://github.com/Tsuji-Hub/portfolio/commit/${process.env.GITHUB_SHA}`} target="_blank" rel="noopener noreferrer"><code>{buildSha}</code></a>
+          </p>
+        )}
       </div>
     </footer>
   </body>

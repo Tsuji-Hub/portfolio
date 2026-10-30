@@ -8,20 +8,20 @@ import Panel from '../../components/Panel.astro';
   title="Mealie fork"
   path="/projects/mealie/"
   description="A fork of Mealie, the self-hosted recipe manager, that I build, deploy, and extend for a nutrition-tracking pipeline. Plus an upstream fix for poisoned schema.org data."
-  lede="A fork of Mealie, the self-hosted recipe manager (12.7k stars upstream), that I build, deploy, and extend for a nutrition-tracking pipeline. I ship the images, run them in the homelab, and send the generic fixes back upstream."
+  lede="A fork of Mealie, the self-hosted recipe manager (13.7k stars upstream), that I build, deploy, and extend for a nutrition-tracking pipeline. I ship the images, run them in the homelab, and send the generic fixes back upstream."
   tags={['CI/CD', 'Docker', 'GHCR', 'Python', 'Vue', 'Open source']}
   kicker="Open source · fork"
   accent="fork"
   slug="mealie"
   stats={[
-    { n: 'PR #7881', l: 'open upstream' },
+    { n: 'PR #7881', l: 'merged upstream' },
     { n: '4', l: 'CI fixes to build at all' },
     { n: 'nightly', l: 'images to my registry' },
     { n: '1', l: 'upstream contribution' },
   ]}
   demonstrates="CI/CD surgery, Docker and GHCR pipelines, Python and Vue across the full stack, upstream open-source contribution, and the discipline of running what you build."
   links={[
-    { label: 'Upstream PR #7881', href: 'https://github.com/mealie-recipes/mealie/pull/7881' },
+    { label: 'Merged upstream: PR #7881', href: 'https://github.com/mealie-recipes/mealie/pull/7881' },
   ]}
 >
   <SectionHead label="The redesign" title="It looked like this" />
@@ -158,6 +158,9 @@ import Panel from '../../components/Panel.astro';
         zero, and the case that actually poisoned the math only fired for
         servings-only recipes, in emitted metadata nobody reads by eye. The fix
         handles both and ships with parametrized tests over every yield shape.
+        A maintainer tightened the fallback in review so a text-only yield never
+        gets servings stuck in front of it, merged it on September 16, and it
+        shipped in Mealie v3.27.0 the next day.
       </p>
     </div>
   </Panel>

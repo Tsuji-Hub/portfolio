@@ -18,9 +18,11 @@ const {
 
 const site = Astro.site?.toString().replace(/\/$/, '') ?? '';
 
-// Build stamp: the commit this page was built from (set by GitHub Actions) and
-// the build date. Local builds have no SHA, so the stamp is left out.
-const buildSha = (process.env.GITHUB_SHA ?? '').slice(0, 7);
+// Build stamp: the commit this page was built from and the build date. The SHA
+// comes from the CI that built it (Cloudflare Pages or GitHub Actions). Local
+// builds have no SHA, so the stamp is left out.
+const fullSha = process.env.CF_PAGES_COMMIT_SHA || process.env.GITHUB_SHA || '';
+const buildSha = fullSha.slice(0, 7);
 const buildDate = new Date().toISOString().slice(0, 10);
 const canonical = site + path;
 
@@ -157,7 +159,7 @@ const LINKEDIN_PATH =
         {buildSha && (
           <p class="footer-build">
             built {buildDate} from
-            <a href={`https://github.com/Tsuji-Hub/portfolio/commit/${process.env.GITHUB_SHA}`} target="_blank" rel="noopener noreferrer"><code>{buildSha}</code></a>
+            <a href={`https://github.com/Tsuji-Hub/portfolio/commit/${fullSha}`} target="_blank" rel="noopener noreferrer"><code>{buildSha}</code></a>
           </p>
         )}
       </div>

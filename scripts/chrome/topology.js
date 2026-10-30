@@ -63,6 +63,34 @@
 
   var w = 0, h = 0, dpr = 1, raf = 0;
   var t0 = performance.now();
+  var last = 0;
+
+  // Glows are pre-rendered once per size/alpha into small offscreen canvases and
+  // stamped with drawImage. Building 26 radial gradients every frame kept the
+  // main thread busy most of the time the hero was on screen (Pass 8 trace:
+  // ~2.3 s of task time per 3 s idle at 4x CPU throttle).
+  var sprites = {};
+  function sprite(radius, alpha) {
+    var key = radius + ':' + alpha;
+    if (sprites[key]) return sprites[key];
+    var size = Math.ceil(radius * 2 * dpr);
+    var c = document.createElement('canvas');
+    c.width = c.height = size;
+    var g2 = c.getContext('2d');
+    var r = size / 2;
+    var g = g2.createRadialGradient(r, r, 0, r, r, r);
+    g.addColorStop(0, 'rgba(' + accent + ', ' + alpha + ')');
+    g.addColorStop(1, 'rgba(' + accent + ', 0)');
+    g2.fillStyle = g;
+    g2.beginPath();
+    g2.arc(r, r, r, 0, Math.PI * 2);
+    g2.fill();
+    sprites[key] = c;
+    return c;
+  }
+  function stamp(img, x, y, radius) {
+    ctx.drawImage(img, x - radius, y - radius, radius * 2, radius * 2);
+  }
 
   // The graph draws itself in once, in both motion modes. Edges grow from the
   // first node toward the second, then the nodes and labels fade up behind
@@ -78,8 +106,21 @@
 
   function px(n) { return { x: n.x * w, y: n.y * h }; }
 
+  // Once the intro has finished the ambient drift is slow enough that 30 fps
+  // reads the same as 60 and halves the paint work. The intro keeps every frame.
+  var AMBIENT_FRAME_MS = 1000 / 30 - 2;
+
   function draw(now) {
     var t = (now - t0) / 1000;
+    var settled = now - t0 - introDelay > introMs;
+    if (settled && !reduce && last && now - last < AMBIENT_FRAME_MS) {
+      if (running) raf = requestAnimationFrame(draw);
+      return;
+    }
+    // Pulse speed was tuned per 60 Hz frame; scale by real elapsed time so it
+    // stays the same at 30 fps, on 120 Hz screens, and after a resume.
+    var steps = last ? Math.min((now - last) / (1000 / 60), 4) : 1;
+    last = now;
     var intro = easeOut(Math.max(0, Math.min(1, (now - t0 - introDelay) / introMs)));
     // Labels and nodes trail the edges rather than arriving with them.
     var late = Math.max(0, Math.min(1, (intro - 0.35) / 0.65));
@@ -110,19 +151,13 @@
     if (!reduce) {
       for (var p = 0; p < pulses.length; p++) {
         var pu = pulses[p];
-        pu.t += pu.speed;
+        pu.t += pu.speed * steps;
         if (pu.t > 1) pu.t = 0;
         var P1 = px(byId[EDGES[pu.edge][0]]);
         var P2 = px(byId[EDGES[pu.edge][1]]);
         var x = P1.x + (P2.x - P1.x) * pu.t;
         var y = P1.y + (P2.y - P1.y) * pu.t;
-        var g = ctx.createRadialGradient(x, y, 0, x, y, 8);
-        g.addColorStop(0, 'rgba(' + accent + ', 0.9)');
-        g.addColorStop(1, 'rgba(' + accent + ', 0)');
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(x, y, 8, 0, Math.PI * 2);
-        ctx.fill();
+        stamp(sprite(8, 0.9), x, y, 8);
       }
     }
 
@@ -133,13 +168,7 @@
     for (var j = 0; j < nodes.length; j++) {
       var node = nodes[j];
       var P = px(node);
-      var halo = ctx.createRadialGradient(P.x, P.y, 0, P.x, P.y, node.r * 4);
-      halo.addColorStop(0, 'rgba(' + accent + ', ' + (node.hub ? 0.35 : 0.18) + ')');
-      halo.addColorStop(1, 'rgba(' + accent + ', 0)');
-      ctx.fillStyle = halo;
-      ctx.beginPath();
-      ctx.arc(P.x, P.y, node.r * 4, 0, Math.PI * 2);
-      ctx.fill();
+      stamp(sprite(node.r * 4, node.hub ? 0.35 : 0.18), P.x, P.y, node.r * 4);
 
       ctx.fillStyle = node.hub ? 'rgb(' + accent + ')' : nodeColor;
       ctx.beginPath();
@@ -170,6 +199,7 @@
     canvas.width = Math.floor(w * dpr);
     canvas.height = Math.floor(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    sprites = {};
     if (reduce) draw(performance.now());
   }
 
@@ -193,6 +223,7 @@
     running = false;
     elapsed = performance.now() - t0;
     cancelAnimationFrame(raf);
+    last = 0;
   }
   if (window.Motion) window.Motion.onView(canvas, start, stop);
   else start();
@@ -203,6 +234,7 @@
     accent = cssVar('--accent-rgb', '46, 230, 255');
     labelColor = cssVar('--muted', '#8d95a1');
     nodeColor = cssVar('--text', '#f4f5f7');
+    sprites = {};
     if (reduce) draw(performance.now());
   });
 })();

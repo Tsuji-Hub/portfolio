@@ -4,6 +4,8 @@
 // Case-sensitive, matching `grep -E` default.
 
 import { readdir, readFile } from 'node:fs/promises';
+import { existsSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { join, extname } from 'node:path';
 
 // 'dist' is the deployed output. 'resume-src' is the HTML the resume PDF is
@@ -13,7 +15,33 @@ const SCAN_DIRS = [
   { dir: 'dist', required: true },
   { dir: 'resume-src', required: false },
 ];
-const FORBIDDEN = /CNA|192\.168\.|duckdns|justicemedia|justicerequests|815-886|Romeoville/;
+// Generic patterns are safe to publish. The personal ones (employer, phone,
+// town, real hostnames) are NOT kept in this public repo: listing them here
+// would publish exactly what the gate protects. They come from, in order:
+//   1. env SANITIZE_FORBIDDEN (GitHub Actions secret), regex alternation
+//   2. env SANITIZE_FORBIDDEN_FILE, or ~/.config/portfolio/sanitize-forbidden
+//      (one regex fragment per line, # comments allowed)
+// No private list = deploy blocked, so the gate can never silently weaken.
+const PUBLIC_FORBIDDEN = String.raw`192\.168\.|duckdns`;
+function loadPrivateForbidden() {
+  const env = (process.env.SANITIZE_FORBIDDEN || '').trim();
+  if (env) return env;
+  const file = process.env.SANITIZE_FORBIDDEN_FILE || join(homedir(), '.config', 'portfolio', 'sanitize-forbidden');
+  if (!existsSync(file)) return '';
+  return readFileSync(file, 'utf8')
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l && !l.startsWith('#'))
+    .join('|');
+}
+const PRIVATE_FORBIDDEN = loadPrivateForbidden();
+if (!PRIVATE_FORBIDDEN) {
+  console.error(
+    'sanitize-gate: private token list not found. Set SANITIZE_FORBIDDEN or create ~/.config/portfolio/sanitize-forbidden. Deploy blocked.'
+  );
+  process.exit(1);
+}
+const FORBIDDEN = new RegExp(`${PUBLIC_FORBIDDEN}|${PRIVATE_FORBIDDEN}`);
 const SCAN_EXT = new Set(['.html', '.css', '.js', '.mjs', '.svg', '.xml', '.txt', '.json', '.webmanifest']);
 
 async function walk(dir, required) {

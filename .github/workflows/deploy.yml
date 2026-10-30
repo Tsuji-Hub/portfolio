@@ -29,6 +29,9 @@ jobs:
       # (employer name, phone, private IP, hostname) reaches dist/ or the
       # resume source, the gate exits non-zero and the deploy never happens.
       - run: npm run build
+        env:
+          # Private half of the sanitize gate's token list (kept out of the repo).
+          SANITIZE_FORBIDDEN: ${{ secrets.SANITIZE_FORBIDDEN }}
 
       - name: Deploy
         if: env.HAS_CF_TOKEN == 'true'

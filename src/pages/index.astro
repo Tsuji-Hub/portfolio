@@ -4,9 +4,14 @@ import { projects } from '../data/projects.js';
 
 // The bento's feature tile is 2x2 and has to be placed first for auto-flow to
 // land it top-left. Presentation order only; the data file is untouched.
+// Feature tile first, then two tiles beside it, then security across a full
+// row (grid-auto-flow: dense fills any gap at narrower widths).
+const rest = projects.filter((p) => p.slug !== 'cloud-security' && p.slug !== 'security');
 const ordered = [
   ...projects.filter((p) => p.slug === 'cloud-security'),
-  ...projects.filter((p) => p.slug !== 'cloud-security'),
+  ...rest.slice(0, 2),
+  ...projects.filter((p) => p.slug === 'security'),
+  ...rest.slice(2),
 ];
 
 // Inline icon paths. No icon font, no library, no extra request.
@@ -21,6 +26,8 @@ const ICONS: Record<string, string> = {
     '<path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M5.5 10.5V11a6.5 6.5 0 0 0 13 0v-.5"/><line x1="12" y1="17.5" x2="12" y2="21.5"/>',
   mealie:
     '<path d="M4 2.5v7a2.5 2.5 0 0 0 5 0v-7"/><line x1="6.5" y1="9.5" x2="6.5" y2="21.5"/><path d="M16 2.5c-1.5 1.5-2 3.5-2 5.5s.5 3 2 3.5v10"/><path d="M20 2.5v19"/>',
+  security:
+    '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
   site:
     '<rect x="4" y="10.5" width="16" height="10.5" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>',
 };
@@ -153,7 +160,7 @@ const ICONS: Record<string, string> = {
         {
           ordered.map((p) => (
             <a
-              class:list={['tile', 'bento-tile', p.slug === 'cloud-security' && 'tile-feature']}
+              class:list={['tile', 'bento-tile', p.slug === 'cloud-security' && 'tile-feature', p.slug === 'security' && 'tile-wide']}
               href={`/projects/${p.slug}/`}
               data-card
             >

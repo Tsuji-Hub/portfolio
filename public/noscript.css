@@ -50,3 +50,9 @@
       forever. */
 .js-only { display: none !important; }
 .js-required { display: block !important; }
+
+/* 5. Demos that only replay through JS. Their recorded data is also on the page
+      as a plain table, so nothing is lost. */
+[data-js-only] {
+  display: none !important;
+}

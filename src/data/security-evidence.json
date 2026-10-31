@@ -1,0 +1,512 @@
+{
+ "schema": 1,
+ "captured": "2026-10-30 19:52-20:08 CDT",
+ "subject": "homelab edge (reverse proxy VM)",
+ "versions": {
+  "caddy": "2.11.7",
+  "crowdsec": "1.8.1",
+  "appsec_configs": [
+   "crowdsecurity/appsec-default",
+   "crowdsecurity/crs",
+   "crowdsecurity/generic-rules",
+   "crowdsecurity/virtual-patching"
+  ],
+  "appsec_rules_loaded": 210,
+  "crs_mode": "out-of-band (detect + ban); in-band = virtual patches and generic rules"
+ },
+ "waf": {
+  "method": "Each request sent to the edge's CrowdSec AppSec engine through the same API the reverse proxy's bouncer calls, with an RFC 5737 documentation IP as the client. 3 rounds with the alert/decision pipeline + 3 rounds diffing per-rule counters. All test alerts and bans deleted afterwards.",
+  "requests": [
+   {
+    "id": "baseline",
+    "label": "Normal page request",
+    "request": {
+     "verb": "GET",
+     "uri": "/",
+     "headers": {}
+    },
+    "inband": {
+     "http": 200,
+     "verdict": "passed",
+     "rules": []
+    },
+    "out_of_band": {
+     "flagged": false,
+     "rules": [],
+     "category_scores": {},
+     "anomaly_score": 0,
+     "threshold": 5
+    },
+    "identical_in_all_runs": true,
+    "runs": {
+     "inband_verdict_and_score": 6,
+     "rule_attribution": 3
+    }
+   },
+   {
+    "id": "env",
+    "label": "Read a .env secrets file",
+    "request": {
+     "verb": "GET",
+     "uri": "/.env",
+     "headers": {}
+    },
+    "inband": {
+     "http": 403,
+     "verdict": "blocked",
+     "rules": [
+      {
+       "id": "crowdsecurity/vpatch-env-access",
+       "name": "Virtual patch: .env access"
+      }
+     ]
+    },
+    "out_of_band": {
+     "flagged": true,
+     "rules": [
+      {
+       "id": "930130",
+       "name": "Restricted File Access Attempt"
+      }
+     ],
+     "category_scores": {
+      "lfi": 5
+     },
+     "anomaly_score": 5,
+     "threshold": 5
+    },
+    "identical_in_all_runs": true,
+    "runs": {
+     "inband_verdict_and_score": 6,
+     "rule_attribution": 3
+    }
+   },
+   {
+    "id": "gitconfig",
+    "label": "Read .git/config",
+    "request": {
+     "verb": "GET",
+     "uri": "/.git/config",
+     "headers": {}
+    },
+    "inband": {
+     "http": 403,
+     "verdict": "blocked",
+     "rules": [
+      {
+       "id": "crowdsecurity/vpatch-git-config",
+       "name": "Virtual patch: .git/config access"
+      }
+     ]
+    },
+    "out_of_band": {
+     "flagged": true,
+     "rules": [
+      {
+       "id": "930130",
+       "name": "Restricted File Access Attempt"
+      }
+     ],
+     "category_scores": {
+      "lfi": 5
+     },
+     "anomaly_score": 5,
+     "threshold": 5
+    },
+    "identical_in_all_runs": true,
+    "runs": {
+     "inband_verdict_and_score": 6,
+     "rule_attribution": 3
+    }
+   },
+   {
+    "id": "sqli",
+    "label": "SQL injection in a query",
+    "request": {
+     "verb": "GET",
+     "uri": "/search?q=1%27%20OR%20%271%27%3D%271%27--",
+     "headers": {}
+    },
+    "inband": {
+     "http": 200,
+     "verdict": "passed",
+     "rules": []
+    },
+    "out_of_band": {
+     "flagged": true,
+     "rules": [
+      {
+       "id": "942100",
+       "name": "SQL Injection Attack Detected via libinjection"
+      }
+     ],
+     "category_scores": {
+      "sql_injection": 10
+     },
+     "anomaly_score": 10,
+     "threshold": 5
+    },
+    "identical_in_all_runs": true,
+    "runs": {
+     "inband_verdict_and_score": 6,
+     "rule_attribution": 3
+    }
+   },
+   {
+    "id": "xss",
+    "label": "Reflected XSS in a query",
+    "request": {
+     "verb": "GET",
+     "uri": "/search?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E",
+     "headers": {}
+    },
+    "inband": {
+     "http": 200,
+     "verdict": "passed",
+     "rules": []
+    },
+    "out_of_band": {
+     "flagged": true,
+     "rules": [
+      {
+       "id": "941100",
+       "name": "XSS Attack Detected via libinjection"
+      },
+      {
+       "id": "941110",
+       "name": "XSS Filter - Category 1: Script Tag Vector"
+      },
+      {
+       "id": "941160",
+       "name": "NoScript XSS InjectionChecker: HTML Injection"
+      },
+      {
+       "id": "941390",
+       "name": "Javascript method detected"
+      }
+     ],
+     "category_scores": {
+      "xss": 40
+     },
+     "anomaly_score": 40,
+     "threshold": 5
+    },
+    "identical_in_all_runs": true,
+    "runs": {
+     "inband_verdict_and_score": 6,
+     "rule_attribution": 3
+    }
+   },
+   {
+    "id": "traversal",
+    "label": "Path traversal to /etc/passwd",
+    "request": {
+     "verb": "GET",
+     "uri": "/download?file=..%2F..%2F..%2F..%2Fetc%2Fpasswd",
+     "headers": {}
+    },
+    "inband": {
+     "http": 200,
+     "verdict": "passed",
+     "rules": []
+    },
+    "out_of_band": {
+     "flagged": true,
+     "rules": [
+      {
+       "id": "930100",
+       "name": "Path Traversal Attack (/../) or (/.../)"
+      },
+      {
+       "id": "930110",
+       "name": "Path Traversal Attack (/../) or (/.../)"
+      },
+      {
+       "id": "930120",
+       "name": "OS File Access Attempt"
+      },
+      {
+       "id": "932160",
+       "name": "Remote Command Execution: Unix Shell Code Found"
+      }
+     ],
+     "category_scores": {
+      "lfi": 55,
+      "rce": 10
+     },
+     "anomaly_score": 65,
+     "threshold": 5
+    },
+    "identical_in_all_runs": true,
+    "runs": {
+     "inband_verdict_and_score": 6,
+     "rule_attribution": 3
+    }
+   },
+   {
+    "id": "log4shell",
+    "label": "Log4Shell JNDI lookup in a header",
+    "request": {
+     "verb": "GET",
+     "uri": "/",
+     "headers": {
+      "X-Api-Version": "${jndi:ldap://example.invalid/a}"
+     }
+    },
+    "inband": {
+     "http": 200,
+     "verdict": "passed",
+     "rules": []
+    },
+    "out_of_band": {
+     "flagged": true,
+     "rules": [
+      {
+       "id": "944150",
+       "name": "Potential Remote Command Execution: Log4j / Log4shell"
+      }
+     ],
+     "category_scores": {
+      "rce": 5
+     },
+     "anomaly_score": 5,
+     "threshold": 5
+    },
+    "identical_in_all_runs": true,
+    "runs": {
+     "inband_verdict_and_score": 6,
+     "rule_attribution": 3
+    }
+   },
+   {
+    "id": "cmdi",
+    "label": "Command injection in a query",
+    "request": {
+     "verb": "GET",
+     "uri": "/ping?host=127.0.0.1%3Bcat%20%2Fetc%2Fpasswd",
+     "headers": {}
+    },
+    "inband": {
+     "http": 200,
+     "verdict": "passed",
+     "rules": []
+    },
+    "out_of_band": {
+     "flagged": true,
+     "rules": [
+      {
+       "id": "930120",
+       "name": "OS File Access Attempt"
+      },
+      {
+       "id": "932160",
+       "name": "Remote Command Execution: Unix Shell Code Found"
+      },
+      {
+       "id": "932230",
+       "name": "Remote Command Execution: Unix Command Injection (2-3 chars)"
+      }
+     ],
+     "category_scores": {
+      "lfi": 10,
+      "rce": 20
+     },
+     "anomaly_score": 30,
+     "threshold": 5
+    },
+    "identical_in_all_runs": true,
+    "runs": {
+     "inband_verdict_and_score": 6,
+     "rule_attribution": 3
+    }
+   },
+   {
+    "id": "wordpress",
+    "label": "WordPress login probe",
+    "request": {
+     "verb": "GET",
+     "uri": "/wp-login.php",
+     "headers": {}
+    },
+    "inband": {
+     "http": 200,
+     "verdict": "passed",
+     "rules": []
+    },
+    "out_of_band": {
+     "flagged": false,
+     "rules": [],
+     "category_scores": {},
+     "anomaly_score": 0,
+     "threshold": 5
+    },
+    "identical_in_all_runs": true,
+    "runs": {
+     "inband_verdict_and_score": 6,
+     "rule_attribution": 3
+    }
+   },
+   {
+    "id": "scanner_ua",
+    "label": "Known scanner user agent",
+    "request": {
+     "verb": "GET",
+     "uri": "/",
+     "headers": {
+      "User-Agent": "sqlmap/1.8.4#stable (https://sqlmap.org)"
+     }
+    },
+    "inband": {
+     "http": 200,
+     "verdict": "passed",
+     "rules": []
+    },
+    "out_of_band": {
+     "flagged": true,
+     "rules": [
+      {
+       "id": "913100",
+       "name": "Found User-Agent associated with security scanner"
+      }
+     ],
+     "category_scores": {
+      "anomaly": 5
+     },
+     "anomaly_score": 5,
+     "threshold": 5
+    },
+    "identical_in_all_runs": true,
+    "runs": {
+     "inband_verdict_and_score": 6,
+     "rule_attribution": 3
+    }
+   }
+  ],
+  "ban": {
+   "virtual_patch": {
+    "scenario": "crowdsecurity/appsec-vpatch",
+    "after_hits": 2,
+    "decision": "ban 24h"
+   },
+   "out_of_band": {
+    "scenario": "crowdsecurity/crowdsec-appsec-outofband",
+    "after_flagged_requests": 6,
+    "decision": "ban 48h (escalating profile: (earlier decisions + 1) x 24h; the virtual-patch ban counted as one)"
+   },
+   "rounds_observed": 3
+  }
+ },
+ "ban_enforcement": {
+  "method": "Ban an RFC 5737 IP with cscli, poll the firewall bouncer's nftables set every 0.25 s, then unban and poll until removed.",
+  "reps": [
+   {
+    "ban_to_drop_s": 10.13,
+    "unban_to_removed_s": 9.91
+   },
+   {
+    "ban_to_drop_s": 7.03,
+    "unban_to_removed_s": 9.81
+   },
+   {
+    "ban_to_drop_s": 7.03,
+    "unban_to_removed_s": 9.91
+   }
+  ]
+ },
+ "log_redaction": {
+  "method": "3 requests from outside the network (a cloud host) carrying fake credentials in ?ApiKey=, ?token=, X-Api-Key and X-Emby-Token, each with a unique path; then every proxy log searched for the fake values.",
+  "reps": [
+   {
+    "logged_lines": 1,
+    "fake_values_found": 0,
+    "credential_headers_logged": [],
+    "apikey_as_logged": "hash, 8 chars"
+   },
+   {
+    "logged_lines": 1,
+    "fake_values_found": 0,
+    "credential_headers_logged": [],
+    "apikey_as_logged": "hash, 8 chars"
+   },
+   {
+    "logged_lines": 1,
+    "fake_values_found": 0,
+    "credential_headers_logged": [],
+    "apikey_as_logged": "hash, 8 chars"
+   }
+  ]
+ },
+ "host_firewall": {
+  "method": "From a non-admin container: TCP connect to the hypervisor's SSH and web UI over IPv4 and over IPv6 link-local; controls: same container to a service port it needs, admin host to a container's SSH. 4 s timeout.",
+  "reps": [
+   {
+    "rep": 1,
+    "nonadmin_guest_to_hypervisor": {
+     "ssh_v4": "closed",
+     "webui_v4": "closed",
+     "ssh_v6_linklocal": "closed",
+     "webui_v6_linklocal": "closed"
+    },
+    "nonadmin_guest_to_service_port": "open",
+    "admin_host_to_container_ssh_v4": "open"
+   },
+   {
+    "rep": 2,
+    "nonadmin_guest_to_hypervisor": {
+     "ssh_v4": "closed",
+     "webui_v4": "closed",
+     "ssh_v6_linklocal": "closed",
+     "webui_v6_linklocal": "closed"
+    },
+    "nonadmin_guest_to_service_port": "open",
+    "admin_host_to_container_ssh_v4": "open"
+   },
+   {
+    "rep": 3,
+    "nonadmin_guest_to_hypervisor": {
+     "ssh_v4": "closed",
+     "webui_v4": "closed",
+     "ssh_v6_linklocal": "closed",
+     "webui_v6_linklocal": "closed"
+    },
+    "nonadmin_guest_to_service_port": "open",
+    "admin_host_to_container_ssh_v4": "open"
+   }
+  ]
+ },
+ "geo_filter": {
+  "filtered": [
+   "tcp dport 443",
+   "tcp dport 80",
+   "udp dport 443"
+  ],
+  "dropped_packets_since_last_apply": 68,
+  "distinct_sources_dropped_last_24h": 32
+ },
+ "egress_kill_test": {
+  "method": "Take the VPN tunnel down inside the download stack's network namespace; probe an external address every ~5 s from a download app; compare the exit IP with the home WAN IP without recording either.",
+  "kills": 6,
+  "probes_while_down": 45,
+  "answered": 0,
+  "via_home_connection": 0,
+  "self_recovery_s": [
+   60.6,
+   44.4,
+   39.5,
+   22.9,
+   39.1,
+   44.4
+  ],
+  "captured": "2026-10-30 18:24-18:31 CDT"
+ },
+ "secrets": {
+  "tool": "gitleaks 8.28.0",
+  "repos": 4,
+  "commits_scanned": 9194,
+  "commits_by_ethan_or_claude": 245,
+  "findings_in_those_commits": 0,
+  "findings_in_upstream_history": 24,
+  "upstream_finding_kinds": "test fixtures and saved recipe HTML in the forked projects' own history",
+  "captured": "2026-10-30 20:00 CDT"
+ }
+}

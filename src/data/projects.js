@@ -28,6 +28,22 @@ export const projects = [
     demo: 'trace the traffic',
   },
   {
+    slug: 'security',
+    title: 'Homelab security',
+    blurb:
+      'Every control in front of and inside the homelab, attacked on purpose. Four failed their first real test: what broke, the fix, and the re-test.',
+    tags: ['CrowdSec', 'OWASP CRS', 'Wazuh', 'nftables'],
+    demo: 'replay the attack',
+    // Shown on the home page's full-width security tile. Each line is a
+    // recorded result on /projects/security/, not a new claim.
+    highlights: [
+      'WAF: 8 of 9 attack requests flagged, 2 blocked on the spot',
+      'Ban decision to firewall drop in 7.0 to 10.1 s',
+      'Four holes found by attacking my own controls, all re-tested',
+      '0 secrets in 245 of my commits',
+    ],
+  },
+  {
     slug: 'mealie',
     title: 'Mealie fork',
     blurb:

@@ -1,0 +1,353 @@
+---
+import ProjectLayout from '../../layouts/ProjectLayout.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Panel from '../../components/Panel.astro';
+import ev from '../../data/security-evidence.json';
+
+// Every number on this page comes from src/data/security-evidence.json (a
+// recorded, sanitized run against the real edge) or from a dated test named
+// next to it. Nothing here is illustrative.
+const reqs = ev.waf.requests;
+const SHORT: Record<string, string> = {
+  baseline: 'normal page',
+  env: '/.env',
+  gitconfig: '/.git/config',
+  sqli: 'SQL injection',
+  xss: 'XSS',
+  traversal: 'path traversal',
+  log4shell: 'Log4Shell',
+  cmdi: 'command injection',
+  wordpress: 'wp-login probe',
+  scanner_ua: 'scanner user agent',
+};
+const attacks = reqs.filter((r) => r.id !== 'baseline');
+const flagged = attacks.filter((r) => r.out_of_band.flagged).length;
+const blockedInband = attacks.filter((r) => r.inband.verdict === 'blocked').length;
+const ban = ev.ban_enforcement.reps;
+const banMin = Math.min(...ban.map((r) => r.ban_to_drop_s));
+const banMax = Math.max(...ban.map((r) => r.ban_to_drop_s));
+const fw = ev.host_firewall.reps;
+const fwClosed = fw.every(
+  (r) => Object.values(r.nonadmin_guest_to_hypervisor).every((v) => v === 'closed'),
+);
+const red = ev.log_redaction.reps;
+const sec = ev.secrets;
+const kill = ev.egress_kill_test;
+const s1 = (n: number) => n.toFixed(1);
+// One date format on the page: MM-DD, the way every other date here reads.
+const day = ev.captured.slice(5, 10);
+const shown = (r: (typeof reqs)[number]) => {
+  const h = Object.entries(r.request.headers || {})
+    .map(([k, v]) => `${k}: ${v}`)
+    .join('\n');
+  return `${r.request.verb} ${r.request.uri}${h ? '\n' + h : ''}`;
+};
+---
+
+<ProjectLayout
+  title="Homelab security"
+  path="/projects/security/"
+  description="The security stack in front of and inside my homelab, attacked on purpose. Recorded results from the real edge: what got blocked, what only got flagged, and the four controls that failed their first real test."
+  lede="The security stack in front of and inside my homelab, and what happened when I attacked each piece of it. Four controls failed their first real test. Every number below comes from a recorded run against the real system, with the date next to it."
+  tags={['CrowdSec', 'OWASP CRS', 'Wazuh', 'nftables', 'Trivy', 'gitleaks']}
+  kicker="Security · tested, not assumed"
+  headline="Every control, attacked"
+  accent="attacked"
+  slug="security"
+  stats={[
+    { n: '4', l: 'holes found by attacking my own controls' },
+    { n: `${flagged} / ${attacks.length}`, l: `attack requests flagged, ${blockedInband} blocked on the spot` },
+    { n: `${s1(banMin)}-${s1(banMax)} s`, l: 'from ban decision to firewall drop' },
+    { n: `${sec.findings_in_those_commits}`, l: `secrets in ${sec.commits_by_ethan_or_claude} of my commits` },
+  ]}
+  demonstrates="Defense in depth that is measured instead of assumed: edge filtering, a WAF with known limits, detection that turns into bans, host firewalls on every guest, a SIEM, and a supply chain that is scanned and rolled back automatically. Plus the habit that found the bugs: attack your own controls and write down what actually happened."
+>
+  <SectionHead label="The edge" title="Ten requests, one edge" />
+  <p>
+    Everything public sits behind one reverse proxy VM. A request has to get
+    past a geo filter in nftables, a CrowdSec ban list enforced in both the
+    firewall and the proxy, and a WAF before it reaches an app. The WAF has two
+    halves, and the difference matters: virtual patches block known-bad
+    requests on the spot, while the OWASP Core Rule Set scores every request
+    after the fact and turns repeat offenders into bans.
+  </p>
+  <p>
+    I sent these ten requests through the edge's real WAF engine, using the
+    same API the proxy calls, six times each. Pick one and see what each layer
+    did with it. The result was identical in all six runs.
+  </p>
+
+  <Panel label="edge · recorded run" status={`captured ${day}`}>
+    <div class="edge-demo" data-edge data-js-only data-ban={`${s1(banMin)} to ${s1(banMax)}`} data-captured={ev.captured}>
+      <div class="map-controls edge-picks" role="group" aria-label="Pick a request">
+        {
+          reqs.map((r) => (
+            <button
+              class="map-btn"
+              type="button"
+              data-req={JSON.stringify({ ...r, shown: shown(r), short: SHORT[r.id] })}
+              aria-pressed={r.id === 'sqli' ? 'true' : 'false'}
+            >
+              {SHORT[r.id]}
+            </button>
+          ))
+        }
+      </div>
+
+      <div class="edge-grid">
+        <ol class="edge-layers" aria-label="Layers the request passes, in order">
+          <li data-layer="geo">
+            <span class="edge-name">geo filter</span>
+            <span class="edge-what">nftables · TCP 443, UDP 443, TCP 80</span>
+            <span class="edge-v" data-v>pass</span>
+          </li>
+          <li data-layer="ban">
+            <span class="edge-name">ban list</span>
+            <span class="edge-what">CrowdSec · firewall + proxy bouncers</span>
+            <span class="edge-v" data-v>pass</span>
+          </li>
+          <li data-layer="waf">
+            <span class="edge-name">WAF, in-band</span>
+            <span class="edge-what" data-waf-what>virtual patches + generic rules</span>
+            <span class="edge-v" data-v>pass</span>
+          </li>
+          <li data-layer="app">
+            <span class="edge-name">app</span>
+            <span class="edge-what" data-app-what>forwarded by the proxy</span>
+            <span class="edge-v" data-v>forwarded</span>
+          </li>
+        </ol>
+
+        <div class="edge-after">
+          <p class="label">after the fact · OWASP CRS, out-of-band</p>
+          <div class="score">
+            <div class="score-bar" aria-hidden="true">
+              <i data-score-fill></i>
+              <span class="score-thresh"></span>
+            </div>
+            <span class="score-num"><span data-score>0</span> <small>/ threshold 5</small></span>
+          </div>
+          <ul class="edge-rules" data-rules></ul>
+          <p class="edge-count" data-count></p>
+        </div>
+      </div>
+
+      <p class="edge-out" aria-live="polite" data-out></p>
+
+      <details class="evidence">
+        <summary>Show the evidence</summary>
+        <pre data-ev-pre></pre>
+      </details>
+
+      <div class="map-controls">
+        <button class="map-btn" type="button" data-replay>▶ replay an attacker</button>
+        <span class="ctl-label">the nine attacks in order, as one source</span>
+      </div>
+      <ol class="edge-log" data-log aria-live="polite"></ol>
+    </div>
+
+    <table class="ev-table">
+      <caption>All ten requests, as recorded. Rule IDs are OWASP CRS unless named.</caption>
+      <thead>
+        <tr><th scope="col">Request</th><th scope="col">In-band</th><th scope="col">CRS score</th><th scope="col">Rules that fired</th></tr>
+      </thead>
+      <tbody>
+        {
+          reqs.map((r) => (
+            <tr>
+              <th scope="row">{SHORT[r.id]}</th>
+              <td class:list={[r.inband.verdict === 'blocked' && 'is-blocked']}>
+                {r.inband.verdict === 'blocked' ? `blocked, ${r.inband.http}` : `passed, ${r.inband.http}`}
+              </td>
+              <td>{r.out_of_band.anomaly_score}</td>
+              <td class="ev-rules">
+                {[...r.inband.rules.map((x) => x.name), ...r.out_of_band.rules.map((x) => x.id)].join(', ') || 'none'}
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+    <p class="sample-note">
+      Method: {ev.waf.method} Caddy {ev.versions.caddy}, CrowdSec {ev.versions.crowdsec},
+      {ev.versions.appsec_rules_loaded} WAF rules loaded.
+    </p>
+  </Panel>
+
+  <p>
+    The honest reading: on the first request, the WAF only stops the paths it
+    has a virtual patch for. SQL injection, XSS, traversal, Log4Shell and
+    command injection all reach the app once. What they do not get is a second
+    chance. Two virtual-patch hits ban the source for 24 hours. Six requests the
+    Core Rule Set flags ban it again, for 48 hours, because the ban length
+    grows for a repeat offender. The firewall starts dropping a banned source
+    {s1(banMin)} to {s1(banMax)} seconds after the decision (three measured
+    runs), and for the rest of the ban the proxy never sees it.
+  </p>
+  <p>
+    Moving the Core Rule Set in front of the app is the obvious next step. It
+    waits on a false-positive review against real traffic, because a WAF that
+    blocks my family's streaming is a worse problem than the one it solves.
+  </p>
+
+  <SectionHead label="Found by attacking it" title="Four controls failed their first real test" />
+  <p>
+    Each of these looked fine from the configuration. Each one broke the first
+    time I attacked it from the outside. They are the most useful thing on this
+    page, so here is each one: what was wrong, how it showed up, the fix, and
+    the re-test.
+  </p>
+
+  <div class="finds">
+    <article class="find" data-card>
+      <p class="label">fail2ban · edge</p>
+      <h3>The ban that never was</h3>
+      <dl>
+        <dt>Wrong</dt>
+        <dd>The edge VM is nftables-only. fail2ban's default action calls iptables, exited with code 127, and logged "Ban" anyway. No ban on that VM had ever been enforced.</dd>
+        <dt>Found</dt>
+        <dd>A family member got "banned" while streaming. They were never actually blocked, and neither was anyone else.</dd>
+        <dt>Fix</dt>
+        <dd>nftables action for TCP and UDP; the jail counts only 401 and 403, not the 404s a media client produces after an upgrade.</dd>
+        <dt>Re-test</dt>
+        <dd>A phone on cellular sent five bad logins: banned in 10 s, then 0 requests reached the proxy. (10-30, one run.)</dd>
+      </dl>
+    </article>
+
+    <article class="find" data-card>
+      <p class="label">host firewall · every guest</p>
+      <h3>IPv6 walked around the admin allowlist</h3>
+      <dl>
+        <dt>Wrong</dt>
+        <dd>Admin ports were pinned to three hosts over IPv4. The generator put the same ports in the IPv6 LAN rule, so any phone or TV could reach SSH and the hypervisor UI over link-local IPv6.</dd>
+        <dt>Found</dt>
+        <dd>A firewall review that tested IPv6, not only IPv4.</dd>
+        <dt>Fix</dt>
+        <dd>IPv6 gets service ports only. Rolled out host by host, each with a 10-minute auto-revert armed.</dd>
+        <dt>Re-test</dt>
+        <dd>
+          From a non-admin container, hypervisor SSH and web UI over IPv4 and
+          IPv6: {fwClosed ? 'closed' : 'NOT closed'} in {fw.length} of {fw.length} runs. Controls (a service port it needs, admin SSH) stayed open. ({day})
+        </dd>
+      </dl>
+    </article>
+
+    <article class="find" data-card>
+      <p class="label">reverse proxy · logs</p>
+      <h3>The proxy was logging the keys</h3>
+      <dl>
+        <dt>Wrong</dt>
+        <dd>Media clients send API keys in query strings and headers. The access log kept them verbatim in world-readable files: 1,136 media-server keys, 141 auth tokens and 4,468 admin API keys.</dd>
+        <dt>Found</dt>
+        <dd>A secrets audit that read the logs, not just the configs.</dd>
+        <dt>Fix</dt>
+        <dd>Redact at the logger (query values hashed, credential headers dropped), tighten permissions, and mask 25,888 old values in place without breaking the three tools that parse those logs.</dd>
+        <dt>Re-test</dt>
+        <dd>
+          {red.length} requests from outside the network with fake credentials:
+          each logged once, {red.reduce((a, r) => a + r.fake_values_found, 0)} fake values in any log, key stored as an {red[0].apikey_as_logged.split(', ')[1].replace(' chars', '-character')} hash. ({day})
+        </dd>
+      </dl>
+    </article>
+
+    <article class="find" data-card>
+      <p class="label">geo filter · edge</p>
+      <h3>HTTP/3 walked past the geo filter</h3>
+      <dl>
+        <dt>Wrong</dt>
+        <dd>The rule matched TCP 443. The proxy also speaks HTTP/3 over UDP 443, so a client outside the allowed countries could still connect.</dd>
+        <dt>Found</dt>
+        <dd>Reading which ports the proxy listens on, then testing each one.</dd>
+        <dt>Fix</dt>
+        <dd>Filter TCP and UDP 443 plus TCP 80. Closing port 80 meant moving certificates to the DNS-01 challenge first.</dd>
+        <dt>Re-test</dt>
+        <dd>A phone on cellular, cut out of the allow list: TCP 443, UDP 443 and TCP 80 all dropped at the firewall. (10-30, one run.)</dd>
+      </dl>
+    </article>
+  </div>
+
+  <p>
+    A fifth one was on this site. The homelab page used to say the download
+    stack's VPN isolation worked because "no other route exists". When I tested
+    it, the route did exist; what holds is the VPN container's default-drop
+    firewall. So I took the tunnel down {kill.kills} times: {kill.probes_while_down}
+    probes while it was down, {kill.answered} answered, and it recovered on its
+    own every time. The page now says that instead.
+  </p>
+
+  <SectionHead label="Inside the perimeter" title="Assume the edge fails" />
+  <p>
+    Every guest runs its own default-deny nftables table, loaded by its own
+    service, so the hypervisor is not the only thing between a service and the
+    network. Admin ports are reachable from three hosts. It ran in audit mode
+    for 46 hours before enforcing, and the enforcing rollout fired zero
+    auto-reverts.
+  </p>
+  <p>
+    All eight hosts are hardened against the CIS benchmarks in two tiers: SSH
+    key-only for root, account lockout, audit rules, password length over
+    composition rules (NIST SP 800-63B). Wazuh's configuration assessment
+    scored every host 40 to 43 before and 51 to 55 after.
+  </p>
+  <p>
+    Wazuh collects from all eight hosts. I planted events on 10-30 to check the
+    rules fire: touching sudoers raised a level 10 alert, running a binary from
+    /tmp a level 12, and an EICAR test file a level 12 VirusTotal hit (66 of 68
+    engines). The tuning goes the other way too: a monitoring agent's daily
+    updater runs a script from /tmp, so one rule matches only that exact
+    command shape. The same shape with any other script name still fires
+    level 12.
+  </p>
+
+  <SectionHead label="Supply chain" title="What runs here, and what I publish" />
+  <p>
+    Trivy scans every container image daily. Most critical CVEs in public
+    images need the upstream project to rebuild, so a weekly reminder became
+    noise. The alert is now keyed to the exact image and CVE pairs: fewer CVEs
+    stay quiet, a new one alerts at once. A weekly updater pulls new images,
+    health-checks them and rolls back on failure. Its first real run updated
+    six images with zero rollbacks.
+  </p>
+  <p>
+    I scanned every commit of my four public repositories with gitleaks
+    {sec.tool.replace('gitleaks ', '')}: {sec.commits_scanned.toLocaleString('en-US')}
+    commits, {sec.commits_by_ethan_or_claude} of them mine. Findings in my commits:
+    {sec.findings_in_those_commits}. The other {sec.findings_in_upstream_history} findings
+    are test fixtures and saved recipe pages in the forked projects' own history.
+    This site has its own gate: a build fails if a private word or an inline
+    script reaches the output.
+  </p>
+
+  <SectionHead label="Mapped" title="Control by control" />
+  <div class="map-table-wrap">
+    <table class="ev-table map-table">
+      <caption>CIS Controls v8 safeguards and the ATT&CK techniques each control is there for. "Tested" means a recorded run with a date, not a configuration review.</caption>
+      <thead>
+        <tr><th scope="col">Control</th><th scope="col">CIS v8</th><th scope="col">ATT&CK</th><th scope="col">Tested</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">Geo filter, TCP + UDP</th><td>4.4</td><td>T1595</td><td>10-30, phone on cellular</td></tr>
+        <tr><th scope="row">CrowdSec + bouncers</th><td>13.3, 13.8</td><td>T1595.002, T1190</td><td>{day}, ban timing x3</td></tr>
+        <tr><th scope="row">WAF: virtual patches + OWASP CRS</th><td>13.10</td><td>T1190</td><td>{day}, 10 requests x6</td></tr>
+        <tr><th scope="row">fail2ban</th><td>13.8</td><td>T1110</td><td>10-30, phone on cellular</td></tr>
+        <tr><th scope="row">Per-guest firewall, IPv4 + IPv6</th><td>4.4, 13.4</td><td>T1021.004</td><td>{day}, x3</td></tr>
+        <tr><th scope="row">VPN egress, default drop</th><td>13.4</td><td>none</td><td>{kill.captured.slice(5, 10)}, 6 tunnel kills</td></tr>
+        <tr><th scope="row">CIS hardening</th><td>4.1</td><td>T1110, T1548.003</td><td>10-22 to 10-25, Wazuh SCA</td></tr>
+        <tr><th scope="row">Wazuh SIEM</th><td>8.2, 8.9, 13.1</td><td>T1548.003, T1105</td><td>10-30, planted events</td></tr>
+        <tr><th scope="row">Log redaction + permissions</th><td>3.3</td><td>T1552.001</td><td>{day}, x3 from outside</td></tr>
+        <tr><th scope="row">Trivy + weekly updater</th><td>7.4, 7.5</td><td>T1190</td><td>configured; first run 10-25</td></tr>
+        <tr><th scope="row">Secrets scan + site gate</th><td>16.12</td><td>T1552.001</td><td>{sec.captured.slice(5, 10)}, every commit</td></tr>
+        <tr><th scope="row">Backups, restore drills</th><td>11.5</td><td>T1485, T1486</td><td>10-22 and 10-30, timed restores</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <SectionHead label="Not done" title="What this page does not claim" />
+  <ul>
+    <li>The WAF does not block injection on the first request yet. That waits on the false-positive review.</li>
+    <li>WordPress-style probes are left to CrowdSec's log scenarios. The WAF test above does not cover them.</li>
+    <li>The last geo test from outside the allowed countries was a single phone run on 10-30.</li>
+  </ul>
+
+  <script is:inline src="/js/security-edge.js" defer></script>
+</ProjectLayout>

@@ -3148,3 +3148,195 @@ canvas.field {
 .page-hero-actions {
   margin: 1.75rem 0 0;
 }
+
+/* ================================================================
+   /projects/security/ : edge replay, evidence tables, finding cards.
+   Colours come from the tokens only: accent = passed / flagged scale,
+   danger = blocked or banned (its documented meaning).
+   ================================================================ */
+.edge-picks { flex-wrap: wrap; }
+.demo-panel:has(.edge-demo) { margin-bottom: 1.75rem; }
+.edge-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+@media (min-width: 820px) {
+  .edge-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+}
+.edge-layers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+.edge-layers li {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+  transition: border-color 200ms ease, background-color 200ms ease, opacity 200ms ease;
+}
+.edge-layers li.is-live { opacity: 0.55; }
+.edge-layers li.is-pass { border-color: rgba(var(--accent-rgb), 0.35); }
+.edge-layers li.is-block {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, var(--bg-sunken));
+}
+.edge-layers li.is-skip { opacity: 0.45; }
+.edge-name { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text); }
+.edge-what { font-size: 0.8rem; color: var(--muted); overflow-wrap: anywhere; }
+.edge-v { font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent); white-space: nowrap; }
+.is-block .edge-v { color: var(--danger); }
+.is-skip .edge-v { color: var(--muted); }
+@media (max-width: 520px) {
+  .edge-layers li { grid-template-columns: minmax(0, 1fr) auto; }
+  .edge-what { grid-column: 1 / -1; grid-row: 2; }
+}
+
+.edge-after {
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+}
+.edge-after .label { margin: 0 0 0.6rem; }
+.score { display: flex; align-items: center; gap: 0.75rem; }
+.score-bar {
+  position: relative;
+  flex: 1;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+.score-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: var(--accent);
+  border-radius: inherit;
+  transition: width 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.score-bar i.is-over { background: var(--danger); }
+/* threshold 5 on a 0-70 scale */
+.score-thresh {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: calc(5 / 70 * 100%);
+  width: 2px;
+  background: var(--text);
+  opacity: 0.7;
+}
+.score-num { font-family: var(--font-mono); font-size: 0.9rem; white-space: nowrap; }
+.score-num small { color: var(--muted); font-size: 0.7rem; }
+.edge-rules { list-style: none; margin: 0.75rem 0 0; padding: 0; display: grid; gap: 0.3rem; font-size: 0.8rem; }
+.edge-rules code { font-family: var(--font-mono); color: var(--accent); margin-right: 0.35rem; }
+.edge-rules .none { color: var(--muted); }
+.edge-count { margin: 0.75rem 0 0; font-size: 0.8rem; color: var(--muted); }
+.edge-out { margin: 1rem 0 0; min-height: 3em; }
+
+.evidence { margin-top: 0.75rem; }
+.evidence summary {
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+.evidence pre {
+  margin: 0.6rem 0 0;
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.edge-log {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+.edge-log:empty { display: none; }
+.edge-log li { white-space: pre-wrap; overflow-wrap: anywhere; }
+.edge-log .is-block { color: var(--danger); }
+.edge-log .is-ban { color: var(--danger); font-weight: 600; }
+.edge-log .is-note { color: var(--muted); margin-top: 0.4rem; }
+.edge-log li { animation: log-in 220ms ease both; }
+@keyframes log-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .edge-layers li, .score-bar i { transition: none; }
+  .edge-log li { animation: none; }
+}
+
+.ev-table {
+  width: 100%;
+  margin-top: 1.25rem;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.ev-table caption {
+  caption-side: top;
+  text-align: left;
+  font-size: 0.75rem;
+  color: var(--muted);
+  padding-bottom: 0.5rem;
+}
+.ev-table th,
+.ev-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+.ev-table thead th { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 500; color: var(--muted); }
+.ev-table tbody th { font-weight: 500; }
+.ev-table .is-blocked { color: var(--danger); }
+.ev-table .ev-rules { font-family: var(--font-mono); font-size: 0.72rem; overflow-wrap: anywhere; }
+.map-table-wrap { overflow-x: auto; }
+.map-table td { font-family: var(--font-mono); font-size: 0.75rem; }
+
+.finds {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+@media (min-width: 820px) {
+  .finds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.find {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raised);
+}
+.find .label { margin: 0 0 0.4rem; }
+.find h3 { margin: 0 0 0.8rem; font-size: var(--step-1); }
+.find dl { margin: 0; display: grid; grid-template-columns: 4.6rem minmax(0, 1fr); gap: 0.45rem 0.75rem; }
+.find dt { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); padding-top: 0.2rem; }
+.find dd { margin: 0; font-size: 0.88rem; line-height: 1.55; }
+.find dt:nth-of-type(4) { color: var(--accent); }
+
+/* Home: the security tile runs the full row, its highlights side by side. */
+@media (min-width: 700px) {
+  .bento { grid-auto-flow: dense; }
+  .bento .tile-wide { grid-column: 1 / -1; }
+  .tile-wide .tile-highlights { max-width: none; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem 1.5rem; }
+}
+@media (min-width: 1040px) {
+  .tile-wide .tile-highlights { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

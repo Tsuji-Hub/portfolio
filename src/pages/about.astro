@@ -3,7 +3,71 @@ import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
 import SectionHead from '../components/SectionHead.astro';
 
-// Each position links to the place on this site where you can watch it hold.
+// Structure follows the About-page research (claude/portfolio-research-about.md):
+// a short top block with a real photo, a dated Now block, positions with
+// receipts, how I work, what I was wrong about, a timeline, then the rest.
+// Every fact here is checked against the résumé, the evidence file or a
+// public source; nothing is padded.
+
+const updated = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+const now = [
+  { text: 'Going deeper on Torq: building security automation workflows past the practitioner certification.' },
+  { text: 'Attacking every control in my homelab and publishing what held.', href: '/projects/security/', cta: 'the results' },
+  { text: 'Rebuilding this site one page at a time, every number checked against a live source.' },
+];
+
+const work = [
+  {
+    t: 'I attack my own controls before I trust them.',
+    d: 'A control counts once it has stopped something from outside, on the record. Four of mine failed that test the first time.',
+    href: '/projects/security/',
+  },
+  {
+    t: 'Detect, tune, then enforce.',
+    d: 'New controls start in audit or detection-only mode against real traffic. They move to blocking when the false positives are known, not before.',
+  },
+  {
+    t: 'Every risky change ships with its way back.',
+    d: 'Firewall rollouts go host by host with a ten-minute auto-revert armed. Updates keep a rollback image and a snapshot until the new version has run for a few days.',
+  },
+  {
+    t: 'Write it down while it happens.',
+    d: 'Changes, tests and decisions go into a dated log as I make them, so the next person, usually me, does not have to guess.',
+  },
+];
+
+const wrong = [
+  {
+    was: 'My VPN isolation held because no other route existed.',
+    now: 'The route existed. What holds is a default-drop firewall in the namespace, and I trust it because I took the tunnel down six times and nothing got out.',
+    href: '/projects/homelab/',
+  },
+  {
+    was: 'fail2ban was banning attackers at my edge.',
+    now: 'It logged bans and enforced none: the wrong firewall backend failed silently. Now no control counts until it has been tested from outside.',
+    href: '/projects/security/',
+  },
+];
+
+const timeline = [
+  { y: '2021', t: 'Department of Energy CyberForce: 10th of 120 teams. Lewis University CTF: 1st.' },
+  { y: '2022', t: 'CyberForce again: 5th of 160 teams. Collegiate Cyber Defense Competition (CCDC).' },
+  { y: '2023', t: 'Security advisor intern: browser extension governance and risk exceptions.' },
+  { y: '2024', t: 'B.S. Cybersecurity, Lewis University. Joined an IT security rotational program at a Fortune 500 insurer.' },
+  { y: '2025', t: 'M.S. Cybersecurity, Lewis University (4+1 program).' },
+  { y: '2026', t: 'Cloud security analyst at the same insurer. At home: a homelab run like production, a manga reader fork at 21 releases, a fix merged into Mealie.' },
+];
+
+const shelf = [
+  'Return of the Blossoming Blade',
+  'Nano Machine',
+  'Revenge of the Baskerville Bloodhound',
+  'SSS-Class Revival Hunter',
+  "Nebula's Civilization",
+  'The Game That I Came From',
+];
+
 const positions = [
   {
     claim: 'The guard has to be architectural, not textual.',
@@ -12,10 +76,10 @@ const positions = [
     cta: 'try to break it',
   },
   {
-    claim: 'A backup that has never been restored is a hope, not a backup.',
-    body: 'Same for isolation. Kill the tunnel and the workloads lose the internet rather than quietly falling back to the home connection. I know because I killed it six times and counted.',
-    href: '/projects/homelab/#trace=bypass',
-    cta: 'watch it fail closed',
+    claim: 'A control you have not attacked is a guess.',
+    body: 'Same for a backup that has never been restored. I test both and publish what happened, including what failed.',
+    href: '/projects/security/',
+    cta: 'see what testing caught',
   },
   {
     claim: 'Prevention beats detection, and it is not close.',
@@ -57,16 +121,8 @@ const credentials = [
       'Google Cloud Digital Leader',
       'ISC2 Certified in Cybersecurity (CC)',
       'Torq Automation Practitioner',
+      'PADI certified diver',
     ],
-  },
-  {
-    label: 'Competitions · 2021–22',
-    items: [
-      'Department of Energy CyberForce, twice',
-      'Lewis University CTF, 1st',
-      'CCDC',
-    ],
-    note: 'Where the instinct came from, and old enough now that the work above is the better argument.',
   },
 ];
 ---
@@ -74,23 +130,61 @@ const credentials = [
 <Base
   title="About — Ethan Justice"
   path="/about/"
-  description="Ethan Justice — cloud security analyst. What I think about building systems that fail safely, and the projects where I proved it."
+  description="Ethan Justice, cloud security analyst. How I got here, how I work, what I was wrong about, and what I am working on now."
 >
   <div class="wrap">
     <PageHero
       kicker="About"
       title="About"
-      headline="The interesting part is never the exploit"
-      accent="never the exploit"
-      lede="I'm a cloud security analyst. I govern cloud environments for a Fortune 500 insurer by day, and run my own infrastructure like production by night."
-    />
+      headline="Hi, I'm Ethan."
+      accent="Ethan"
+      lede="I'm a cloud security analyst at a Fortune 500 insurer, where I work on GCP governance and security automation. At home I run my own infrastructure like production, and I attack it to see what holds."
+      split
+    >
+      <figure class="portrait" slot="aside">
+        <img
+          src="/img/ethan-560.webp"
+          srcset="/img/ethan-360.webp 360w, /img/ethan-560.webp 560w"
+          sizes="(min-width: 900px) 280px, 60vw"
+          width="560"
+          height="560"
+          alt="Ethan Justice, smiling, outdoors"
+          decoding="async"
+        />
+      </figure>
+    </PageHero>
 
     <div class="prose prose-wide">
-      <p>
-        The exploit is never the interesting part. What matters is whether the
-        thing was built so the exploit had somewhere to go. That's a design
-        question, and it gets decided long before anyone attacks you.
+      <p class="about-origin">
+        I got into security through competitions. In CyberForce you defend a
+        small network while a red team attacks it, and it taught me early that
+        the exploit is never the interesting part. What matters is whether the
+        system was built so the exploit had somewhere to go.
       </p>
+      <p class="about-origin">
+        My superpower is X-ray vision, or maybe future sight: when something is
+        brought up, I immediately start thinking about where it can go wrong and
+        how we can maneuver around those problems. In security that habit has a
+        name, threat modeling. Away from the keyboard I dive, and I read a lot of manga, which is how my Android
+        reader fork started.
+      </p>
+
+      <section class="now-block" aria-labelledby="now-h" data-card>
+        <p class="label" id="now-h">Now · {updated}</p>
+        <ul>
+          {now.map((n) => (
+            <li>
+              {n.text}
+              {n.href && (
+                <>
+                  {' '}
+                  <a href={n.href}>{n.cta} →</a>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <SectionHead label="Positions" title="What I actually think">
         <p>
@@ -113,8 +207,57 @@ const credentials = [
         }
       </ol>
 
-      <SectionHead label="Credentials" title="On paper, briefly" />
+      <SectionHead label="How I work" title="Habits, not adjectives" />
+      <ul class="work-list">
+        {work.map((w) => (
+          <li data-card>
+            <span class="work-t">{w.t}</span>
+            <span class="work-d">
+              {w.d}
+              {w.href && (
+                <>
+                  {' '}
+                  <a href={w.href}>see it →</a>
+                </>
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
 
+      <SectionHead label="Corrections" title="What I was wrong about" />
+      <ul class="wrong-list">
+        {wrong.map((w) => (
+          <li data-card>
+            <p class="wrong-was"><span class="label">I thought</span> {w.was}</p>
+            <p class="wrong-now"><span class="label">Actually</span> {w.now} <a href={w.href}>the proof →</a></p>
+          </li>
+        ))}
+      </ul>
+
+      <SectionHead label="Timeline" title="How I got here" />
+      <ol class="about-tl">
+        {timeline.map((e) => (
+          <li>
+            <span class="tl-year">{e.y}</span>
+            <span class="tl-text">{e.t}</span>
+          </li>
+        ))}
+      </ol>
+
+      <SectionHead label="Beyond work" title="The rest of it" />
+      <p>
+        PADI certified diver. I read a lot of manga and manhwa, mostly long
+        action series, which is why Makimono exists: an itch to fix the reader I
+        use every day. On the shelf right now:
+      </p>
+      <ul class="about-shelf" aria-label="Currently reading">
+        {shelf.map((s) => (
+          <li><span>{s}</span></li>
+        ))}
+      </ul>
+
+      <SectionHead label="Credentials" title="On paper, briefly" />
       <div class="cred-grid" data-reveal>
         {
           credentials.map((c) => (
@@ -123,7 +266,6 @@ const credentials = [
               {c.items.map((i) => (
                 <dd>{i}</dd>
               ))}
-              {c.note && <dd class="cred-note">{c.note}</dd>}
             </dl>
           ))
         }
@@ -141,12 +283,6 @@ const credentials = [
         Web version: no phone number, no street address.
       </p>
 
-      <SectionHead label="Beyond work" title="The rest of it" />
-      <p>
-        PADI certified diver. I read a lot of manga, which is how the Makimono
-        fork started: an itch to fix the reader I use every day.
-      </p>
-
       <SectionHead label="Contact" title="Where to find me" />
       <p>
         <a href="mailto:justice.ethan04@gmail.com">justice.ethan04@gmail.com</a>
@@ -154,6 +290,8 @@ const credentials = [
         <a href="https://www.linkedin.com/in/justice-ethan" target="_blank" rel="noopener noreferrer">LinkedIn</a>
         &nbsp;·&nbsp;
         <a href="https://github.com/Tsuji-Hub" target="_blank" rel="noopener noreferrer">GitHub</a>
+        &nbsp;·&nbsp;
+        <a href="/.well-known/security.txt">security.txt</a>
       </p>
     </div>
 

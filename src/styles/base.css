@@ -3340,3 +3340,156 @@ canvas.field {
 @media (min-width: 1040px) {
   .tile-wide .tile-highlights { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+
+/* ================================================================
+   /about/ v2: portrait, now block, how-I-work, corrections, timeline, shelf.
+   ================================================================ */
+.portrait {
+  margin: 0;
+  justify-self: center;
+  align-self: center;
+  width: min(280px, 70vw);
+}
+.portrait img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 0 0 6px var(--bg-raised), 0 0 0 7px rgba(var(--accent-rgb), 0.35);
+}
+.about-origin { font-size: var(--step-1); line-height: 1.6; max-width: 62ch; }
+
+.now-block {
+  margin: 2rem 0 0;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+.now-block .label { margin: 0 0 0.5rem; }
+.now-block ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.35rem; }
+
+.prose .work-list, .prose .wrong-list { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; gap: 0.75rem; }
+.work-list li {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.25rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+@media (min-width: 820px) {
+  .work-list li { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr); gap: 1.5rem; }
+}
+.work-t { font-weight: 600; }
+.work-d { color: var(--muted); font-size: 0.95rem; }
+
+.wrong-list li {
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+.wrong-list p { margin: 0; }
+.wrong-list .label { display: inline-block; min-width: 5.5rem; margin: 0; }
+.wrong-was { color: var(--muted); text-decoration: line-through; text-decoration-color: rgba(var(--danger-rgb), 0.7); }
+.wrong-now { margin-top: 0.4rem !important; }
+
+/* Timeline: a rail that draws itself as the list scrolls through view.
+   Pure CSS (scroll-driven animations); a static rail where unsupported or
+   under reduced motion. */
+.prose .about-tl {
+  position: relative;
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0 0 0 1.5rem;
+  display: grid;
+  gap: 1.1rem;
+}
+.about-tl::before {
+  content: '';
+  position: absolute;
+  left: 0.3rem;
+  top: 0.4rem;
+  bottom: 0.4rem;
+  width: 2px;
+  background: linear-gradient(var(--accent), rgba(var(--accent-rgb), 0.25));
+  transform-origin: top;
+}
+.about-tl li { position: relative; display: grid; grid-template-columns: 3.4rem minmax(0, 1fr); gap: 0.75rem; align-items: baseline; }
+.about-tl li::before {
+  content: '';
+  position: absolute;
+  left: calc(-1.5rem + 0.3rem - 4px);
+  top: 0.45rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--accent);
+}
+.tl-year { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); }
+.tl-text { line-height: 1.55; }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .about-tl::before {
+      animation: tl-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 55%;
+    }
+    .about-tl li {
+      animation: tl-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+  }
+}
+@keyframes tl-draw { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes tl-in { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+
+/* Shelf: spines on a shelf, titles set vertically. Heights vary by position
+   (no inline styles under the CSP). */
+.prose .about-shelf {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  min-height: 15rem;
+  border-bottom: 3px solid var(--border-strong);
+  overflow-x: auto;
+}
+.about-shelf li {
+  flex: 0 0 auto;
+  width: 2.6rem;
+  height: 13rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-strong);
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(90deg, var(--bg-elevated), var(--bg-raised) 40%, var(--bg-elevated));
+}
+.about-shelf li:nth-child(3n + 1) { height: 14rem; border-top: 3px solid var(--accent); }
+.about-shelf li:nth-child(3n + 2) { height: 12.2rem; }
+.about-shelf li:nth-child(3n) { height: 13.4rem; border-top: 3px solid rgba(var(--accent-rgb), 0.5); }
+.about-shelf span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.2;
+  color: var(--text);
+  max-height: 92%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prose .about-tl li, .prose .work-list li, .prose .wrong-list li, .prose .about-shelf li { margin-bottom: 0; }

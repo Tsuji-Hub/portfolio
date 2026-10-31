@@ -112,7 +112,7 @@
           blocked: !applied,
           msg: applied
             ? 'Inline style applied (width read back as ' + d.style.width + ').'
-            : 'Attribute is in the markup; zero properties applied. Silent — this is the one you ship by accident.',
+            : 'Attribute is in the markup; zero properties applied. Silent: this is the one you ship by accident.',
         });
       },
     },
@@ -188,7 +188,7 @@
       d.className = 'dir';
       d.textContent = 'stopped by ' + directive;
       msg.appendChild(d);
-      msg.appendChild(document.createTextNode(' — '));
+      msg.appendChild(document.createTextNode(': '));
     }
     msg.appendChild(document.createTextNode(res.msg));
 

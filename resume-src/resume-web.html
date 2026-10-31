@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Ethan Justice — Resume</title>
+<title>Ethan Justice · Resume</title>
 <style>
-  @font-face { font-family:'Inter'; font-weight:400; src:url('file:///E:/CLAUDE%20COWORK/PROJECTS/portfolio/public/fonts/inter-latin-400-normal.woff2') format('woff2'); }
-  @font-face { font-family:'Inter'; font-weight:500; src:url('file:///E:/CLAUDE%20COWORK/PROJECTS/portfolio/public/fonts/inter-latin-500-normal.woff2') format('woff2'); }
-  @font-face { font-family:'Inter'; font-weight:600; src:url('file:///E:/CLAUDE%20COWORK/PROJECTS/portfolio/public/fonts/inter-latin-600-normal.woff2') format('woff2'); }
+  @font-face { font-family:'Inter'; font-weight:400; src:url('../public/fonts/inter-latin-400-normal.woff2') format('woff2'); }
+  @font-face { font-family:'Inter'; font-weight:500; src:url('../public/fonts/inter-latin-500-normal.woff2') format('woff2'); }
+  @font-face { font-family:'Inter'; font-weight:600; src:url('../public/fonts/inter-latin-600-normal.woff2') format('woff2'); }
 
   @page { size: Letter; margin: 0.42in 0.5in; }
   * { box-sizing: border-box; margin: 0; }
@@ -45,17 +45,17 @@
   </header>
 
   <h2>Summary</h2>
-  <p>Cloud Security Analyst at a Fortune 500 insurer working across cloud governance and security operations on Google Cloud Platform (GCP). Brought 1,100+ GCP projects under CMDB governance, cut weekly security metrics reporting from hours to minutes, and led a no-code SOAR proof of concept. Off the clock: a Proxmox homelab with production-grade controls and side projects with real users.</p>
+  <p>Cloud Security Analyst at a Fortune 500 insurer working across cloud governance and security operations on Google Cloud Platform (GCP). Brought 1,100+ GCP projects under CMDB governance, cut weekly security metrics reporting from hours to minutes, and led a no-code SOAR proof of concept. Off the clock: a homelab whose security controls I attack from outside and fix where they fail, and a fix merged into a 13.7k-star open-source project.</p>
 
   <h2>Experience</h2>
   <div class="org">A Fortune 500 insurer</div>
 
   <div class="role"><span class="t">Cloud Security Analyst</span><span class="d">Apr 2026 - Present</span></div>
   <ul>
-    <li>Caught unapproved hardened Docker images moving toward production; coordinated vendors and internal teams to stand up a formal image approval process, closing a container supply chain gap.</li>
     <li>Led a proof of concept of no-code Security Orchestration, Automation and Response (SOAR) platforms (Torq, Tines): built workflows that auto-enrich cloud vulnerability alerts; demoed to leadership with an adoption roadmap.</li>
     <li>Integrated Wiz Cloud Security Posture Management (CSPM) findings with ServiceNow so incident tickets arrive pre-filled with asset ownership and context.</li>
     <li>Facilitate annual cloud control reviews; governance docs stay audit-ready via CI/CD-driven updates.</li>
+    <li>Assisted remediation management when unapproved pre-hardened Docker images were found heading toward production; handled the remediation ticket through to completion.</li>
   </ul>
 
   <div class="role"><span class="t">IT Security Rotational Program</span><span class="d">Jun 2024 - Apr 2026</span></div>
@@ -74,17 +74,18 @@
   </ul>
 
   <h2>Projects</h2>
-  <div class="proj"><b>Makimono, custom Android manga reader (Kotlin):</b> maintained fork of the open-source Mihon app with a webtoon auto-scroll engine, AniList-powered recommendations and bulk tracking, fold-aware rendering, and a signed self-update release channel. Shipped to real users.</div>
-  <div class="proj"><b>Jarvis, self-hosted voice assistant (in progress):</b> Home Assistant pipeline with on-device wake word, GPU-accelerated Whisper speech-to-text, an LLM control brain with tool access to infrastructure APIs, and a Discord voice interface.</div>
-  <div class="proj"><b>Homelab, Proxmox VE run like production:</b> GPU passthrough, mirrored ZFS with restore-tested nightly backups, default-deny nftables firewalls, VPN network namespaces for egress control, Caddy TLS reverse proxy, and Netdata monitoring wired into LLM tooling via Model Context Protocol (MCP).</div>
+  <div class="proj"><b>Homelab, Proxmox VE run like production:</b> 31 containers on 7 guests. Attacked every edge control from outside; testing caught 4 controls not doing their job (fail2ban never enforcing, IPv6 skipping the admin allowlist, HTTP/3 skipping the geo filter, credentials in proxy logs), all fixed and re-tested. OWASP CRS WAF (blocking), CrowdSec, Wazuh SIEM, default-deny nftables, restore-tested backups.</div>
+  <div class="proj"><b>Atlas &amp; Jarvis, self-hosted voice assistants with a trust boundary:</b> Jarvis, a public Discord voice bot (Whisper, Gemini, Kokoro on a local GPU), holds no Home Assistant or media-request credential and checks Discord permissions in code before any moderation tool runs. Atlas pushes homelab alerts with signed restart actions.</div>
+  <div class="proj"><b>Makimono, Android manga reader (Kotlin):</b> fork of the open-source Mihon app, 21 releases with signed in-app updates; recommendations ranked by agreement across 5 sources; drop rates backed by my own statistics service (peer baselines, Poisson-tested cliffs).</div>
+  <div class="proj"><b>Mealie, open-source recipe manager (13.7k stars):</b> fix merged upstream in v3.27.0 with a first-contributor credit. My fork's runtime image went from 147 to 100 Python packages, and I found and fixed disabled TLS verification in its scraper code.</div>
 
   <h2>Competitions</h2>
-  <p>Department of Energy CyberForce: 5th of 160 teams (2022), 10th of 120 (2021). Lewis Cyber Flyer CTF: 1st place (2021). National Collegiate Cyber Defense Competition (CCDC) competitor. Tools: Splunk, Snort, Sysmon, OpenVAS, Nmap.</p>
+  <p>Department of Energy CyberForce: 5th of 160 teams (2022), 10th (2023). Lewis Cyber Flyer CTF: 1st place (2021). National Collegiate Cyber Defense Competition (CCDC) competitor. Tools: Splunk, Snort, Sysmon, OpenVAS, Nmap.</p>
 
   <h2>Skills</h2>
   <div class="skills">
     <p><b>Cloud:</b> Google Cloud Platform (GCP), IAM, Organization Policy; AWS (working knowledge)</p>
-    <p><b>Security tooling:</b> Wiz (CSPM), Torq, Tines (SOAR), AquaSec, Splunk, ServiceNow, ZenGRC</p>
+    <p><b>Security tooling:</b> Wiz (CSPM), Torq, Tines (SOAR), AquaSec, Splunk, ServiceNow, ZenGRC, Wazuh, CrowdSec, OWASP CRS, Trivy</p>
     <p><b>Systems and code:</b> Linux, Docker, ZFS, nftables, systemd, Active Directory, Python, Kotlin, Bash, SQL</p>
     <p><b>Practice areas:</b> cloud governance, container security, vulnerability management, audit readiness, NIST CSF</p>
   </div>

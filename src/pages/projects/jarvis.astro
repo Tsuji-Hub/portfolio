@@ -2,54 +2,50 @@
 import ProjectLayout from '../../layouts/ProjectLayout.astro';
 import SectionHead from '../../components/SectionHead.astro';
 import Panel from '../../components/Panel.astro';
+
+// Facts behind this page (10-31): Jarvis tool list, permission checks, prompt
+// lines and env read from the running container; latency from its own TIMING
+// log lines and a 15-call benchmark per model. See claude/portfolio-step4.md.
 ---
 
 <ProjectLayout
-  title="Friday & Jarvis"
+  title="Atlas & Jarvis"
   path="/projects/jarvis/"
-  description="Two self-hosted voice assistants, architecturally isolated. Friday runs the infrastructure; Jarvis is the one strangers may talk to. Sub-3-second measured latency, no cloud mic."
-  lede="Two always-on, self-hosted voice assistants that share a voice and a pair of ears and nothing else. Friday sits at my desk and runs my infrastructure. Jarvis lives in a Discord voice channel where my friends can talk to it, which is the entire reason the interesting problem exists."
-  tags={['LLM tooling', 'Home Assistant', 'Whisper', 'Kokoro', 'Threat modeling', 'Python']}
+  description="Two self-hosted voices with a hard trust boundary: Atlas, the private one that reports on my homelab, and Jarvis, a public Discord voice bot that holds no key to my house or servers."
+  lede="Two self-hosted voices on the same GPU. Atlas is private: it watches my homelab and tells me what needs me. Jarvis is public: a voice bot my friends talk to in Discord, built so that a full compromise yields no key to my house or my servers, only the same media requests any friend can already make."
+  tags={['LLM tool calling', 'Threat modeling', 'Whisper', 'Kokoro', 'Home Assistant', 'Python']}
   kicker="Self-hosted · voice"
-  headline={'Two brains: Friday & Jarvis'}
-  accent={'Friday & Jarvis'}
+  headline="One trusted, one public"
+  accent="one public"
   slug="jarvis"
   stats={[
-    { n: '2', l: 'brains, one voice' },
-    { n: '3', l: 'tools the public one has' },
-    { n: '0', l: 'shared context' },
-    { n: '$0', l: 'new hardware' },
+    { n: '18', l: 'tools the public bot has' },
+    { n: '0', l: 'Home Assistant or Seerr keys it holds' },
+    { n: '0.66 s', l: 'median model reply in testing, was 1.6 s' },
+    { n: '60 s', l: 'between Atlas health checks' },
   ]}
   status="Running"
-  demonstrates="LLM tool integration, a measured speech pipeline, threat modeling for AI agents, prompt-injection-resistant design, and cost engineering (it runs on hardware I already owned)."
+  demonstrates="Threat modeling for an LLM agent that strangers can talk to, authorization enforced in code rather than in the prompt, least-privilege gateways for third-party APIs, privacy by design for always-on audio, and latency work driven by per-stage measurement."
 >
-  <SectionHead label="Motivation" title="Why it exists" />
+  <SectionHead label="Architecture" title="Two assistants, one boundary" />
   <p>
-    I wanted a voice assistant that answers to me, not to a vendor's cloud, and
-    that can actually do things: check the homelab, answer questions, control
-    the house. Wiring the speech pipeline was the easy half. The hard half was
-    letting friends talk to one too, without handing strangers a microphone into
-    my infrastructure.
-  </p>
-
-  <SectionHead label="Architecture" title="Two assistants" />
-  <p>
-    Friday knows my infrastructure and can act on it. Jarvis, the Discord bot,
-    has zero infrastructure knowledge, zero personal context, and exactly three
-    whitelisted capabilities. They are isolated at the architecture level, not
-    by politeness.
+    <strong>In one line:</strong> the public bot is safe because it holds
+    nothing worth stealing, not because it was told to keep secrets.
   </p>
   <p>
-    Try to break it. Send the same message to both, then flip the architecture
-    to v1, the version I built first and got wrong, and send it again.
+    Jarvis answers anyone in my friends' Discord voice channel. It has 18
+    tools: web search, music, media search and requests, voice-channel
+    moderation, timers, polls, dice and remembered preferences. None of them
+    touch my house or my homelab. Try to break it below, then flip to v1, the
+    version I built first and got wrong.
   </p>
 
   <Panel label="jarvis · the public bot" status="try to break it">
     <div class="jarvis-demo" data-jarvis>
       <div class="map-controls">
         <span class="ctl-label">architecture</span>
-        <button class="map-btn" type="button" data-arch="v2" aria-pressed="true">v2 — shipped</button>
-        <button class="map-btn" type="button" data-arch="v1" aria-pressed="false">v1 — the mistake</button>
+        <button class="map-btn" type="button" data-arch="v2" aria-pressed="true">v2: shipped</button>
+        <button class="map-btn" type="button" data-arch="v1" aria-pressed="false">v1: the mistake</button>
       </div>
 
       <div class="map-controls">
@@ -58,14 +54,15 @@ import Panel from '../../components/Panel.astro';
         <button class="map-btn" type="button" data-prompt="who" aria-pressed="false">who owns you?</button>
         <button class="map-btn" type="button" data-prompt="shopping" aria-pressed="false">shopping list?</button>
         <button class="map-btn" type="button" data-prompt="infra" aria-pressed="false">what's on the hypervisor?</button>
+        <button class="map-btn" type="button" data-prompt="kick" aria-pressed="false">kick Jake</button>
         <button class="map-btn" type="button" data-prompt="media" aria-pressed="false">add Dune</button>
       </div>
 
       <div class="bots">
         <div class="bot is-private">
-          <h3>Friday</h3>
-          <p class="bot-where">desk satellite · Home Assistant</p>
-          <p class="bot-who">Only I talk to it. It may know everything.</p>
+          <h3>Desk agent</h3>
+          <p class="bot-where">private · Home Assistant</p>
+          <p class="bot-who">Only I talk to it. It may know everything. v1 reused it.</p>
           <p class="possess-label">possesses</p>
           <ul class="possess">
             <li class="has">Home Assistant</li>
@@ -94,184 +91,114 @@ import Panel from '../../components/Panel.astro';
 
   <SectionHead label="Threat model" title="Why it's built this way" />
   <p>
-    The isolation is structural, not textual. A system prompt that says "don't
-    reveal X" is a request, and it fails the first time someone is clever,
-    insistent, or claims to be an admin. Prompt-level defenses are a speed bump
-    for an adversary and an illusion for the operator.
-  </p>
-  <p>
-    v1 called Home Assistant's conversation API and reused the desk agent. It
-    looked elegant: same brain, same tools, no duplication. It failed three
-    separate ways, each sufficient on its own.
+    A system prompt that says "don't reveal X" is a request. It fails the first
+    time someone is clever, insistent, or claims to be an admin. v1 reused my
+    private Home Assistant agent for the public bot and failed three ways, each
+    enough on its own:
   </p>
   <ul>
     <li>
-      <strong>The system prompt was the leak.</strong> The desk agent's prompt
-      opened by naming me and my occupation. Anyone asking it to repeat its
-      instructions got all of it.
+      <strong>The system prompt was the leak.</strong> The private agent's
+      prompt named me and my job. Asking it to repeat its instructions got all
+      of it.
     </li>
     <li>
-      <strong>Home Assistant exposes entities to the conversation API globally,
-      not per agent.</strong> This is the one that defeats the obvious fix.
-      Standing up "a second agent with a safer prompt" would have contained
-      nothing: every agent sees the same exposed-entity set. My friends would
-      have been able to read a household to-do list and drive a media player.
-      Not theoretical. That is what the wiring did.
+      <strong>Home Assistant exposes entities to every conversation agent, not
+      per agent.</strong> A second agent with a safer prompt would have
+      contained nothing: my friends could have read a household to-do list and
+      driven a media player.
     </li>
     <li>
-      <strong>It needed a 10-year, full-privilege token</strong> living in a
-      container that untrusted speech drives. Home Assistant tokens have no
-      scoping; they inherit the minting user's full rights. A safety guard
-      blocked me from creating it, and that block was correct. It should have
-      been read as a design smell, not an obstacle to route around.
+      <strong>It needed a full-privilege, 10-year token</strong> in a container
+      that untrusted speech drives. Home Assistant tokens cannot be scoped.
     </li>
   </ul>
   <p>
-    v2 drops Home Assistant entirely: Discord voice, to Whisper, to Gemini
-    called directly, to Kokoro, back to Discord. No HA token, no code path to
-    it. Even if that container were compromised, it holds no credential worth
-    taking. Its whole capability is three functions (web search, media search,
-    media request) and there is no fourth. Secrets live in the process
-    environment where Python uses them and the model never sees them, and tool
-    output is whitelisted field by field, so raw API bodies never reach the
-    model either.
+    v2 drops Home Assistant entirely: Discord voice, an on-device wake word,
+    Whisper, Gemini, Kokoro, back to Discord. Three rules hold it together:
   </p>
-  <p>
-    It is told, truthfully, that it has no access to any computer or private
-    information and cannot get any. So when it declines, it isn't role-playing a
-    refusal. It's stating a fact about its situation.
-  </p>
-
-  <div class="callout">
-    <h2>A feature I turned down</h2>
-    <p>
-      "Summarise what I missed" is the most requested thing a voice bot can do,
-      and it needs a running transcript of everything said in the channel, which
-      is the exact thing an on-device wake word exists to avoid. Rejected. The
-      wake word never leaves the container, and nothing is retained.
-    </p>
-  </div>
-
-  <SectionHead label="Latency" title="Making it fast" />
-  <p>
-    The only interval a human actually feels is from the moment you stop talking
-    to the first sound coming back. I instrumented every stage on the live bot
-    rather than guessing, and the profile was not what I expected.
-  </p>
-
-  <p>
-    Build a pipeline and listen to it. The playback is <strong>real time</strong>:
-    3.4 seconds of waiting is 3.4 seconds of waiting. That gap is the whole
-    problem, and no bar chart has ever conveyed it.
-  </p>
-
-  <Panel label="jarvis · speech pipeline" status="real-time playback">
-    <div class="lab" data-lab>
-      <div class="map-controls">
-        <span class="ctl-label">turn end</span>
-        <button class="map-btn" type="button" data-opt="silence" data-val="900" aria-pressed="true">fixed 900ms</button>
-        <button class="map-btn" type="button" data-opt="silence" data-val="600" aria-pressed="false">tuned 600ms</button>
-        <button class="map-btn" type="button" data-opt="silence" data-val="150" aria-pressed="false">semantic turn ≈150ms</button>
-      </div>
-      <div class="map-controls">
-        <span class="ctl-label">speech-to-text</span>
-        <button class="map-btn" type="button" data-opt="stt" data-val="1194" aria-pressed="true">Whisper · beam 5</button>
-        <button class="map-btn" type="button" data-opt="stt" data-val="800" aria-pressed="false">Whisper · greedy</button>
-        <button class="map-btn" type="button" data-opt="stt" data-val="225" aria-pressed="false">Parakeet TDT ≈225ms</button>
-      </div>
-      <div class="map-controls">
-        <span class="ctl-label">model</span>
-        <button class="map-btn" type="button" data-opt="model" data-val="970" aria-pressed="true">wait for the full reply</button>
-        <button class="map-btn" type="button" data-opt="model" data-val="500" aria-pressed="false">stream first sentence ≈500ms</button>
-        <span class="sep"></span>
-        <button class="map-btn" type="button" data-lab-run>▶ "hey Jarvis, play Funkytown"</button>
-      </div>
-
-      <svg viewBox="0 0 900 100" data-lab-svg role="img" aria-label="Speech pipeline latency, played back in real time">
-        <text class="lab-axis" x="24" y="22">you stop talking</text>
-        <text class="lab-axis" x="876" y="22" text-anchor="end">first sound back</text>
-        <g data-lab-track></g>
-        <g id="lab-head">
-          <line x1="0" y1="28" x2="0" y2="86"></line>
-          <circle cx="0" cy="28" r="4"></circle>
-        </g>
-      </svg>
-
-      <div class="lab-readout">
-        <span class="lab-clock" data-lab-clock>0 ms</span>
-        <span class="lab-total" data-lab-total></span>
-        <span class="lab-delta" data-lab-delta></span>
-      </div>
-      <div class="lab-compare" data-lab-compare hidden>
-        <div class="lab-cmp-row">
-          <span class="lab-cmp-name">as measured</span>
-          <span class="lab-cmp-bar"><i data-cmp-base-bar></i></span>
-          <span class="lab-cmp-t" data-cmp-base-t></span>
-        </div>
-        <div class="lab-cmp-row">
-          <span class="lab-cmp-name" data-cmp-now-name>this pipeline</span>
-          <span class="lab-cmp-bar"><i class="now" data-cmp-now-bar></i></span>
-          <span class="lab-cmp-t" data-cmp-now-t></span>
-        </div>
-      </div>
-
-      <p class="lab-note" data-lab-note></p>
-      <p class="sample-note">
-        Measured on the live bot with timing instrumentation, from the moment
-        speech stops to first audio out. The Parakeet and streaming figures are
-        estimates from the roadmap, not measurements; everything else is real.
-        Kokoro is fixed here because it is already sentence-streaming and is not
-        the bottleneck.
-      </p>
-    </div>
-  </Panel>
-
-  <p>
-    Speech-to-text and the silence wait are 60% of the delay between them. Text
-    to speech, the stage that <em>sounds</em> like it should be the slow one, is
-    the fastest thing in the pipeline. Spending a night optimising it would have
-    bought nothing, which is the entire argument for measuring before you
-    optimise.
-  </p>
-  <p>
-    So I cut the silence wait to 600ms and dropped Whisper's beam search to
-    greedy: beam search is worth it on a forty-minute podcast, not on "play
-    Funkytown", where it pays double the decode time to fix a word you were
-    never going to get wrong. I also lowered the wake threshold after the logs
-    showed real wake attempts scoring just under it and being rejected, which is
-    the most infuriating failure this thing has. That took it to about 2.6
-    seconds. The remaining path to roughly 1.2 seconds is a faster ASR model,
-    streaming the model's reply instead of waiting for all of it, and semantic
-    turn detection that predicts you've finished speaking instead of waiting out
-    a fixed silence.
-  </p>
-
-  <SectionHead label="Scope" title="What I built" />
   <ul>
-    <li>In-browser wake word, on-device. No always-on cloud microphone.</li>
-    <li>Whisper speech-to-text on a CUDA GPU, shared with media transcoding.</li>
     <li>
-      Friday: an LLM control brain with tool access to my infrastructure APIs,
-      plus live host sensors (CPU, memory, uptime, storage pool health) wired in
-      from monitoring, so it reads real numbers instead of guessing.
-    </li>
-    <li>Kokoro text-to-speech, streaming from the first sentence.</li>
-    <li>
-      Jarvis: a Discord voice interface built on per-user audio streams, so it
-      hears individual people in a call.
+      <strong>Authorization lives in code.</strong> Moving, muting or
+      disconnecting someone checks the asker's own Discord permission before any
+      API call. The model can be talked into trying; it cannot be talked past a
+      check it does not run.
     </li>
     <li>
-      Requests attributed to whoever actually spoke, rather than every request
-      in the channel landing under my name.
+      <strong>Least privilege for every API.</strong> Since 10-31 the bot holds
+      no Seerr key. A small gateway adds the key and allows exactly two calls,
+      search and request; everything else returns 403. Tested: search 200,
+      settings 403, user list 403, listing requests 403.
     </li>
+    <li>
+      <strong>The model never sees secrets or raw responses.</strong> Keys stay
+      in the process environment, and tool output is whitelisted field by
+      field.
+    </li>
+  </ul>
+
+  <SectionHead label="Privacy" title="What it hears, and what it keeps" />
+  <p>
+    <strong>In one line:</strong> nothing is transcribed until the wake word
+    fires on the bot's own hardware, and no audio is ever written to disk.
+  </p>
+  <ul>
+    <li>The wake word runs locally on each person's audio. Without it, audio is dropped.</li>
+    <li>After a reply it keeps listening to that one person for 8 seconds, up to 4 follow-ups, so they can answer without the wake word.</li>
+    <li>It holds the last 6 exchanges in memory to follow a conversation; a restart forgets them.</li>
+    <li>On disk it keeps preferences people explicitly ask it to remember, when each person last spoke (a time, never the words), and a debug log of commands and replies capped at 30 MB that rotates out.</li>
+  </ul>
+  <p>
+    On 10-31 I turned off the one feature that broke this rule: it transcribed
+    the last 15 seconds of anyone who left the channel, without the wake word.
+    The stored sign-offs were cleared and the setting is now zero.
+  </p>
+
+  <SectionHead label="Latency" title="Measure, then fix the slow stage" />
+  <p>
+    <strong>In one line:</strong> the language model was the slow stage, so I
+    benchmarked models instead of tuning anything else.
+  </p>
+  <div class="map-table-wrap">
+    <table class="ev-table">
+      <caption>Live stage times from the bot's own logs, 18 real turns, 10-24 to 10-31 (median, with the 10th to 90th percentile).</caption>
+      <thead><tr><th scope="col">Stage</th><th scope="col">Median</th><th scope="col">Range</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Speech to text (Whisper, GPU)</th><td>0.91 s</td><td>0.83-1.05 s</td></tr>
+        <tr><th scope="row">Language model</th><td>2.56 s</td><td>0.77-4.45 s</td></tr>
+        <tr><th scope="row">Text to speech (Kokoro, GPU)</th><td>0.30 s</td><td>0.13-0.49 s</td></tr>
+        <tr><th scope="row">You stop talking to first sound</th><td>4.1 s</td><td>1.8-5.8 s</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Text to speech, the stage that sounds slow, is the fastest one. So I ran
+    the same five requests through each candidate model three times, with the
+    bot's real prompt and tool list. The model it used answered in 1.6 s at the
+    median, 6.9 s at the 90th percentile, and one call hung for 45 s. Its
+    successor answered in 0.66 s at the median and 0.79 s at the 90th
+    percentile, with no errors. The bot switched on 10-31 and keeps the old
+    model only as a hedge for slow answers.
+  </p>
+
+  <SectionHead label="Atlas" title="The private one" />
+  <p>
+    <strong>In one line:</strong> Atlas tells me what needs me, on whichever
+    device I am actually using.
+  </p>
+  <ul>
+    <li>A watcher on the hypervisor checks health, security and self-heal results every 60 seconds; Home Assistant decides what is worth saying.</li>
+    <li>One speaker at a time: my PC when I am at it (unlocked, input in the last 5 minutes, no camera or microphone involved), otherwise my phone.</li>
+    <li>Quiet from 01:00 to 10:30 unless it is urgent. Low-value lines are visual only.</li>
+    <li>Down alerts carry a signed Restart button that hands the fix to self-heal.</li>
+    <li>On the phone it speaks through my own Android app, which checks Do Not Disturb live: the Home Assistant app's sensor was minutes stale and the system killed it mid-sentence.</li>
   </ul>
 
   <p class="sample-note">
-    Responses in the demo are scripted illustrations of each architecture's real
-    capabilities, not live model output. The capability boundaries and the
-    latency figures are the actual ones.
+    Replies in the demo are scripted illustrations of each architecture's real
+    capabilities, not live model output. The capability boundaries, the
+    permission check and the numbers on this page are real.
   </p>
 
   <script is:inline src="/js/jarvis-demo.js" defer></script>
-  <script is:inline src="/js/jarvis-lab.js" defer></script>
 </ProjectLayout>

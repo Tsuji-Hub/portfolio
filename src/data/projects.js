@@ -13,9 +13,9 @@ export const projects = [
   },
   {
     slug: 'jarvis',
-    title: 'Friday & Jarvis',
+    title: 'Atlas & Jarvis',
     blurb:
-      'Two self-hosted assistants, isolated by design: a private one wired into my infrastructure, and Jarvis, the Discord bot my friends talk to, which holds no Home Assistant credentials.',
+      'Two self-hosted voices with a hard trust boundary. Atlas tells me what my homelab needs; Jarvis, the Discord bot my friends talk to, holds no Home Assistant or Seerr credential.',
     tags: ['LLM tooling', 'Home Assistant', 'Threat modeling'],
     demo: 'try to break it',
   },

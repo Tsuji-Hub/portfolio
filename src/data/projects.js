@@ -62,7 +62,7 @@ export const projects = [
     // the others and needs more than a one-line blurb. These are the case
     // studies that page actually contains, not new claims.
     highlights: [
-      'Unapproved container images stopped by a formal approval process; a 46-control RACI',
+      'A 46-control container security RACI, agreed with three teams',
       '1,100+ GCP projects validated and mapped to an owning application',
       'Wiz findings open ServiceNow tickets that already name the owner',
       'Organization Policy recommended to block risky configs at creation',

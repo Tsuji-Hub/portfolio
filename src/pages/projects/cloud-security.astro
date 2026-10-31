@@ -26,23 +26,22 @@ import '../../styles/cloud.css';
   ]}
   demonstrates="GCP governance at scale (CMDB ownership for 1,100+ projects), CSPM operations (Wiz findings routed into ServiceNow with owner and context), SOAR evaluation (Torq, Tines), preventive controls (GCP Organization Policy), container security operating models (RACI), GRC and audit readiness, and reporting automation."
 >
-  <SectionHead label="Case study 01" title="Container supply chain" />
+  <SectionHead label="Case study 01" title="Container security" />
   <p>
-    <strong>In one line:</strong> unapproved Docker images were moving toward
-    production with no gate; now images go through a formal approval process
-    before they can ship.
+    <strong>In one line:</strong> I defined who owns what for container
+    security: a RACI across 46 controls, agreed with Cloud Engineering,
+    Networking and AppSec.
   </p>
   <ul class="cs-facts">
     <li>
-      <strong>The gap:</strong> I caught unapproved images on their way to
-      production and coordinated vendors and internal teams to stand up the
-      approval process, closing it at the source instead of chasing each image
-      afterward.
+      <strong>The operating model:</strong> every container control has a team
+      that is responsible, one that is accountable, and the teams to consult or
+      inform, so a finding never stalls on "whose is this?".
     </li>
     <li>
-      <strong>The operating model:</strong> I defined who owns what for
-      container security: a RACI across 46 controls, agreed with Cloud
-      Engineering, Networking and AppSec.
+      <strong>Remediation follow-through:</strong> when unapproved pre-hardened
+      images were found heading toward production, I assisted with remediation
+      management: I handled the ticket and tracked it until the fix was done.
     </li>
   </ul>
 

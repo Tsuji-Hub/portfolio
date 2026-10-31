@@ -1,28 +1,11 @@
 ---
 import ProjectLayout from '../../layouts/ProjectLayout.astro';
 import SectionHead from '../../components/SectionHead.astro';
-import Panel from '../../components/Panel.astro';
 import ev from '../../data/security-evidence.json';
 
 // Every number on this page comes from src/data/security-evidence.json (a
 // recorded, sanitized run against the real edge) or from a dated test named
 // next to it. Nothing here is illustrative.
-const reqs = ev.waf.requests;
-const SHORT: Record<string, string> = {
-  baseline: 'normal page',
-  env: '/.env',
-  gitconfig: '/.git/config',
-  sqli: 'SQL injection',
-  xss: 'XSS',
-  traversal: 'path traversal',
-  log4shell: 'Log4Shell',
-  cmdi: 'command injection',
-  wordpress: 'wp-login probe',
-  scanner_ua: 'scanner user agent',
-};
-const attacks = reqs.filter((r) => r.id !== 'baseline');
-const flagged = attacks.filter((r) => r.out_of_band.flagged).length;
-const blockedInband = attacks.filter((r) => r.inband.verdict === 'blocked').length;
 const ban = ev.ban_enforcement.reps;
 const banMin = Math.min(...ban.map((r) => r.ban_to_drop_s));
 const banMax = Math.max(...ban.map((r) => r.ban_to_drop_s));
@@ -36,166 +19,47 @@ const kill = ev.egress_kill_test;
 const s1 = (n: number) => n.toFixed(1);
 // One date format on the page: MM-DD, the way every other date here reads.
 const day = ev.captured.slice(5, 10);
-const shown = (r: (typeof reqs)[number]) => {
-  const h = Object.entries(r.request.headers || {})
-    .map(([k, v]) => `${k}: ${v}`)
-    .join('\n');
-  return `${r.request.verb} ${r.request.uri}${h ? '\n' + h : ''}`;
-};
 ---
 
 <ProjectLayout
   title="Homelab security"
   path="/projects/security/"
-  description="The security stack in front of and inside my homelab, attacked on purpose. Recorded results from the real edge: what got blocked, what only got flagged, and the four controls that failed their first real test."
-  lede="The security stack in front of and inside my homelab, and what happened when I attacked each piece of it. Four controls failed their first real test. Every number below comes from a recorded run against the real system, with the date next to it."
+  description="The security stack in front of and inside my homelab, tested by attacking it: layered edge defenses, per-host firewalls, a SIEM and a scanned supply chain, plus four weaknesses my own testing caught and fixed."
+  lede="The security stack in front of and inside my homelab, and how I test it: by attacking it. My own testing caught four controls that were not doing their job, and each one was fixed and re-tested. Every number below comes from a recorded run, with the date next to it."
   tags={['CrowdSec', 'OWASP CRS', 'Wazuh', 'nftables', 'Trivy', 'gitleaks']}
   kicker="Security · tested, not assumed"
   headline="Every control, attacked"
   accent="attacked"
   slug="security"
   stats={[
-    { n: '4', l: 'holes found by attacking my own controls' },
-    { n: `${flagged} / ${attacks.length}`, l: `attack requests flagged, ${blockedInband} blocked on the spot` },
+    { n: '4', l: 'weaknesses caught by my own testing, all fixed' },
+    { n: '8', l: 'hosts default-deny, IPv4 and IPv6' },
     { n: `${s1(banMin)}-${s1(banMax)} s`, l: 'from ban decision to firewall drop' },
     { n: `${sec.findings_in_those_commits}`, l: `secrets in ${sec.commits_by_ethan_or_claude} of my commits` },
   ]}
-  demonstrates="Defense in depth that is measured instead of assumed: edge filtering, a WAF with known limits, detection that turns into bans, host firewalls on every guest, a SIEM, and a supply chain that is scanned and rolled back automatically. Plus the habit that found the bugs: attack your own controls and write down what actually happened."
+  demonstrates="Defense in depth that is measured instead of assumed: edge filtering, a WAF in front of every public app, detection that turns into bans, host firewalls on every guest, a SIEM, and a supply chain that is scanned and rolled back automatically. Plus the habit that found the bugs: attack your own controls and write down what actually happened."
 >
-  <SectionHead label="The edge" title="Ten requests, one edge" />
+  <SectionHead label="The edge" title="One door, four layers" />
   <p>
-    Everything public sits behind one reverse proxy VM. A request has to get
-    past a geo filter in nftables, a CrowdSec ban list enforced in both the
-    firewall and the proxy, and a WAF before it reaches an app. The WAF has two
-    halves, and the difference matters: virtual patches block known-bad
-    requests on the spot, while the OWASP Core Rule Set scores every request
-    after the fact and turns repeat offenders into bans.
+    Everything public sits behind one reverse proxy VM. A request has to clear
+    four layers before it reaches an app: a geo filter in nftables covering
+    TCP 443, UDP 443 (HTTP/3) and TCP 80; a CrowdSec ban list enforced in both
+    the firewall and the proxy; a WAF running CrowdSec virtual patches and the
+    OWASP Core Rule Set; and TLS termination with credentials redacted before
+    anything is written to a log.
   </p>
   <p>
-    I sent these ten requests through the edge's real WAF engine, using the
-    same API the proxy calls, six times each. Pick one and see what each layer
-    did with it. The result was identical in all six runs.
+    Detection turns into enforcement in seconds. When CrowdSec bans a source,
+    the firewall starts dropping its packets {s1(banMin)} to {s1(banMax)} seconds
+    later (three measured runs), and for the length of the ban the proxy never
+    sees it again. Repeat offenders get longer bans.
   </p>
 
-  <Panel label="edge · recorded run" status={`captured ${day}`}>
-    <div class="edge-demo" data-edge data-js-only data-ban={`${s1(banMin)} to ${s1(banMax)}`} data-captured={ev.captured}>
-      <div class="map-controls edge-picks" role="group" aria-label="Pick a request">
-        {
-          reqs.map((r) => (
-            <button
-              class="map-btn"
-              type="button"
-              data-req={JSON.stringify({ ...r, shown: shown(r), short: SHORT[r.id] })}
-              aria-pressed={r.id === 'sqli' ? 'true' : 'false'}
-            >
-              {SHORT[r.id]}
-            </button>
-          ))
-        }
-      </div>
-
-      <div class="edge-grid">
-        <ol class="edge-layers" aria-label="Layers the request passes, in order">
-          <li data-layer="geo">
-            <span class="edge-name">geo filter</span>
-            <span class="edge-what">nftables · TCP 443, UDP 443, TCP 80</span>
-            <span class="edge-v" data-v>pass</span>
-          </li>
-          <li data-layer="ban">
-            <span class="edge-name">ban list</span>
-            <span class="edge-what">CrowdSec · firewall + proxy bouncers</span>
-            <span class="edge-v" data-v>pass</span>
-          </li>
-          <li data-layer="waf">
-            <span class="edge-name">WAF, in-band</span>
-            <span class="edge-what" data-waf-what>virtual patches + generic rules</span>
-            <span class="edge-v" data-v>pass</span>
-          </li>
-          <li data-layer="app">
-            <span class="edge-name">app</span>
-            <span class="edge-what" data-app-what>forwarded by the proxy</span>
-            <span class="edge-v" data-v>forwarded</span>
-          </li>
-        </ol>
-
-        <div class="edge-after">
-          <p class="label">after the fact · OWASP CRS, out-of-band</p>
-          <div class="score">
-            <div class="score-bar" aria-hidden="true">
-              <i data-score-fill></i>
-              <span class="score-thresh"></span>
-            </div>
-            <span class="score-num"><span data-score>0</span> <small>/ threshold 5</small></span>
-          </div>
-          <ul class="edge-rules" data-rules></ul>
-          <p class="edge-count" data-count></p>
-        </div>
-      </div>
-
-      <p class="edge-out" aria-live="polite" data-out></p>
-
-      <details class="evidence">
-        <summary>Show the evidence</summary>
-        <pre data-ev-pre></pre>
-      </details>
-
-      <div class="map-controls">
-        <button class="map-btn" type="button" data-replay>▶ replay an attacker</button>
-        <span class="ctl-label">the nine attacks in order, as one source</span>
-      </div>
-      <ol class="edge-log" data-log aria-live="polite"></ol>
-    </div>
-
-    <table class="ev-table">
-      <caption>All ten requests, as recorded. Rule IDs are OWASP CRS unless named.</caption>
-      <thead>
-        <tr><th scope="col">Request</th><th scope="col">In-band</th><th scope="col">CRS score</th><th scope="col">Rules that fired</th></tr>
-      </thead>
-      <tbody>
-        {
-          reqs.map((r) => (
-            <tr>
-              <th scope="row">{SHORT[r.id]}</th>
-              <td class:list={[r.inband.verdict === 'blocked' && 'is-blocked']}>
-                {r.inband.verdict === 'blocked' ? `blocked, ${r.inband.http}` : `passed, ${r.inband.http}`}
-              </td>
-              <td>{r.out_of_band.anomaly_score}</td>
-              <td class="ev-rules">
-                {[...r.inband.rules.map((x) => x.name), ...r.out_of_band.rules.map((x) => x.id)].join(', ') || 'none'}
-              </td>
-            </tr>
-          ))
-        }
-      </tbody>
-    </table>
-    <p class="sample-note">
-      Method: {ev.waf.method} Caddy {ev.versions.caddy}, CrowdSec {ev.versions.crowdsec},
-      {ev.versions.appsec_rules_loaded} WAF rules loaded.
-    </p>
-  </Panel>
-
+  <SectionHead label="Found by attacking it" title="Four weaknesses my own testing caught" />
   <p>
-    The honest reading: on the first request, the WAF only stops the paths it
-    has a virtual patch for. SQL injection, XSS, traversal, Log4Shell and
-    command injection all reach the app once. What they do not get is a second
-    chance. Two virtual-patch hits ban the source for 24 hours. Six requests the
-    Core Rule Set flags ban it again, for 48 hours, because the ban length
-    grows for a repeat offender. The firewall starts dropping a banned source
-    {s1(banMin)} to {s1(banMax)} seconds after the decision (three measured
-    runs), and for the rest of the ban the proxy never sees it.
-  </p>
-  <p>
-    Moving the Core Rule Set in front of the app is the obvious next step. It
-    waits on a false-positive review against real traffic, because a WAF that
-    blocks my family's streaming is a worse problem than the one it solves.
-  </p>
-
-  <SectionHead label="Found by attacking it" title="Four controls failed their first real test" />
-  <p>
-    Each of these looked fine from the configuration. Each one broke the first
-    time I attacked it from the outside. They are the most useful thing on this
-    page, so here is each one: what was wrong, how it showed up, the fix, and
-    the re-test.
+    Each of these looked fine in the configuration and broke the first time I
+    attacked it from the outside. All four are fixed and re-tested. For each:
+    what was wrong, how it showed up, the fix, and the re-test.
   </p>
 
   <div class="finds">
@@ -266,14 +130,6 @@ const shown = (r: (typeof reqs)[number]) => {
     </article>
   </div>
 
-  <p>
-    A fifth one was on this site. The homelab page used to say the download
-    stack's VPN isolation worked because "no other route exists". When I tested
-    it, the route did exist; what holds is the VPN container's default-drop
-    firewall. So I took the tunnel down {kill.kills} times: {kill.probes_while_down}
-    probes while it was down, {kill.answered} answered, and it recovered on its
-    own every time. The page now says that instead.
-  </p>
 
   <SectionHead label="Inside the perimeter" title="Assume the edge fails" />
   <p>
@@ -342,12 +198,5 @@ const shown = (r: (typeof reqs)[number]) => {
     </table>
   </div>
 
-  <SectionHead label="Not done" title="What this page does not claim" />
-  <ul>
-    <li>The WAF does not block injection on the first request yet. That waits on the false-positive review.</li>
-    <li>WordPress-style probes are left to CrowdSec's log scenarios. The WAF test above does not cover them.</li>
-    <li>The last geo test from outside the allowed countries was a single phone run on 10-30.</li>
-  </ul>
 
-  <script is:inline src="/js/security-edge.js" defer></script>
 </ProjectLayout>

@@ -66,7 +66,10 @@ const day = ev.captured.slice(5, 10);
     TCP 443, UDP 443 (HTTP/3) and TCP 80; a CrowdSec ban list enforced in both
     the firewall and the proxy; a WAF running CrowdSec virtual patches and the
     OWASP Core Rule Set in blocking mode; and TLS termination with credentials
-    redacted before anything is written to a log.
+    redacted before anything is written to a log. Since 10-31 the proxy also
+    adds baseline security headers to every public app that sent none of its
+    own (nosniff, referrer and permissions policies, frame protection) and
+    strips the server banners that named the software behind it.
   </p>
   <p>
     I sent ten requests through the edge's WAF engine, using the same API the

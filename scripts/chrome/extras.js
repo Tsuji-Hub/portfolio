@@ -82,7 +82,10 @@
     var res = performance.getEntriesByType('resource');
     var origin = location.origin, third = 0, bytes = nav ? nav.transferSize || 0 : 0;
     res.forEach(function (r) {
-      try { if (new URL(r.name).origin !== origin) third++; } catch (e) { third++; }
+      // A request the CSP refused still leaves an entry, with no time, bytes or
+      // status: that one never left the browser, so it is not counted.
+      var went = r.duration > 0 || r.transferSize > 0 || r.responseStatus > 0;
+      try { if (went && new URL(r.name).origin !== origin) third++; } catch (e) { if (went) third++; }
       bytes += r.transferSize || 0;
     });
     var q = function (s) { return root.querySelector(s); };

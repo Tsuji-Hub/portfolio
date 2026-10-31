@@ -3493,3 +3493,5 @@ canvas.field {
 }
 
 .prose .about-tl li, .prose .work-list li, .prose .wrong-list li, .prose .about-shelf li { margin-bottom: 0; }
+
+.about-shelf li.is-fav { width: 3rem; height: 14.6rem; border-top: 3px solid var(--accent); background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.18), var(--bg-raised) 45%, rgba(var(--accent-rgb), 0.12)); }

@@ -2,7 +2,9 @@ name: Deploy to Cloudflare Pages
 
 on:
   push:
-    branches: [main]
+    # main deploys production; any other branch gets a Cloudflare preview
+    # (<branch>.<project>.pages.dev) after the same build and gates.
+    branches: ['**']
   workflow_dispatch:
 
 jobs:
@@ -33,13 +35,23 @@ jobs:
           # Private half of the sanitize gate's token list (kept out of the repo).
           SANITIZE_FORBIDDEN: ${{ secrets.SANITIZE_FORBIDDEN }}
 
-      - name: Deploy
+      # Two Pages projects serve the site: ethanjustice.pages.dev (canonical)
+      # and portfolio-vmy.pages.dev (older alias). Deploy the same build to both.
+      - name: Deploy (ethanjustice)
         if: env.HAS_CF_TOKEN == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name portfolio --branch main
+          command: pages deploy dist --project-name ethanjustice --branch ${{ github.ref_name }} --commit-hash ${{ github.sha }}
+
+      - name: Deploy (portfolio alias)
+        if: env.HAS_CF_TOKEN == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name portfolio --branch ${{ github.ref_name }} --commit-hash ${{ github.sha }}
 
       - name: Deploy skipped (no API token)
         if: env.HAS_CF_TOKEN != 'true'

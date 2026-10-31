@@ -60,12 +60,12 @@ const timeline = [
 ];
 
 const shelf = [
-  'Return of the Blossoming Blade',
-  'Nano Machine',
-  'Revenge of the Baskerville Bloodhound',
-  'SSS-Class Revival Hunter',
-  "Nebula's Civilization",
-  'The Game That I Came From',
+  { t: 'Steelheart', by: 'Brandon Sanderson', fav: true },
+  { t: 'Return of the Blossoming Blade' },
+  { t: 'Nano Machine' },
+  { t: 'Revenge of the Baskerville Bloodhound' },
+  { t: 'SSS-Class Revival Hunter' },
+  { t: "Nebula's Civilization" },
 ];
 
 const positions = [
@@ -156,17 +156,17 @@ const credentials = [
 
     <div class="prose prose-wide">
       <p class="about-origin">
-        I got into security through competitions. In CyberForce you defend a
-        small network while a red team attacks it, and it taught me early that
-        the exploit is never the interesting part. What matters is whether the
-        system was built so the exploit had somewhere to go.
+        I've always been a curious thinker. Set a problem in front of me and I
+        chip away at it until I figure it out, or it won't leave my head. I was
+        the one fixing the TV and the internet, and I volunteered to record
+        events at my town's yearly festival. Competitions like CyberForce
+        pointed all of that at security.
       </p>
       <p class="about-origin">
         My superpower is X-ray vision, or maybe future sight: when something is
         brought up, I immediately start thinking about where it can go wrong and
         how we can maneuver around those problems. In security that habit has a
-        name, threat modeling. Away from the keyboard I dive, and I read a lot of manga, which is how my Android
-        reader fork started.
+        name, threat modeling.
       </p>
 
       <section class="now-block" aria-labelledby="now-h" data-card>
@@ -247,13 +247,14 @@ const credentials = [
 
       <SectionHead label="Beyond work" title="The rest of it" />
       <p>
-        PADI certified diver. I read a lot of manga and manhwa, mostly long
-        action series, which is why Makimono exists: an itch to fix the reader I
-        use every day. On the shelf right now:
+        PADI certified diver. My favorite book series is Brandon Sanderson's
+        Reckoners, starting with Steelheart. I also read a lot of manga and
+        manhwa, mostly long action series, which is why Makimono exists: an
+        itch to fix the reader I use every day. On the shelf right now:
       </p>
       <ul class="about-shelf" aria-label="Currently reading">
-        {shelf.map((s) => (
-          <li><span>{s}</span></li>
+        {shelf.map((b) => (
+          <li class:list={[b.fav && 'is-fav']} title={b.by ? `${b.t}, ${b.by}` : b.t}><span>{b.t}</span></li>
         ))}
       </ul>
 

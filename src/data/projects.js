@@ -38,7 +38,7 @@ export const projects = [
     // recorded result on /projects/security/, not a new claim.
     highlights: [
       'Every guest default-deny on IPv4 and IPv6, re-tested from outside the admin set',
-      'Ban decision to firewall drop in 7.0 to 10.1 s',
+      'OWASP CRS in blocking mode: 8 of 8 attack payloads stopped with 403',
       'Four weaknesses caught by my own testing, all fixed and re-tested',
       '0 secrets in 245 of my commits',
     ],

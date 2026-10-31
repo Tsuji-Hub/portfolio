@@ -1,11 +1,33 @@
 ---
 import ProjectLayout from '../../layouts/ProjectLayout.astro';
 import SectionHead from '../../components/SectionHead.astro';
+import Panel from '../../components/Panel.astro';
 import ev from '../../data/security-evidence.json';
 
 // Every number on this page comes from src/data/security-evidence.json (a
 // recorded, sanitized run against the real edge) or from a dated test named
 // next to it. Nothing here is illustrative.
+const reqs = ev.waf.requests;
+const SHORT: Record<string, string> = {
+  baseline: 'normal page',
+  env: '/.env',
+  gitconfig: '/.git/config',
+  sqli: 'SQL injection',
+  xss: 'XSS',
+  traversal: 'path traversal',
+  log4shell: 'Log4Shell',
+  cmdi: 'command injection',
+  wordpress: 'wp-login probe',
+  scanner_ua: 'scanner user agent',
+};
+const payloads = reqs.filter((r) => r.id !== 'baseline' && r.id !== 'wordpress');
+const blockedPayloads = payloads.filter((r) => r.inband.verdict === 'blocked').length;
+const shown = (r: (typeof reqs)[number]) => {
+  const h = Object.entries(r.request.headers || {})
+    .map(([k, v]) => `${k}: ${v}`)
+    .join('\n');
+  return `${r.request.verb} ${r.request.uri}${h ? '\n' + h : ''}`;
+};
 const ban = ev.ban_enforcement.reps;
 const banMin = Math.min(...ban.map((r) => r.ban_to_drop_s));
 const banMax = Math.max(...ban.map((r) => r.ban_to_drop_s));
@@ -33,26 +55,139 @@ const day = ev.captured.slice(5, 10);
   slug="security"
   stats={[
     { n: '4', l: 'weaknesses caught by my own testing, all fixed' },
-    { n: '8', l: 'hosts default-deny, IPv4 and IPv6' },
+    { n: `${blockedPayloads} / ${payloads.length}`, l: 'attack payloads blocked by the WAF, 403' },
     { n: `${s1(banMin)}-${s1(banMax)} s`, l: 'from ban decision to firewall drop' },
     { n: `${sec.findings_in_those_commits}`, l: `secrets in ${sec.commits_by_ethan_or_claude} of my commits` },
   ]}
-  demonstrates="Defense in depth that is measured instead of assumed: edge filtering, a WAF in front of every public app, detection that turns into bans, host firewalls on every guest, a SIEM, and a supply chain that is scanned and rolled back automatically. Plus the habit that found the bugs: attack your own controls and write down what actually happened."
+  demonstrates="Defense in depth that is measured instead of assumed: edge filtering, a blocking WAF in front of every public app, detection that turns into bans, host firewalls on every guest, a SIEM, and a supply chain that is scanned and rolled back automatically. Plus the habit that found the bugs: attack your own controls and write down what actually happened."
 >
-  <SectionHead label="The edge" title="One door, four layers" />
+  <SectionHead label="The edge" title="Ten requests, one edge" />
   <p>
     Everything public sits behind one reverse proxy VM. A request has to clear
     four layers before it reaches an app: a geo filter in nftables covering
     TCP 443, UDP 443 (HTTP/3) and TCP 80; a CrowdSec ban list enforced in both
     the firewall and the proxy; a WAF running CrowdSec virtual patches and the
-    OWASP Core Rule Set; and TLS termination with credentials redacted before
-    anything is written to a log.
+    OWASP Core Rule Set in blocking mode; and TLS termination with credentials
+    redacted before anything is written to a log.
   </p>
   <p>
-    Detection turns into enforcement in seconds. When CrowdSec bans a source,
-    the firewall starts dropping its packets {s1(banMin)} to {s1(banMax)} seconds
-    later (three measured runs), and for the length of the ban the proxy never
-    sees it again. Repeat offenders get longer bans.
+    I sent ten requests through the edge's WAF engine, using the same API the
+    proxy calls, six times each. Every attack payload was blocked with a 403
+    before it could reach an app, with the same result in all six runs. Pick
+    one and see which rules fired.
+  </p>
+
+  <Panel label="edge · recorded run" status={`captured ${day}`}>
+    <div class="edge-demo" data-edge data-js-only data-ban={`${s1(banMin)} to ${s1(banMax)}`} data-captured={ev.captured}>
+      <div class="map-controls edge-picks" role="group" aria-label="Pick a request">
+        {
+          reqs.map((r) => (
+            <button
+              class="map-btn"
+              type="button"
+              data-req={JSON.stringify({ ...r, shown: shown(r), short: SHORT[r.id] })}
+              aria-pressed={r.id === 'sqli' ? 'true' : 'false'}
+            >
+              {SHORT[r.id]}
+            </button>
+          ))
+        }
+      </div>
+
+      <div class="edge-grid">
+        <ol class="edge-layers" aria-label="Layers the request passes, in order">
+          <li data-layer="geo">
+            <span class="edge-name">geo filter</span>
+            <span class="edge-what">nftables · TCP 443, UDP 443, TCP 80</span>
+            <span class="edge-v" data-v>pass</span>
+          </li>
+          <li data-layer="ban">
+            <span class="edge-name">ban list</span>
+            <span class="edge-what">CrowdSec · firewall + proxy bouncers</span>
+            <span class="edge-v" data-v>pass</span>
+          </li>
+          <li data-layer="waf">
+            <span class="edge-name">WAF</span>
+            <span class="edge-what" data-waf-what>virtual patches + OWASP CRS</span>
+            <span class="edge-v" data-v>pass</span>
+          </li>
+          <li data-layer="app">
+            <span class="edge-name">app</span>
+            <span class="edge-what" data-app-what>forwarded by the proxy</span>
+            <span class="edge-v" data-v>forwarded</span>
+          </li>
+        </ol>
+
+        <div class="edge-after">
+          <p class="label">OWASP CRS · anomaly score</p>
+          <div class="score">
+            <div class="score-bar" aria-hidden="true">
+              <i data-score-fill></i>
+              <span class="score-thresh"></span>
+            </div>
+            <span class="score-num"><span data-score>0</span> <small>/ block at 5</small></span>
+          </div>
+          <ul class="edge-rules" data-rules></ul>
+          <p class="edge-count" data-count></p>
+        </div>
+      </div>
+
+      <p class="edge-out" aria-live="polite" data-out></p>
+
+      <details class="evidence">
+        <summary>Show the evidence</summary>
+        <pre data-ev-pre></pre>
+      </details>
+
+      <div class="map-controls">
+        <button class="map-btn" type="button" data-replay>▶ replay an attacker</button>
+        <span class="ctl-label">the nine requests in order, from one source</span>
+      </div>
+      <ol class="edge-log" data-log aria-live="polite"></ol>
+    </div>
+
+    <table class="ev-table">
+      <caption>All ten requests, as recorded. Rule IDs are OWASP CRS unless named.</caption>
+      <thead>
+        <tr><th scope="col">Request</th><th scope="col">WAF</th><th scope="col">CRS score</th><th scope="col">Rules that fired</th></tr>
+      </thead>
+      <tbody>
+        {
+          reqs.map((r) => (
+            <tr>
+              <th scope="row">{SHORT[r.id]}</th>
+              <td class:list={[r.inband.verdict === 'blocked' && 'is-blocked']}>
+                {r.inband.verdict === 'blocked' ? `blocked, ${r.inband.http}` : `allowed, ${r.inband.http}`}
+              </td>
+              <td>{r.crs.anomaly_score}</td>
+              <td class="ev-rules">
+                {r.inband.rules.map((x) => (x.id.startsWith('crowdsecurity/') ? x.name : x.id)).join(', ') || 'none'}
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+    <p class="sample-note">
+      Method: {ev.waf.method} Caddy {ev.versions.caddy}, CrowdSec {ev.versions.crowdsec},
+      {ev.versions.appsec_rules_loaded} WAF rules loaded.
+    </p>
+  </Panel>
+
+  <p>
+    The one request that is allowed asks for a WordPress login page. By itself
+    that is not an attack payload; scanning for it is, and CrowdSec's
+    wordpress-scan scenario catches that pattern from the proxy logs. Four
+    blocked requests from one source earn a 24-hour ban, and the firewall
+    starts dropping that source {s1(banMin)} to {s1(banMax)} seconds after the
+    decision (three measured runs).
+  </p>
+  <p>
+    How the WAF got to blocking: the Core Rule Set ran in detection-only mode
+    first, scoring real traffic without blocking it. It flagged none of about
+    5,300 real requests, so on {ev.waf.tuning.switched_in_band.slice(5, 10)} it
+    moved to blocking. Normal requests to every public site afterwards: none
+    blocked. Detect, tune, then enforce is the order I would want at work too.
   </p>
 
   <SectionHead label="Found by attacking it" title="Four weaknesses my own testing caught" />
@@ -199,4 +334,5 @@ const day = ev.captured.slice(5, 10);
   </div>
 
 
+  <script is:inline src="/js/security-edge.js" defer></script>
 </ProjectLayout>

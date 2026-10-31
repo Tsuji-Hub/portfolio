@@ -1,21 +1,21 @@
 {
- "schema": 1,
- "captured": "2026-10-30 19:52-20:08 CDT",
+ "schema": 2,
+ "captured": "2026-10-30 21:32-21:38 CDT",
  "subject": "homelab edge (reverse proxy VM)",
  "versions": {
   "caddy": "2.11.7",
   "crowdsec": "1.8.1",
   "appsec_configs": [
    "crowdsecurity/appsec-default",
-   "crowdsecurity/crs",
+   "crowdsecurity/crs-inband",
    "crowdsecurity/generic-rules",
    "crowdsecurity/virtual-patching"
   ],
   "appsec_rules_loaded": 210,
-  "crs_mode": "out-of-band (detect + ban); in-band = virtual patches and generic rules"
+  "crs_mode": "in-band: requests over the anomaly threshold are blocked with 403"
  },
  "waf": {
-  "method": "Each request sent to the edge's CrowdSec AppSec engine through the same API the reverse proxy's bouncer calls, with an RFC 5737 documentation IP as the client. 3 rounds with the alert/decision pipeline + 3 rounds diffing per-rule counters. All test alerts and bans deleted afterwards.",
+  "method": "Each request sent to the edge's CrowdSec AppSec engine through the same API the reverse proxy's bouncer calls, with an RFC 5737 documentation IP as the client. 3 rounds through the alert and ban pipeline + 3 rounds diffing per-rule counters, after the Core Rule Set was moved in-band. All test alerts and bans deleted afterwards.",
   "requests": [
    {
     "id": "baseline",
@@ -30,17 +30,16 @@
      "verdict": "passed",
      "rules": []
     },
-    "out_of_band": {
-     "flagged": false,
-     "rules": [],
-     "category_scores": {},
-     "anomaly_score": 0,
-     "threshold": 5
-    },
     "identical_in_all_runs": true,
     "runs": {
-     "inband_verdict_and_score": 6,
+     "inband_verdict": 6,
      "rule_attribution": 3
+    },
+    "crs": {
+     "anomaly_score": 0,
+     "category_scores": {},
+     "threshold": 5,
+     "over_threshold": false
     }
    },
    {
@@ -56,29 +55,27 @@
      "verdict": "blocked",
      "rules": [
       {
+       "id": "930130",
+       "name": "Restricted File Access Attempt"
+      },
+      {
        "id": "crowdsecurity/vpatch-env-access",
        "name": "Virtual patch: .env access"
       }
      ]
     },
-    "out_of_band": {
-     "flagged": true,
-     "rules": [
-      {
-       "id": "930130",
-       "name": "Restricted File Access Attempt"
-      }
-     ],
+    "identical_in_all_runs": true,
+    "runs": {
+     "inband_verdict": 6,
+     "rule_attribution": 3
+    },
+    "crs": {
+     "anomaly_score": 5,
      "category_scores": {
       "lfi": 5
      },
-     "anomaly_score": 5,
-     "threshold": 5
-    },
-    "identical_in_all_runs": true,
-    "runs": {
-     "inband_verdict_and_score": 6,
-     "rule_attribution": 3
+     "threshold": 5,
+     "over_threshold": false
     }
    },
    {
@@ -94,29 +91,27 @@
      "verdict": "blocked",
      "rules": [
       {
+       "id": "930130",
+       "name": "Restricted File Access Attempt"
+      },
+      {
        "id": "crowdsecurity/vpatch-git-config",
        "name": "Virtual patch: .git/config access"
       }
      ]
     },
-    "out_of_band": {
-     "flagged": true,
-     "rules": [
-      {
-       "id": "930130",
-       "name": "Restricted File Access Attempt"
-      }
-     ],
+    "identical_in_all_runs": true,
+    "runs": {
+     "inband_verdict": 6,
+     "rule_attribution": 3
+    },
+    "crs": {
+     "anomaly_score": 5,
      "category_scores": {
       "lfi": 5
      },
-     "anomaly_score": 5,
-     "threshold": 5
-    },
-    "identical_in_all_runs": true,
-    "runs": {
-     "inband_verdict_and_score": 6,
-     "rule_attribution": 3
+     "threshold": 5,
+     "over_threshold": false
     }
    },
    {
@@ -128,28 +123,27 @@
      "headers": {}
     },
     "inband": {
-     "http": 200,
-     "verdict": "passed",
-     "rules": []
-    },
-    "out_of_band": {
-     "flagged": true,
+     "http": 403,
+     "verdict": "blocked",
      "rules": [
       {
        "id": "942100",
        "name": "SQL Injection Attack Detected via libinjection"
       }
-     ],
-     "category_scores": {
-      "sql_injection": 10
-     },
-     "anomaly_score": 10,
-     "threshold": 5
+     ]
     },
     "identical_in_all_runs": true,
     "runs": {
-     "inband_verdict_and_score": 6,
+     "inband_verdict": 6,
      "rule_attribution": 3
+    },
+    "crs": {
+     "anomaly_score": 10,
+     "category_scores": {
+      "sql_injection": 10
+     },
+     "threshold": 5,
+     "over_threshold": true
     }
    },
    {
@@ -161,12 +155,8 @@
      "headers": {}
     },
     "inband": {
-     "http": 200,
-     "verdict": "passed",
-     "rules": []
-    },
-    "out_of_band": {
-     "flagged": true,
+     "http": 403,
+     "verdict": "blocked",
      "rules": [
       {
        "id": "941100",
@@ -184,17 +174,20 @@
        "id": "941390",
        "name": "Javascript method detected"
       }
-     ],
-     "category_scores": {
-      "xss": 40
-     },
-     "anomaly_score": 40,
-     "threshold": 5
+     ]
     },
     "identical_in_all_runs": true,
     "runs": {
-     "inband_verdict_and_score": 6,
+     "inband_verdict": 6,
      "rule_attribution": 3
+    },
+    "crs": {
+     "anomaly_score": 40,
+     "category_scores": {
+      "xss": 40
+     },
+     "threshold": 5,
+     "over_threshold": true
     }
    },
    {
@@ -206,12 +199,8 @@
      "headers": {}
     },
     "inband": {
-     "http": 200,
-     "verdict": "passed",
-     "rules": []
-    },
-    "out_of_band": {
-     "flagged": true,
+     "http": 403,
+     "verdict": "blocked",
      "rules": [
       {
        "id": "930100",
@@ -229,18 +218,21 @@
        "id": "932160",
        "name": "Remote Command Execution: Unix Shell Code Found"
       }
-     ],
+     ]
+    },
+    "identical_in_all_runs": true,
+    "runs": {
+     "inband_verdict": 6,
+     "rule_attribution": 3
+    },
+    "crs": {
+     "anomaly_score": 65,
      "category_scores": {
       "lfi": 55,
       "rce": 10
      },
-     "anomaly_score": 65,
-     "threshold": 5
-    },
-    "identical_in_all_runs": true,
-    "runs": {
-     "inband_verdict_and_score": 6,
-     "rule_attribution": 3
+     "threshold": 5,
+     "over_threshold": true
     }
    },
    {
@@ -254,28 +246,27 @@
      }
     },
     "inband": {
-     "http": 200,
-     "verdict": "passed",
-     "rules": []
-    },
-    "out_of_band": {
-     "flagged": true,
+     "http": 403,
+     "verdict": "blocked",
      "rules": [
       {
        "id": "944150",
        "name": "Potential Remote Command Execution: Log4j / Log4shell"
       }
-     ],
-     "category_scores": {
-      "rce": 5
-     },
-     "anomaly_score": 5,
-     "threshold": 5
+     ]
     },
     "identical_in_all_runs": true,
     "runs": {
-     "inband_verdict_and_score": 6,
+     "inband_verdict": 6,
      "rule_attribution": 3
+    },
+    "crs": {
+     "anomaly_score": 5,
+     "category_scores": {
+      "rce": 5
+     },
+     "threshold": 5,
+     "over_threshold": true
     }
    },
    {
@@ -287,12 +278,8 @@
      "headers": {}
     },
     "inband": {
-     "http": 200,
-     "verdict": "passed",
-     "rules": []
-    },
-    "out_of_band": {
-     "flagged": true,
+     "http": 403,
+     "verdict": "blocked",
      "rules": [
       {
        "id": "930120",
@@ -306,18 +293,21 @@
        "id": "932230",
        "name": "Remote Command Execution: Unix Command Injection (2-3 chars)"
       }
-     ],
+     ]
+    },
+    "identical_in_all_runs": true,
+    "runs": {
+     "inband_verdict": 6,
+     "rule_attribution": 3
+    },
+    "crs": {
+     "anomaly_score": 30,
      "category_scores": {
       "lfi": 10,
       "rce": 20
      },
-     "anomaly_score": 30,
-     "threshold": 5
-    },
-    "identical_in_all_runs": true,
-    "runs": {
-     "inband_verdict_and_score": 6,
-     "rule_attribution": 3
+     "threshold": 5,
+     "over_threshold": true
     }
    },
    {
@@ -333,17 +323,16 @@
      "verdict": "passed",
      "rules": []
     },
-    "out_of_band": {
-     "flagged": false,
-     "rules": [],
-     "category_scores": {},
-     "anomaly_score": 0,
-     "threshold": 5
-    },
     "identical_in_all_runs": true,
     "runs": {
-     "inband_verdict_and_score": 6,
+     "inband_verdict": 6,
      "rule_attribution": 3
+    },
+    "crs": {
+     "anomaly_score": 0,
+     "category_scores": {},
+     "threshold": 5,
+     "over_threshold": false
     }
    },
    {
@@ -357,43 +346,46 @@
      }
     },
     "inband": {
-     "http": 200,
-     "verdict": "passed",
-     "rules": []
-    },
-    "out_of_band": {
-     "flagged": true,
+     "http": 403,
+     "verdict": "blocked",
      "rules": [
       {
        "id": "913100",
        "name": "Found User-Agent associated with security scanner"
       }
-     ],
-     "category_scores": {
-      "anomaly": 5
-     },
-     "anomaly_score": 5,
-     "threshold": 5
+     ]
     },
     "identical_in_all_runs": true,
     "runs": {
-     "inband_verdict_and_score": 6,
+     "inband_verdict": 6,
      "rule_attribution": 3
+    },
+    "crs": {
+     "anomaly_score": 5,
+     "category_scores": {
+      "anomaly": 5
+     },
+     "threshold": 5,
+     "over_threshold": true
     }
    }
   ],
   "ban": {
-   "virtual_patch": {
-    "scenario": "crowdsecurity/appsec-vpatch",
-    "after_hits": 2,
-    "decision": "ban 24h"
-   },
-   "out_of_band": {
-    "scenario": "crowdsecurity/crowdsec-appsec-outofband",
-    "after_flagged_requests": 6,
-    "decision": "ban 48h (escalating profile: (earlier decisions + 1) x 24h; the virtual-patch ban counted as one)"
-   },
+   "scenario": "crowdsecurity/appsec-native",
+   "after_blocked_requests": 4,
+   "decision": "ban 24h",
    "rounds_observed": 3
+  },
+  "tuning": {
+   "mode_before": "out-of-band (detect + ban) from 2026-10-30 14:09 CDT",
+   "real_requests_evaluated": "about 5,300",
+   "real_requests_flagged": 0,
+   "switched_in_band": "2026-10-30 21:31 CDT",
+   "legit_checks_after_switch": "public sites from outside: 0 x 403 across 27 normal requests"
+  },
+  "previous_run": {
+   "captured": "2026-10-30 19:52-20:08 CDT",
+   "mode": "out-of-band"
   }
  },
  "ban_enforcement": {

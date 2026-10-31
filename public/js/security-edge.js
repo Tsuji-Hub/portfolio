@@ -35,7 +35,6 @@
 
   function later(fn, t) { timers.push(setTimeout(fn, t)); }
   function clearTimers() { timers.forEach(clearTimeout); timers = []; }
-
   function data(btn) { return JSON.parse(btn.getAttribute('data-req')); }
 
   function setLayer(name, verdict, state) {
@@ -51,14 +50,13 @@
     buttons.forEach(function (b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
 
     var blocked = r.inband.verdict === 'blocked';
-    var rule = r.inband.rules.length ? r.inband.rules[0].name : '';
-    wafWhat.textContent = blocked ? rule : 'virtual patches + generic rules';
+    var patch = r.inband.rules.filter(function (x) { return x.id.indexOf('crowdsecurity/') === 0; })[0];
+    wafWhat.textContent = blocked ? (patch ? patch.name : 'OWASP CRS, score ' + r.crs.anomaly_score) : 'virtual patches + OWASP CRS';
     appWhat.textContent = blocked ? 'never reached' : 'forwarded by the proxy';
 
     Object.keys(layers).forEach(function (k) {
-      var li = layers[k];
-      li.classList.remove('is-pass', 'is-block', 'is-skip');
-      li.classList.add('is-live');
+      layers[k].classList.remove('is-pass', 'is-block', 'is-skip');
+      layers[k].classList.add('is-live');
     });
     var step = ms(140);
     later(function () { setLayer('geo', 'pass', 'is-pass'); }, 0);
@@ -66,15 +64,16 @@
     later(function () { setLayer('waf', blocked ? 'blocked ' + r.inband.http : 'pass', blocked ? 'is-block' : 'is-pass'); }, step * 2);
     later(function () { setLayer('app', blocked ? 'not reached' : 'forwarded', blocked ? 'is-skip' : 'is-pass'); }, step * 3);
 
-    var score = r.out_of_band.anomaly_score;
+    var score = r.crs.anomaly_score;
     later(function () {
       fill.style.width = Math.min(score / SCALE, 1) * 100 + '%';
-      fill.classList.toggle('is-over', score >= r.out_of_band.threshold);
+      fill.classList.toggle('is-over', score >= r.crs.threshold);
       scoreOut.textContent = String(score);
     }, step * 4);
 
     rulesOut.textContent = '';
-    r.out_of_band.rules.forEach(function (x) {
+    var crsRules = r.inband.rules.filter(function (x) { return x.id.indexOf('crowdsecurity/') !== 0; });
+    crsRules.forEach(function (x) {
       var li = document.createElement('li');
       var code = document.createElement('code');
       code.textContent = x.id;
@@ -82,30 +81,30 @@
       li.appendChild(document.createTextNode(' ' + x.name));
       rulesOut.appendChild(li);
     });
-    if (!r.out_of_band.rules.length) {
+    if (!crsRules.length) {
       var none = document.createElement('li');
       none.className = 'none';
       none.textContent = 'no rule fired';
       rulesOut.appendChild(none);
     }
-    countOut.textContent = r.out_of_band.flagged
-      ? 'Flagged: counts toward a ban (6 flagged requests from one source).'
-      : 'Not flagged: does not count toward a ban.';
+    countOut.textContent = blocked
+      ? 'Blocked. Four blocked requests from one source earn a 24 h ban.'
+      : 'Below the threshold: allowed.';
 
     var verdict;
-    if (r.id === 'baseline') verdict = 'A normal request passes every layer and nothing is flagged.';
-    else if (blocked) verdict = r.short + ' is stopped in-band by a virtual patch, and the Core Rule Set flags it as well.';
-    else if (r.out_of_band.flagged) verdict = r.short + ' passes in-band, so the proxy forwards it to the app once. The Core Rule Set flags it after the fact (score ' + score + '), which counts toward a ban.';
-    else verdict = r.short + ' passes in-band and no WAF rule fires. CrowdSec\'s log scenarios are what cover this one.';
+    if (r.id === 'baseline') verdict = 'A normal request passes every layer and no rule fires.';
+    else if (r.id === 'wordpress') verdict = 'A request for a WordPress login page is not an attack payload on its own, so the WAF allows it. Scanning for it is, and CrowdSec catches that pattern from the logs.';
+    else if (patch) verdict = r.short + ' is blocked by a virtual patch before it reaches an app; the Core Rule Set scores it as well.';
+    else verdict = r.short + ' scores ' + score + ' against a block threshold of 5, so the WAF answers 403 and the app never sees it.';
     out.textContent = verdict;
 
     var lines = [
-      '# recorded ' + captured + ', same result in ' + r.runs.inband_verdict_and_score + ' of ' + r.runs.inband_verdict_and_score + ' runs',
+      '# recorded ' + captured + ', same result in ' + r.runs.inband_verdict + ' of ' + r.runs.inband_verdict + ' runs',
       '> ' + r.shown.split('\n').join('\n> '),
-      '< in-band: HTTP ' + r.inband.http + (r.inband.rules.length ? ' (' + r.inband.rules.map(function (x) { return x.id; }).join(', ') + ')' : ''),
-      '< out-of-band: anomaly score ' + score + ' / threshold ' + r.out_of_band.threshold +
-        (Object.keys(r.out_of_band.category_scores).length ? ' (' + Object.keys(r.out_of_band.category_scores).map(function (k) { return k + ' ' + r.out_of_band.category_scores[k]; }).join(', ') + ')' : ''),
-      '< rules: ' + (r.out_of_band.rules.map(function (x) { return x.id; }).join(', ') || 'none'),
+      '< HTTP ' + r.inband.http + (blocked ? ' (blocked by the WAF)' : ''),
+      '< CRS anomaly score ' + score + ' / block at ' + r.crs.threshold +
+        (Object.keys(r.crs.category_scores).length ? ' (' + Object.keys(r.crs.category_scores).map(function (k) { return k + ' ' + r.crs.category_scores[k]; }).join(', ') + ')' : ''),
+      '< rules: ' + (r.inband.rules.map(function (x) { return x.id; }).join(', ') || 'none'),
     ];
     pre.textContent = lines.join('\n');
   }
@@ -114,28 +113,25 @@
     clearTimers();
     log.textContent = '';
     replayBtn.disabled = true;
-    var attacks = buttons.map(data).filter(function (r) { return r.id !== 'baseline'; });
-    var vp = 0, flagged = 0, t = 0, gap = ms(420);
+    var reqs = buttons.map(data).filter(function (r) { return r.id !== 'baseline'; });
+    var blockedCount = 0, t = 0, gap = ms(420);
     function line(text, cls) {
       var li = document.createElement('li');
       if (cls) li.className = cls;
       li.textContent = text;
       log.appendChild(li);
     }
-    attacks.forEach(function (r, i) {
+    reqs.forEach(function (r, i) {
       later(function () {
         var blocked = r.inband.verdict === 'blocked';
-        line('t+' + (i * 0.3).toFixed(1) + 's  ' + r.short + '  ' + (blocked ? 'blocked in-band' : 'passed in-band') +
-          (r.out_of_band.flagged ? ', CRS score ' + r.out_of_band.anomaly_score : ', not flagged'), blocked ? 'is-block' : '');
-        if (blocked) vp++;
-        if (r.out_of_band.flagged) flagged++;
-        if (blocked && vp === 2) line('  virtual-patch scenario fires: ban 24 h', 'is-ban');
-        if (r.out_of_band.flagged && flagged === 6) line('  CRS out-of-band scenario fires: ban 48 h (repeat offender)', 'is-ban');
+        line('t+' + (i * 0.3).toFixed(1) + 's  ' + r.short + '  ' + (blocked ? '403, blocked (CRS score ' + r.crs.anomaly_score + ')' : '200, allowed'), blocked ? 'is-block' : '');
+        if (blocked) blockedCount++;
+        if (blocked && blockedCount === 4) line('  ban decision: 24 h for this source', 'is-ban');
       }, t);
       t += gap;
     });
     later(function () {
-      line('Requests were 0.3 s apart, so all nine landed before the first ban reached the firewall. Ban to firewall drop: ' + banWindow + ' s in three measured runs; after that, this source never reaches the proxy until the ban ends.', 'is-note');
+      line('The firewall drops a banned source ' + banWindow + ' s after the decision (three measured runs); from then on it never reaches the proxy.', 'is-note');
       replayBtn.disabled = false;
     }, t);
   }

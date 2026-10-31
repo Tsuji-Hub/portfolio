@@ -2,56 +2,280 @@
 import ProjectLayout from '../../layouts/ProjectLayout.astro';
 import SectionHead from '../../components/SectionHead.astro';
 import Panel from '../../components/Panel.astro';
+import ev from '../../data/makimono-evidence.json';
+import '../../styles/makimono.css';
 
-const panels = [
-  'tall', 'mid', 'short', 'tall', 'mid', 'tall', 'short', 'mid',
-];
-const panelsAfter = ['tall', 'mid', 'tall', 'short', 'mid', 'tall'];
+// Every number on this page comes from src/data/makimono-evidence.json: the
+// public GitHub releases, dated device test logs, and a read-only snapshot of
+// the drop-rate service (counts only, no reader names or notes).
+const rel = ev.releases;
+const d = ev.drops;
+const fmt = (n: number) => n.toLocaleString('en-US');
+const pct = (n: number) => `${n.toFixed(1)}%`;
+
+// Drop map, drawn at build time as SVG so it reads without JavaScript.
+// Layout: [never read] gap [chapter buckets ...] gap [caught up]
+const W = 640, H = 220, TOP = 30, BASE = 180, GAP = 18;
+function chart(ex: any) {
+  const m = ex.map;
+  const groups = [
+    { kind: 'zero', label: 'before ch 1', count: m.n_zero },
+    ...m.buckets.map(([from, to, count]: number[]) => ({
+      kind: m.cliffs.some((c: any) => c.from === from) ? 'cliff' : 'bar',
+      from, to, count,
+    })),
+  ];
+  if (m.caught_up) groups.push({ kind: 'cu', label: 'caught up', count: m.caught_up });
+  const top = Math.max(...groups.map((g) => g.count));
+  const gaps = m.caught_up ? 2 : 1;
+  const bw = (W - GAP * gaps) / groups.length;
+  let x = 0;
+  const bars = groups.map((g, i) => {
+    if (i === 1 || (g.kind === 'cu')) x += GAP;
+    const h = Math.max(2, (g.count / top) * (BASE - TOP));
+    const bar = { ...g, x: x + 2, w: bw - 4, y: BASE - h, h };
+    x += bw;
+    return bar;
+  });
+  const chap = bars.filter((b) => b.kind === 'bar' || b.kind === 'cliff');
+  return { bars, chap, first: chap[0], last: chap[chap.length - 1] };
+}
+const examples = d.examples.map((ex: any) => ({ ...ex, c: chart(ex) }));
+
+// Client data for the "your chapter" readout: buckets and their x positions.
+const clientData = (ex: any) =>
+  JSON.stringify({
+    n: ex.map.n_prog,
+    max: ex.map.max,
+    b: ex.c.chap.map((b: any) => [b.from, b.to, b.count, +b.x.toFixed(1), +b.w.toFixed(1)]),
+    cliffs: ex.map.cliffs.map((c: any) => [c.from, c.to, c.share]),
+  }).replace(/</g, '\\u003c');
 ---
 
 <ProjectLayout
   title="Makimono"
   path="/projects/makimono/"
-  description="A feature-driven fork of Mihon, the open-source Android manga reader. 21 releases, real users, self-updating."
-  lede="A feature-driven fork of Mihon, the open-source Android manga reader written in Kotlin. It installs alongside the stock app, updates itself, and has shipped 21 releases to real users."
-  tags={['Kotlin', 'Android', 'Compose', 'Release engineering', 'API integration']}
+  description={`My fork of Mihon, the open-source Android manga reader: ${rel.stable} releases, CI to a signed APK in ${ev.ci_quick_lane.value}, and drop rates for ${d.titles} titles that separate real quitting from readers who simply caught up.`}
+  lede={`A fork of Mihon, the open-source Android manga reader, in Kotlin. I forked it to add what the reader I use every day was missing. It installs next to the stock app, updates itself, and has shipped ${rel.stable} releases. The newest feature shows where readers quit a series, measured honestly.`}
+  tags={['Kotlin', 'Jetpack Compose', 'Android', 'CI/CD', 'Statistics', 'API integration']}
   kicker="Android · fork"
   headline="Makimono, my Android manga reader"
   accent="Android manga reader"
   slug="makimono"
   stats={[
-    { n: '21', l: 'releases shipped' },
-    { n: '5', l: 'recommendation sources' },
-    { n: 'in-app', l: 'update channel' },
-    { n: '8+', l: 'android version floor' },
+    { n: `${rel.stable}`, l: `releases shipped, latest ${rel.latest_date.slice(5)}` },
+    { n: ev.ci_quick_lane.value, l: 'from push to a signed test APK' },
+    { n: `${d.titles}`, l: 'titles with a measured drop map' },
+    { n: '5', l: 'recommendation sources, ranked by agreement' },
   ]}
-  demonstrates="Kotlin and Android at feature scale, release engineering (signed APKs, a self-update channel, changelogs), API integration across five services, and maintaining a fork against an active upstream without falling behind it."
+  demonstrates="Kotlin and Jetpack Compose at feature scale; release engineering (signed APKs, CI, in-app updates); statistics applied with care (peer baselines, empirical Bayes shrinkage, a Poisson test for cliffs, intervals on every rate); rate-limited integration with five APIs; testing on a real phone against written expectations; and keeping a fork current with an active upstream."
   links={[
     { label: 'Releases', href: 'https://github.com/Tsuji-Hub/makimono/releases' },
   ]}
 >
-  <SectionHead label="The feature" title="The auto-scroll engine" />
+  <SectionHead label="Drop rate" title="Where readers quit, measured honestly" />
   <p>
-    Webtoons are one long vertical strip, and reading one by thumb-flicking is
-    miserable. So the reader scrolls itself, at a speed you set, and gets out of
-    the way. Drive it below: change the speed while it runs, tap the screen to
-    pause, and watch what it does at a chapter seam.
+    <strong>In one line:</strong> the series page shows how many readers
+    dropped a title, whether that is low or high for its kind, and the chapters
+    where they quit.
+  </p>
+  <p>
+    Popularity counts who started. It says nothing about who stayed. A small
+    service on my homelab reads AniList's public reading-status counts and the
+    latest 400 public "Dropped" lists for each title, then corrects three things
+    a plain count gets wrong (below the chart). Pick a title, then drag to your
+    chapter.
   </p>
 
-  <Panel label="makimono · reader" status="drive it">
+  <Panel label="makimono · drop map" status={`real data · ${ev.captured.slice(5)}`}>
+    <div class="dm" data-dm>
+      <div class="dm-tabs" role="group" aria-label="Pick a title" data-js-only>
+        {examples.map((ex: any, i: number) => (
+          <button class={`dm-tab dm-${ex.label}`} type="button" data-dm-tab={i} aria-pressed={i === 0 ? 'true' : 'false'}>
+            <span class="dm-tab-t">{ex.title}</span>
+            <span class="dm-tab-d">{ex.status} · <b>{ex.label}</b> drop rate</span>
+          </button>
+        ))}
+      </div>
+
+      {examples.map((ex: any, i: number) => (
+        <section class="dm-card" data-dm-card={i} data-dm-data={clientData(ex)} aria-label={ex.title}>
+          <header class="dm-head">
+            <p class="dm-title">{ex.title} <span class="dm-sub">{ex.status}{ex.chapters ? `, ${ex.chapters} chapters` : ''}</span></p>
+            <p class="dm-rate">
+              <span class="dm-big">{pct(ex.drop_pct)}</span>
+              <span class={`dm-chip dm-${ex.label}`}>{ex.label} for {ex.peer}</span>
+            </p>
+            <p class="dm-meta">
+              of {fmt(ex.started)} readers who started it dropped it (interval {ex.ci[0]}-{ex.ci[1]}%).
+              Median for {ex.peer}: {pct(ex.peer_med)}. This title is at the {ex.pctile === 1 ? '1st' : `${ex.pctile}th`} percentile of {ex.peer_n}.
+            </p>
+          </header>
+
+          <svg class="dm-svg" viewBox={`0 0 ${W} ${H}`} role="img"
+            aria-label={`Where the latest ${ex.map.n} droppers quit. Median chapter ${ex.map.median}. ${ex.map.cliffs.map((c: any) => `Cliff at chapters ${c.from} to ${c.to}, ${c.share}% of droppers`).join('. ')}.`}>
+            <line class="dm-axis" x1="0" y1={BASE + 0.5} x2={W} y2={BASE + 0.5} />
+            {ex.c.bars.map((b: any) => (
+              <g>
+                <rect class={`dm-b dm-b-${b.kind}`} x={b.x.toFixed(1)} y={b.y.toFixed(1)} width={b.w.toFixed(1)} height={b.h.toFixed(1)} rx="2" />
+                {b.kind === 'cliff' && (
+                  <text class="dm-t dm-t-cliff" x={(b.x + b.w / 2).toFixed(1)} y={(b.y - 7).toFixed(1)} text-anchor="middle">cliff</text>
+                )}
+              </g>
+            ))}
+            <text class="dm-t" x={(ex.c.bars[0].x + ex.c.bars[0].w / 2).toFixed(1)} y={BASE + 22} text-anchor="middle">ch 0</text>
+            <text class="dm-t" x={ex.c.first.x.toFixed(1)} y={BASE + 22}>ch {ex.c.first.from}</text>
+            <text class="dm-t" x={(ex.c.last.x + ex.c.last.w).toFixed(1)} y={BASE + 22} text-anchor="end">ch {Math.min(ex.c.last.to, ex.map.max)}</text>
+            {ex.map.caught_up > 0 && (
+              <text class="dm-t" x={(ex.c.bars.at(-1).x + ex.c.bars.at(-1).w / 2).toFixed(1)} y={(ex.c.bars.at(-1).y - 7).toFixed(1)} text-anchor="middle">caught up</text>
+            )}
+            <line class="dm-mark" data-dm-mark x1="-10" y1={TOP - 12} x2="-10" y2={BASE} />
+          </svg>
+
+          <ul class="dm-legend">
+            <li><i class="dm-k dm-k-bar"></i>quit in this range</li>
+            <li><i class="dm-k dm-k-cliff"></i>cliff (passed the test)</li>
+            <li><i class="dm-k dm-k-out"></i>not counted as quitting</li>
+          </ul>
+          <p class="dm-facts">
+            {ex.map.caught_up > 0
+              ? `Latest ${ex.map.n} droppers: ${ex.map.n_prog} quit at a chapter (median ${ex.map.median}), ${ex.map.n_zero} dropped before chapter 1, and ${ex.map.caught_up} had caught up with the newest release (${ex.map.caught_up_share}% of those checked), so they are not counted as quits.`
+              : `Latest ${ex.map.n} droppers: ${ex.map.n_prog} quit at a chapter (median ${ex.map.median}) and ${ex.map.n_zero} dropped before chapter 1. A finished series has no newest chapter to catch up to.`}
+          </p>
+        </section>
+      ))}
+
+      <div class="dm-you" data-js-only>
+        <label class="dm-you-l" for="dm-ch">Your chapter</label>
+        <input id="dm-ch" type="range" min="1" max="201" value="90" data-dm-ch />
+        <output class="dm-you-o" for="dm-ch" data-dm-out aria-live="polite"></output>
+      </div>
+    </div>
+  </Panel>
+
+  <div class="dm-rules">
+    <article class="dm-rule" data-card>
+      <p class="label">01 · caught up</p>
+      <h3>Catching up is not quitting</h3>
+      <p class="find-tldr">On an ongoing series, readers who reach the newest chapter often mark it Dropped.</p>
+      <p>
+        Counted as quits, they pile up at the newest chapter and fake a cliff.
+        The service checks each dropper's last chapter against the series'
+        release history on the day they dropped. Within one chapter of the newest
+        release means caught up, not quit. Median share across
+        {' '}{d.caught_up.ongoing_titles_split} ongoing titles: {pct(d.caught_up.median_share)}.
+      </p>
+    </article>
+    <article class="dm-rule" data-card>
+      <p class="label">02 · peers</p>
+      <h3>Compared with its own kind</h3>
+      <p class="find-tldr">A 10% drop rate is below the median for finished manhua and in the top 13% for ongoing manhwa.</p>
+      <table class="dm-peers">
+        <caption class="dm-cap">Median drop rate, four largest groups</caption>
+        <thead><tr><th scope="col">Group</th><th scope="col">Titles</th><th scope="col">Median</th></tr></thead>
+        <tbody>
+          {d.peers.map((p: any) => (
+            <tr><th scope="row">{p.peer}</th><td>{p.n}</td><td>{pct(p.median)}</td></tr>
+          ))}
+        </tbody>
+      </table>
+      <p>
+        Labels are shrunk toward the group median (empirical Bayes,
+        K = {d.shrinkage_k}), so a small title cannot earn an extreme label. Under
+        {' '}{d.min_readers_for_label} readers: no label ({d.labels.unlabeled} of {d.titles}).
+      </p>
+    </article>
+    <article class="dm-rule" data-card>
+      <p class="label">03 · cliffs</p>
+      <h3>A cliff has to pass a test</h3>
+      <p class="find-tldr">A busy chapter range is not automatically a cliff.</p>
+      <p>
+        A range is marked only when it is a local peak and a Poisson test says
+        the excess over its neighbours is unlikely to be noise. That cut titles
+        with a "cliff" from {d.cliffs.titles_before_test} of 340 to
+        {' '}{d.cliffs.titles_after_test}. Today: {d.cliffs.cliffs_now} cliffs across
+        {' '}{d.cliffs.titles_now} of {d.titles} titles.
+      </p>
+    </article>
+  </div>
+  <p class="muted fineprint">
+    In the app, the drops server is optional, set by the user, used only on home
+    Wi-Fi, and its address stays on the device. Readers' notes from past your
+    chapter stay hidden until you ask. This page shows counts only: no reader
+    names, no notes.
+  </p>
+
+  <SectionHead label="Release engineering" title="Shipped, then checked on a real phone" />
+  <p>
+    <strong>In one line:</strong> a push becomes a signed test build in about
+    six minutes, and nothing ships until it passes on a real phone.
+  </p>
+  <ul class="mk-facts">
+    <li>
+      <strong>{rel.stable} stable releases</strong> ({rel.first} to {rel.latest},
+      latest {rel.latest_date.slice(5)}) plus {rel.dev_prereleases} public dev
+      builds. Signed APKs; the app updates itself and installs next to stock Mihon.
+    </li>
+    <li>
+      <strong>Quick lane CI:</strong> push to signed test APK in
+      {' '}{ev.ci_quick_lane.value} (measured {ev.ci_quick_lane.measured.slice(5)}).
+    </li>
+    <li>
+      <strong>Tested on a Galaxy Z Fold over adb</strong>, folded and unfolded,
+      with a written PASS or FAIL against what a user should see:
+      <ul>
+        <li>Tag search: {ev.tag_search.before} correct results became {ev.tag_search.after} after switching from tag names to tag ids with subtag families.</li>
+        <li>For You took about 20 s on every open. The first fix failed the check (the cache was not used on reopen) and went back. The second held: 2.2 s on reopen, still cached after a force-stop.</li>
+        <li>Library migration: 673 titles, 134,056 chapters and 50,816 read marks identical before and after.</li>
+      </ul>
+    </li>
+    <li>
+      <strong>Upstream kept current:</strong> Mihon 0.21.0 to 0.21.2 merged in v0.19.26.
+    </li>
+    <li>
+      <strong>Fails soft:</strong> when AniList's API is down, Discover, Similar
+      and For You fall back to other sources (v0.19.28).
+    </li>
+  </ul>
+
+  <SectionHead label="Privacy" title="Other people install it, so defaults are strict" />
+  <ul class="mk-facts">
+    <li>
+      <strong>Found and fixed:</strong> with verbose logging on, tracker login
+      tokens were written to the app log. Fixed in v0.19.26.
+    </li>
+    <li>
+      <strong>AniList is opt-in.</strong> Features that use it run on the user's
+      own login, off by default. Adult titles stay hidden in Discover, For You and
+      Similar unless turned on (v0.19.27).
+    </li>
+    <li>
+      <strong>Bulk AniList linking never lowers progress</strong>, leaves out
+      matches under 90% confidence by default, and shows a preview before it
+      writes. My own run: 399 list entries became 708, with 0 downgrades.
+    </li>
+  </ul>
+
+  <SectionHead label="The reader" title="The auto-scroll engine" />
+  <p>
+    <strong>In one line:</strong> webtoons are one long vertical strip, so the
+    reader scrolls itself at a speed you set and stops at the end of a chapter.
+  </p>
+
+  <Panel label="makimono · reader" status="press play">
     <div class="reader-demo" data-reader>
       <div class="phone">
         <div class="phone-screen" data-screen role="presentation">
           <div class="strip" data-strip>
-            {panels.map((h) => (
+            {['tall', 'mid', 'short', 'tall', 'mid', 'tall', 'short', 'mid'].map((h) => (
               <div class={`panel ${h}`}>
                 <span class="p-fig"></span>
                 <span class="p-bub"></span>
                 <span class="p-line"></span>
               </div>
             ))}
-            <div class="chapter-end" data-boundary>— end of chapter 12 —</div>
-            {panelsAfter.map((h) => (
+            <div class="chapter-end" data-boundary>end of chapter 12</div>
+            {['tall', 'mid', 'tall', 'short', 'mid', 'tall'].map((h) => (
               <div class={`panel ${h}`}>
                 <span class="p-fig"></span>
                 <span class="p-bub"></span>
@@ -68,8 +292,8 @@ const panelsAfter = ['tall', 'mid', 'tall', 'short', 'mid', 'tall'];
 
       <div class="reader-controls">
         <div class="ctl-row">
-          <button class="map-btn" type="button" data-play aria-pressed="false">play</button>
-          <span class="ctl-label">tap screen too</span>
+          <button class="mk-btn" type="button" data-play aria-pressed="false">play</button>
+          <span class="ctl-label">or tap the screen</span>
         </div>
         <div class="ctl-row">
           <label class="ctl-label" for="speed">speed</label>
@@ -78,87 +302,56 @@ const panelsAfter = ['tall', 'mid', 'tall', 'short', 'mid', 'tall'];
         </div>
         <p class="reader-status" data-status>press play, or tap the screen.</p>
         <p class="sample-note">
-          Panels are synthetic placeholders. What is real here is the scroll
-          engine: speed control that applies mid-scroll, pause-on-touch, and
-          stopping at the chapter seam rather than sliding through it. In the app
-          the same controller also binds to the volume keys and a two-finger tap.
+          Placeholder panels. The engine is the real one: speed changes apply
+          mid-scroll, a tap pauses, and it stops at the chapter seam instead of
+          sliding through. In the app the same controller also binds to the
+          volume keys.
         </p>
       </div>
     </div>
   </Panel>
 
-  <SectionHead label="Motivation" title="Why it exists" />
-  <p>
-    I read a lot of manga, and the reader I used every day was missing things I
-    wanted. Rather than file feature requests and wait, I forked it. The rule I
-    set: it has to stay installable next to the original and update itself, so
-    using it never feels like running a science project.
-  </p>
-
   <SectionHead label="Recommendations" title="Similar titles, ranked by agreement" />
   <p>
-    Any one service will happily recommend whatever is trending. The useful
-    signal is when services that do not talk to each other independently
-    recommend the same thing. So Similar merges five sources and ranks by how
-    many of them agree, rather than trusting any single one.
-  </p>
-  <p>
-    Turn sources off and watch the ranking move. Titles carried by one source
-    collapse; titles multiple sources agree on hold their place.
+    <strong>In one line:</strong> a title that several independent services
+    recommend outranks one that a single service pushes.
   </p>
 
   <Panel label="makimono · recommendations" status="sample data">
     <div class="rank-demo" data-rank>
+      <p class="mk-lead" data-js-only>Turn sources off and watch the ranking move.</p>
       <div class="rank-sources">
-        <button class="map-btn" type="button" data-source="AniList" aria-pressed="true">AniList</button>
-        <button class="map-btn" type="button" data-source="MyAnimeList" aria-pressed="true">MyAnimeList</button>
-        <button class="map-btn" type="button" data-source="MangaUpdates" aria-pressed="true">MangaUpdates</button>
-        <button class="map-btn" type="button" data-source="MangaDex" aria-pressed="true">MangaDex</button>
-        <button class="map-btn" type="button" data-source="Comick" aria-pressed="true">Comick</button>
+        <button class="mk-toggle" type="button" data-source="AniList" aria-pressed="true">AniList</button>
+        <button class="mk-toggle" type="button" data-source="MyAnimeList" aria-pressed="true">MyAnimeList</button>
+        <button class="mk-toggle" type="button" data-source="MangaUpdates" aria-pressed="true">MangaUpdates</button>
+        <button class="mk-toggle" type="button" data-source="MangaDex" aria-pressed="true">MangaDex</button>
+        <button class="mk-toggle" type="button" data-source="Comick" aria-pressed="true">Comick</button>
         <span class="sep"></span>
-        <button class="map-btn" type="button" data-gems aria-pressed="false">hidden gems</button>
+        <button class="mk-toggle mk-toggle-alt" type="button" data-gems aria-pressed="false">hidden gems</button>
       </div>
 
       <ol class="rank-list" data-rank-list></ol>
 
       <p class="sample-note">
-        Sample data, not live API output. The ranking is the real approach: a
-        title earns weight per independent source that recommends it, so
-        agreement beats any one service's enthusiasm. Hidden gems inverts the
-        popularity filter to surface what the big lists bury.
+        Sample titles; the ranking rule is the app's. Each independent source
+        that recommends a title adds one point, popularity only breaks ties.
+        Hidden gems drops the most popular titles to surface what big lists bury.
       </p>
     </div>
   </Panel>
 
-  <SectionHead label="Scope" title="What else I built" />
-  <ul>
-    <li>
-      <strong>Discover.</strong> AniList catalog browsing with include and
-      exclude tag combinations.
-    </li>
-    <li>
-      <strong>For You.</strong> A personalized feed built from your own tracked
-      library, rotated weekly.
-    </li>
-    <li>
-      <strong>Reader comments</strong> pulled live from three platforms,
-      read-only.
-    </li>
-    <li>
-      <strong>Bulk AniList tracking</strong> with a match-review screen before
-      anything is written back.
-    </li>
-    <li>
-      Fold-aware reader margins, backup restore fixes, and six icon variants.
-    </li>
-    <li>
-      A signed release channel with an in-app updater, so updates never mean
-      sideloading by hand again.
-    </li>
+  <SectionHead label="Scope" title="What else ships in it" />
+  <ul class="mk-facts">
+    <li><strong>Discover:</strong> AniList and MangaBaka tags in one search, include and exclude, with tag families.</li>
+    <li><strong>For You:</strong> weekly picks from your own library, cached on the device.</li>
+    <li><strong>Similar:</strong> five sources ranked by agreement, plus a weekly Best matches row.</li>
+    <li><strong>Comments and reviews</strong> from three platforms, read-only.</li>
+    <li><strong>AniList tracking:</strong> bulk linking with preview, and automatic progress updates (off by default).</li>
+    <li>Fold-aware margins, an opt-in high-quality renderer, and six icon variants.</li>
   </ul>
 
   <p class="muted fineprint">
-    The source is a private fork; the releases and the users are public.
+    The app source is private; the releases are public.
   </p>
 
   <script is:inline src="/js/makimono-demos.js" defer></script>

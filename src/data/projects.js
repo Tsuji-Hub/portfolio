@@ -7,9 +7,9 @@ export const projects = [
     slug: 'makimono',
     title: 'Makimono',
     blurb:
-      'A feature-driven fork of Mihon, the open-source Android manga reader: 21 releases, with in-app updates.',
-    tags: ['Kotlin', 'Android', 'Release eng'],
-    demo: 'drive the reader',
+      'My fork of Mihon, the open-source Android manga reader: 21 releases, and drop rates for 342 titles that tell real quitting from catching up.',
+    tags: ['Kotlin', 'Android', 'Statistics'],
+    demo: 'read a drop map',
   },
   {
     slug: 'jarvis',

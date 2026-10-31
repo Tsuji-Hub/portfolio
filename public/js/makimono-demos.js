@@ -1,8 +1,90 @@
-// Makimono demos: the auto-scroll reader engine and the cross-source ranking.
+// Makimono demos: the drop map, the auto-scroll reader engine and the
+// cross-source ranking.
 //
 // CSP: external file under script-src 'self'. No eval, no Function(), no string
 // timers, no inline handlers. requestAnimationFrame + CSSOM only. No library.
 (function () {
+  /* ---------------- Drop map: tabs + "your chapter" ---------------- */
+  (function dropMap() {
+    var root = document.querySelector('[data-dm]');
+    if (!root) return;
+    var cards = Array.prototype.slice.call(root.querySelectorAll('[data-dm-card]'));
+    var tabs = Array.prototype.slice.call(root.querySelectorAll('[data-dm-tab]'));
+    var range = root.querySelector('[data-dm-ch]');
+    var out = root.querySelector('[data-dm-out]');
+    if (!cards.length || !range || !out) return;
+    var data = cards.map(function (c) { return JSON.parse(c.getAttribute('data-dm-data')); });
+    var chosen = data.map(function (d) { return Math.round(d.max * 0.45); });
+    var cur = 0;
+    root.classList.add('is-live');
+
+    function span(text, cls) {
+      var s = document.createElement(cls === 'b' ? 'b' : 'span');
+      if (cls && cls !== 'b') s.className = cls;
+      s.textContent = text;
+      return s;
+    }
+
+    function paint() {
+      var d = data[cur];
+      var c = +range.value;
+      chosen[cur] = c;
+      var before = 0, x = null;
+      d.b.forEach(function (b) {
+        var from = b[0], to = b[1], n = b[2], bx = b[3], bw = b[4], len = to - from + 1;
+        if (to < c) before += n;
+        else if (c >= from) {
+          before += n * (c - from) / len;
+          x = bx + bw * (c - from + 0.5) / len;
+        }
+      });
+      if (x === null) { var l = d.b[d.b.length - 1]; x = l[3] + l[4]; }
+      var mark = cards[cur].querySelector('[data-dm-mark]');
+      mark.setAttribute('x1', x.toFixed(1));
+      mark.setAttribute('x2', x.toFixed(1));
+
+      var share = Math.round((before / d.n) * 100);
+      var inside = null, next = null;
+      d.cliffs.forEach(function (k) {
+        if (c >= k[0] && c <= k[1]) inside = k;
+        else if (k[0] > c && !next) next = k;
+      });
+      while (out.firstChild) out.removeChild(out.firstChild);
+      out.appendChild(document.createTextNode('At chapter '));
+      out.appendChild(span(String(c), 'b'));
+      out.appendChild(document.createTextNode(', '));
+      out.appendChild(span(share + '%', 'b'));
+      out.appendChild(document.createTextNode(' of the readers who quit stopped before this point. '));
+      if (inside) {
+        out.appendChild(span('You are in a cliff: ch ' + inside[0] + '-' + inside[1] + ', where ' + inside[2] + '% of droppers quit. ', 'w'));
+      } else if (next) {
+        out.appendChild(span('Next cliff: ch ' + next[0] + '-' + next[1] + ' (' + next[2] + '% of droppers), ' + (next[0] - c) + ' chapters ahead. ', 'w'));
+      } else {
+        out.appendChild(document.createTextNode('No cliff ahead. '));
+      }
+      out.appendChild(document.createTextNode('Readers’ notes past chapter ' + c + ' stay hidden.'));
+    }
+
+    function show(i) {
+      cur = i;
+      cards.forEach(function (c, j) { c.hidden = j !== i; });
+      tabs.forEach(function (t, j) { t.setAttribute('aria-pressed', j === i ? 'true' : 'false'); });
+      var d = data[i];
+      range.max = String(d.max);
+      range.value = String(chosen[i]);
+      paint();
+      if (window.SiteSound) window.SiteSound.play('tick');
+    }
+
+    tabs.forEach(function (t, i) { t.addEventListener('click', function () { show(i); }); });
+    range.addEventListener('input', paint);
+    cur = 0;
+    cards.forEach(function (c, j) { c.hidden = j !== 0; });
+    range.max = String(data[0].max);
+    range.value = String(chosen[0]);
+    paint();
+  })();
+
   /* ---------------- Reader: auto-scroll engine ---------------- */
   (function reader() {
     var root = document.querySelector('[data-reader]');
@@ -176,7 +258,7 @@
       { t: 'Berserk', pop: 98, by: ['AniList', 'MyAnimeList', 'MangaUpdates', 'MangaDex', 'Comick'] },
       { t: 'Vinland Saga', pop: 92, by: ['AniList', 'MyAnimeList', 'MangaDex', 'Comick'] },
       { t: 'Vagabond', pop: 88, by: ['AniList', 'MyAnimeList', 'MangaUpdates'] },
-      { t: 'Oyasumi Punpun', pop: 79, by: ['AniList', 'MyAnimeList', 'MangaUpdates', 'Comick'] },
+      { t: 'Planetes', pop: 79, by: ['AniList', 'MyAnimeList', 'MangaUpdates', 'Comick'] },
       { t: 'Dorohedoro', pop: 71, by: ['AniList', 'MangaDex', 'Comick'] },
       { t: 'Houseki no Kuni', pop: 46, by: ['AniList', 'MangaUpdates', 'MangaDex'] },
       { t: 'Blame!', pop: 38, by: ['MangaUpdates', 'MangaDex'] },

@@ -2,25 +2,36 @@
 import ProjectLayout from '../../layouts/ProjectLayout.astro';
 import SectionHead from '../../components/SectionHead.astro';
 import Panel from '../../components/Panel.astro';
+import ev from '../../data/homelab-evidence.json';
+
+// Every number here comes from src/data/homelab-evidence.json (read-only
+// checks on the live hypervisor, dated) or from a dated incident named next to
+// it. Nothing is illustrative except the watchdog demo, which runs the real
+// rules on sample jobs and says so.
+const g = ev.guests;
+const sh = ev.selfheal;
+const wd = ev.watchdog;
+const [r1, r2] = ev.restores;
+const mmss = (s: number) => (s < 60 ? `${s} s` : `${Math.floor(s / 60)} min ${s % 60} s`);
 ---
 
 <ProjectLayout
   title="Homelab"
   path="/projects/homelab/"
-  description="A Proxmox VE node run with production discipline: restore-tested backups, network segmentation, fail-closed VPN egress isolation, self-healing services."
-  lede="A Proxmox VE node run with production discipline. Not a pile of containers that happen to work, but infrastructure with backups that get restored, traffic that cannot leak, and services that heal themselves after a reboot."
-  tags={['Proxmox', 'ZFS', 'nftables', 'Network namespaces', 'Caddy', 'Linux ops']}
+  description="A Proxmox VE node run like production: timed restores, a watchdog that notices when anything goes quiet, health probes that repair what they safely can, and fail-closed VPN egress."
+  lede="One Proxmox node, held to production standards. Backups get restored on a stopwatch, a watchdog notices when anything goes quiet, probes repair what they safely can, and the workloads that must never leak fail closed. The useful part is what broke along the way, and what I changed."
+  tags={['Proxmox', 'ZFS', 'nftables', 'Network namespaces', 'Caddy', 'Python', 'Linux ops']}
   kicker="Infrastructure"
   headline="A homelab run like production"
   accent="like production"
   slug="homelab"
   stats={[
-    { n: '31', l: 'containers on 7 guests' },
-    { n: '2', l: 'mirrored ZFS pools' },
-    { n: 'nightly', l: 'backups' },
-    { n: 'restore', l: 'tested, not assumed' },
+    { n: String(g.containers), l: `containers on ${g.running} guests` },
+    { n: String(wd.checks), l: 'jobs and feeds watched for silence' },
+    { n: String(sh.probes), l: `health probes every ${sh.every_min} minutes` },
+    { n: mmss(r1.seconds), l: 'timed restore of the SIEM VM' },
   ]}
-  demonstrates="Virtualization, storage design, network segmentation, backup discipline, Linux operations, and AI-augmented operations. Same control mindset as the day job, applied at home."
+  demonstrates="Virtualization, storage design, backup and recovery discipline, monitoring that checks itself, safe automation, and root-cause analysis with real counters. Same control mindset as the day job, applied at home."
 >
   <div slot="hero-aside" data-canvas>
     <div class="hero-canvas">
@@ -38,10 +49,13 @@ import Panel from '../../components/Panel.astro';
 
   <SectionHead label="The map" title="Architecture" />
   <p>
-    This is what actually runs on it. <a href="/projects/jarvis/">Friday and
-    Jarvis</a> live here, one trusted and one deliberately not, and so does my
-    <a href="/projects/mealie/">Mealie fork</a>. The GPU does double duty:
-    NVENC transcoding for playback and CUDA for the assistants' speech stack.
+    This is what runs on it: {g.running} guests ({g.vms} VMs, {g.lxcs} LXC
+    containers) carrying {g.containers} Docker containers. Atlas, my private
+    voice for alerts, and <a href="/projects/jarvis/">Jarvis</a>, a public bot,
+    live here, one trusted and one deliberately not, and so does my
+    <a href="/projects/mealie/">Mealie fork</a>. One GPU does four jobs. The
+    security controls in front of all of it have
+    <a href="/projects/security/">their own page</a>.
   </p>
   <p>
     Click any component for what it runs and the decision behind it. Or drive
@@ -62,7 +76,7 @@ import Panel from '../../components/Panel.astro';
           attempt bypass
         </button>
         <button class="map-btn" type="button" data-trace="trust" aria-pressed="false">
-          public bot → Friday?
+          public bot → the house?
         </button>
         <span class="sep"></span>
         <button class="map-btn" type="button" data-toggle="tunnel" aria-pressed="false">
@@ -115,7 +129,7 @@ import Panel from '../../components/Panel.astro';
         <g class="node" data-node="gateway" role="button" tabindex="0">
           <rect class="node-box" x="700" y="100" width="210" height="44" rx="8"></rect>
           <text class="node-title" x="805" y="120" text-anchor="middle">LAN gateway</text>
-          <text class="node-sub" x="805" y="136" text-anchor="middle">no route from namespace</text>
+          <text class="node-sub" x="805" y="136" text-anchor="middle">namespace firewall drops it</text>
         </g>
 
         <!-- Host -->
@@ -153,13 +167,13 @@ import Panel from '../../components/Panel.astro';
         <g class="node" data-node="mealie" role="button" tabindex="0">
           <rect class="node-box" x="84" y="462" width="142" height="48" rx="6"></rect>
           <text class="node-title" x="155" y="482" text-anchor="middle">Mealie</text>
-          <text class="node-sub" x="155" y="498" text-anchor="middle">my fork, own CI</text>
+          <text class="node-sub" x="155" y="498" text-anchor="middle">my fork, my builds</text>
         </g>
 
         <g class="node" data-node="jarvis" role="button" tabindex="0">
           <rect class="node-box" x="240" y="462" width="142" height="48" rx="6"></rect>
           <text class="node-title" x="311" y="482" text-anchor="middle">Jarvis</text>
-          <text class="node-sub" x="311" y="498" text-anchor="middle">public bot · no HA</text>
+          <text class="node-sub" x="311" y="498" text-anchor="middle">public bot · no HA keys</text>
         </g>
 
         <!-- Media VM: GPU does double duty -->
@@ -177,17 +191,17 @@ import Panel from '../../components/Panel.astro';
 
         <g class="node" data-node="voice" role="button" tabindex="0">
           <rect class="node-box" x="436" y="398" width="198" height="50" rx="6"></rect>
-          <text class="node-title" x="535" y="418" text-anchor="middle">Voice stack</text>
-          <text class="node-sub" x="535" y="434" text-anchor="middle">Whisper · Kokoro</text>
+          <text class="node-title" x="535" y="418" text-anchor="middle">AI jobs</text>
+          <text class="node-sub" x="535" y="434" text-anchor="middle">speech · translation · upscaling</text>
         </g>
 
-        <text class="node-sub" x="535" y="470" text-anchor="middle">one GPU, both jobs</text>
+        <text class="node-sub" x="535" y="470" text-anchor="middle">one GPU, four jobs</text>
 
         <!-- Right column -->
         <g class="node" data-node="friday" role="button" tabindex="0">
           <rect class="node-box" x="672" y="286" width="248" height="52" rx="7"></rect>
-          <text class="node-title" x="796" y="308" text-anchor="middle">Friday</text>
-          <text class="node-sub" x="796" y="325" text-anchor="middle">Home Assistant · private assistant</text>
+          <text class="node-title" x="796" y="308" text-anchor="middle">Atlas</text>
+          <text class="node-sub" x="796" y="325" text-anchor="middle">Home Assistant · private voice</text>
         </g>
 
         <g class="node" data-node="requests" role="button" tabindex="0">
@@ -199,19 +213,19 @@ import Panel from '../../components/Panel.astro';
         <g class="node" data-node="dashboard" role="button" tabindex="0">
           <rect class="node-box" x="672" y="422" width="248" height="48" rx="7"></rect>
           <text class="node-title" x="796" y="442" text-anchor="middle">Dashboard</text>
-          <text class="node-sub" x="796" y="458" text-anchor="middle">stack overview</text>
+          <text class="node-sub" x="796" y="458" text-anchor="middle">verdict first · six pages</text>
         </g>
 
         <g class="node" data-node="monitoring" role="button" tabindex="0">
           <rect class="node-box" x="672" y="488" width="248" height="48" rx="7"></rect>
           <text class="node-title" x="796" y="508" text-anchor="middle">Monitoring</text>
-          <text class="node-sub" x="796" y="524" text-anchor="middle">Netdata → Friday over MCP</text>
+          <text class="node-sub" x="796" y="524" text-anchor="middle">Netdata · watchdog · self-heal</text>
         </g>
 
         <g class="node" data-node="storage" role="button" tabindex="0">
           <rect class="storage-box" x="68" y="548" width="852" height="48" rx="7"></rect>
           <text class="storage-title" x="84" y="569" text-anchor="start">ZFS storage</text>
-          <text class="storage-sub" x="84" y="585" text-anchor="start">mirrored vdevs · nightly restore-tested backups</text>
+          <text class="storage-sub" x="84" y="585" text-anchor="start">three pools · guests on a mirror · timed restores</text>
         </g>
 
         <!-- Animated packet + block marker (last, so they paint on top) -->
@@ -221,7 +235,7 @@ import Panel from '../../components/Panel.astro';
           <circle cx="0" cy="0" r="9"></circle>
           <line x1="-4" y1="-4" x2="4" y2="4"></line>
           <line x1="4" y1="-4" x2="-4" y2="4"></line>
-          <text class="bm-label" x="14" y="4">no route</text>
+          <text class="bm-label" x="14" y="4">dropped</text>
         </g>
       </svg>
 
@@ -261,10 +275,10 @@ import Panel from '../../components/Panel.astro';
         <article data-desc="hypervisor">
           <h3>Hypervisor · Proxmox VE</h3>
           <p>
-            The single host everything runs on, carved into VMs and LXC
-            containers. Each guest carries its own default-deny firewall rather
-            than relying on the cluster firewall, so the host is not the only
-            thing between a service and the network, and guests stay portable.
+            One host, carved into VMs and LXC containers. Every guest carries its
+            own default-deny firewall rather than relying on the cluster firewall,
+            so the host is not the only thing between a service and the network,
+            and guests stay portable.
           </p>
         </article>
         <article data-desc="container-host">
@@ -315,116 +329,264 @@ import Panel from '../../components/Panel.astro';
         <article data-desc="media">
           <h3>Media VM · GPU passthrough</h3>
           <p>
-            The RTX 3070 is passed through to this VM alone, and it does two jobs
-            at once: NVENC transcoding for playback, and CUDA for the voice
-            assistants' speech stack. One card, two workloads, no contention in
-            practice because they peak at different times.
+            The RTX 3070 is passed through to this VM alone and does four jobs:
+            NVENC transcoding for playback, speech for the voice stack, a local
+            language model for translation, and image upscaling. Transcoding wins:
+            the upscaler pauses whenever a stream holds an NVENC session, and waits
+            for the card to cool from {ev.upscaler.hot_c} °C to {ev.upscaler.cool_c} °C before it continues.
           </p>
         </article>
         <article data-desc="jellyfin">
           <h3>Playback · NVENC</h3>
           <p>
-            Hardware transcoding on the 3070. This is the workload the GPU was
-            bought for; the voice stack moved in later and fits alongside it.
+            Hardware transcoding on the 3070. This is the job the GPU was bought
+            for. Everything else on the card is batch work that gets out of its
+            way.
           </p>
         </article>
         <article data-desc="voice">
-          <h3>Voice stack · Whisper + Kokoro</h3>
+          <h3>AI jobs · speech, translation, upscaling</h3>
           <p>
-            Speech-to-text and the synthesized voice for both assistants, sharing
-            the same GPU as transcoding. Measuring this pipeline is what showed
-            that text-to-speech, the stage that sounds like it should be slow, is
-            the fastest part of a response.
+            Whisper for speech-to-text and Kokoro for the voice, a local model for
+            translation, and an upscaler. All of it runs on the same card, with no
+            cloud API in the loop. Measuring the speech pipeline is what showed that
+            text-to-speech, the stage that sounds slow, is the fastest part of a
+            response.
           </p>
         </article>
         <article data-desc="friday">
-          <h3>Friday · the private assistant</h3>
+          <h3>Atlas · the private voice</h3>
           <p>
-            Runs on Home Assistant in its own container. It knows the
-            infrastructure, can act on it, and reads live host sensors from
-            monitoring rather than guessing at them. Only I talk to it, which is
-            exactly why it's allowed to know all of this.
+            Home Assistant runs the house, in its own container. Atlas is the voice
+            on top: a watcher on the hypervisor reads health, security and self-heal
+            state every {ev.atlas.watch_every_s} seconds, and Home Assistant decides what gets said and
+            where, on my PC when I'm at it, otherwise my phone. Only I hear it,
+            which is why it is allowed to know all of this.
           </p>
         </article>
         <article data-desc="jarvis">
           <h3>Jarvis · the public bot</h3>
           <p>
-            The Discord bot my friends talk to. It runs here on the container
-            host, holds no Home Assistant token, and has no code path to Friday.
-            Its entire capability is three functions. It cannot leak a homelab it
-            was never told about.
+            The Discord bot my friends talk to. It runs on the container host with
+            {ev.jarvis.tools} tools (music, polls, timers, web search, media requests), and
+            none of them touch the house: there is no Home Assistant credential in
+            its environment and no Home Assistant code in its image.
           </p>
         </article>
         <article data-desc="mealie">
           <h3>Mealie · my fork</h3>
           <p>
-            A fork of the recipe manager I build in my own CI and deploy here as
-            nightly images. Running what I build is the point: every regression I
-            ship lands on the machine I use at dinner.
+            A fork of the recipe manager that I build and deploy here, with an
+            acceptance check on every change. Running what I build is the point:
+            every regression I ship lands on the machine I use at dinner.
           </p>
         </article>
         <article data-desc="dashboard">
           <h3>Dashboard LXC</h3>
           <p>
-            A single overview of the stack's health and quick links, so checking
-            on things does not mean remembering ports and addresses.
+            Six pages that lead with a one-line verdict: health, security, media,
+            books, a monthly tool radar, news. Acknowledgements happen on the page
+            with an undo, and actions are signed links. My phone reads a summary of
+            it over a private tunnel.
           </p>
         </article>
         <article data-desc="monitoring">
-          <h3>Monitoring · Netdata</h3>
+          <h3>Monitoring · Netdata, watchdog, self-heal</h3>
           <p>
-            Per-second metrics across the node, wired into LLM tooling over MCP. I
-            can ask about the infrastructure's health in plain English and get real
-            numbers back instead of guessing.
+            Netdata keeps per-second metrics. On top of it, a watchdog checks that
+            {wd.checks} jobs and feeds are still updating, and {sh.probes} health probes repair what they
+            safely can. Both are explained below. An AI assistant can read all of
+            it through read-only tokens; any change it proposes waits for my go.
           </p>
         </article>
         <article data-desc="storage">
-          <h3>ZFS storage · mirrored vdevs</h3>
+          <h3>ZFS storage · three pools</h3>
           <p>
-            Mirrored vdevs rather than RAIDZ: expansion by matched pairs and
-            faster resilvering. Backups run nightly and get restore-tested,
-            because a backup that has never been restored is a hope, not a backup.
+            Guest disks live on a two-disk mirror, the media library on a second
+            mirror. Nightly backups go to a separate disk and a weekly copy goes to
+            the media mirror, so one dead disk never takes a guest and its only
+            backup together.
           </p>
         </article>
       </div>
     </div>
   </Panel>
 
+  <SectionHead label="Watchdog" title="Nothing gets registered by hand" />
+  <p>
+    Monitoring usually answers "is it up?". The failure I care about more is
+    quieter: a scan that stopped running, a backup that stopped landing, a
+    dashboard that shows last Tuesday as if it were today. Every 10 minutes a
+    watchdog finds every scheduled job on all eight hosts and every data feed
+    the dashboard reads, by itself, and checks each one is still updating.
+    Right now that is {wd.checks} checks, {wd.fresh} of them fresh.
+  </p>
+  <ul>
+    <li><strong>The limit comes from the schedule.</strong> A timer or cron job
+      goes stale at twice its interval plus a margin, so a job that runs every
+      6 hours is late after 12 h 10 min, not at a number I picked. Feeds with a
+      known producer get a limit that matches it.</li>
+    <li><strong>New jobs are covered the moment they exist.</strong> A data feed
+      the watchdog cannot match to a job is itself flagged: "no refresher
+      registered". That is how it finds gaps instead of waiting for me to
+      remember them.</li>
+    <li><strong>It repairs only what is safe to repeat.</strong> A stale feed
+      with an idempotent generator is re-run once, at most every
+      {wd.heal_once_per_h} hours, before anyone is alerted. Everything else goes
+      straight to an alert. It never restarts or rebuilds anything.</li>
+  </ul>
+
+  <Panel label="watchdog · sample run" status="fast-forward it">
+    <div class="wd" data-wd>
+      <div class="map-controls" data-js-only>
+        <button class="map-btn" type="button" data-wd-step="60">+1 hour</button>
+        <button class="map-btn" type="button" data-wd-step="720">+12 hours</button>
+        <button class="map-btn" type="button" data-wd-stop="hostbak">stop the config backup</button>
+        <button class="map-btn" type="button" data-wd-stop="health">stop the health feed</button>
+        <button class="map-btn" type="button" data-wd-add="cron">add a cron job</button>
+        <button class="map-btn" type="button" data-wd-add="feed">add an unknown feed</button>
+        <button class="map-btn" type="button" data-wd-reset>reset</button>
+      </div>
+      <p class="wd-clock"><span class="label">clock</span> <span data-wd-clock>+0 h 00 min</span> <span class="wd-sum" data-wd-sum></span></p>
+      <div class="map-table-wrap">
+      <table class="ev-table wd-table">
+        <caption>Sample jobs with the watchdog's real limit rules. Names are generic; the rules are the ones in production.</caption>
+        <thead>
+          <tr><th scope="col">Job or feed</th><th scope="col">Runs</th><th scope="col">Stale after</th><th scope="col">Age</th><th scope="col">State</th></tr>
+        </thead>
+        <tbody data-wd-rows>
+          <tr><th scope="row">Dashboard health feed</th><td>every 10 min</td><td>30 min</td><td>0 min</td><td>fresh</td></tr>
+          <tr><th scope="row">Self-heal status</th><td>every 10 min</td><td>25 min</td><td>0 min</td><td>fresh</td></tr>
+          <tr><th scope="row">Container vulnerability scan</th><td>daily</td><td>26 h</td><td>0 min</td><td>fresh</td></tr>
+          <tr><th scope="row">Hypervisor config backup</th><td>daily</td><td>26 h 30 min</td><td>0 min</td><td>fresh</td></tr>
+          <tr><th scope="row">Backup integrity check</th><td>weekly</td><td>8 days</td><td>0 min</td><td>fresh</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <ol class="edge-log" data-wd-log aria-live="polite"></ol>
+    </div>
+  </Panel>
+
+  <SectionHead label="Recovery" title="Backups, timed" />
+  <p>
+    A backup that has never been restored is a hope. These are the layers, and
+    the two restores I have put on a stopwatch.
+  </p>
+  <table class="ev-table">
+    <caption>Backup layers, read from the live job configuration.</caption>
+    <thead><tr><th scope="col">What</th><th scope="col">When</th><th scope="col">Where</th><th scope="col">How</th></tr></thead>
+    <tbody>
+      {ev.backups.map((b) => (
+        <tr><th scope="row">{b.what}</th><td>{b.when}</td><td>{b.where}</td><td>{b.how}</td></tr>
+      ))}
+    </tbody>
+  </table>
+  <div class="finds restores">
+    {ev.restores.map((r) => (
+      <article class="find" data-card>
+        <p class="label">restore drill · {r.date}</p>
+        <h3>{r.what}: {mmss(r.seconds)}</h3>
+        <p>{r.check}</p>
+        <p class="sample-note">Timed from the {r.source}.</p>
+      </article>
+    ))}
+  </div>
+  <p>
+    Both drills restore into a throwaway copy with no network, so a restored
+    service can never answer for the live one. Next drill: boot the restored
+    applications on an isolated network, not only check their data.
+  </p>
+
+  <SectionHead label="Postmortems" title="Three things that broke, and what changed" />
+  <p>
+    Each looked fine until it didn't. For each: what was wrong, how I found it,
+    the fix, and the proof the fix holds.
+  </p>
+  <div class="finds">
+    <article class="find" data-card>
+      <p class="label">memory · hypervisor · 10-26 to 10-29</p>
+      <h3>The swap that kept coming back</h3>
+      <dl>
+        <dt>Wrong</dt>
+        <dd>Host swap hit 98.5 % with 16.7 GB of RAM free. Three textbook fixes (a smaller ZFS cache, more RAM for the container, swappiness 1) each held for about two hours.</dd>
+        <dt>Found</dt>
+        <dd>Per-cgroup counters instead of host totals: one container caused 86 % of all swap-outs. Inside it, the torrent client's memory-mapped disk I/O held 7.24 GiB of file data charged to that container, so the kernel pushed every other service out to swap.</dd>
+        <dt>Fix</dt>
+        <dd>Plain file I/O in the torrent client, kernel watermark boosting off, a swap cap on the container, and a logger that records swap per guest every 10 minutes.</dd>
+        <dt>Proof</dt>
+        <dd>The torrent client dropped from 7.3 GiB to 63 MB the moment the setting changed, and swap stayed flat overnight. The logger has since pointed at a second, smaller source, the SIEM VM, which is the next fix.</dd>
+      </dl>
+    </article>
+
+    <article class="find" data-card>
+      <p class="label">self-heal · 10-22</p>
+      <h3>Self-heal rebooted the wrong VM</h3>
+      <dl>
+        <dt>Wrong</dt>
+        <dd>A TV on the network grabbed the media VM's address. The probe saw the media server stop answering and rebooted the proxy VM, which was fine. During a planned reboot, the same script "repaired" 20 services that were only shutting down.</dd>
+        <dt>Found</dt>
+        <dd>The outage itself, then the repair log line by line.</dd>
+        <dt>Fix</dt>
+        <dd>Version 2 sends raw ARP requests to see who answers for each static address and raises an IP-conflict alert instead of acting. It reboots the proxy only when SSH to it fails, does nothing until the host reports itself up and has been up {sh.boot_guard_s / 60} minutes, and makes at most {sh.max_repairs} repairs in {sh.window_h} hours.</dd>
+        <dt>Proof</dt>
+        <dd>A container stopped on purpose on 10-30 was repaired in about 1 min 45 s, and Atlas announced it. {sh.probes} probes run every {sh.every_min} minutes, one pass in {sh.run_seconds} s.</dd>
+      </dl>
+    </article>
+
+    <article class="find" data-card>
+      <p class="label">disk-pressure cleanup · 10-30</p>
+      <h3>A delete button on autopilot</h3>
+      <dl>
+        <dt>Wrong</dt>
+        <dd>The tool that frees space by deleting media was in automatic mode, blind to watch history since a media-server upgrade, and about a month from its first real run. Over 700 GB of library files were hardlinks to old downloads, so a delete would free nothing and the next pass would delete more.</dd>
+        <dt>Found</dt>
+        <dd>An audit of its source, database and settings, before it had deleted anything.</dd>
+        <dt>Fix</dt>
+        <dd>Approval mode, so nothing goes without a click. A small internal shim that translates its auth header for the new media server. 2.1 TB of orphaned downloads moved aside with a restore manifest. An upstream bug report for a release that broke its own login page.</dd>
+        <dt>Proof</dt>
+        <dd>The delete path, proven end to end on a hardlinked test title: approval, 30-second queue, removal, import exclusion, audit entry. The media-server integration recovered after 9,266 failed calls.</dd>
+      </dl>
+    </article>
+  </div>
+
   <SectionHead label="Decisions" title="Design decisions" />
   <p>Each of these was a choice with a reason, not a default I inherited.</p>
   <ul>
     <li>
-      <strong>Mirrored ZFS vdevs over RAIDZ.</strong> Expansion by matched pairs
-      and faster resilver, which matters more to me than raw capacity
-      efficiency.
+      <strong>Guests on a mirror, backups on other disks.</strong> One dead disk
+      can never take a guest and its only backup together.
     </li>
     <li>
-      <strong>Backups are restore-tested.</strong> A backup that has never been
-      restored is a hope, not a backup.
+      <strong>Restores are drills, with a stopwatch.</strong> {mmss(r1.seconds)} for
+      the SIEM VM, {mmss(r2.seconds)} for the request database.
     </li>
     <li>
       <strong>Default-deny nftables inside each guest</strong> instead of the
-      cluster firewall. One landmine avoided, and the guests stay portable.
+      cluster firewall. The guests stay portable, and the host is not the only
+      layer.
     </li>
     <li>
-      <strong>Egress isolation that fails closed, and is tested.</strong>
-      The workloads that must not leak share the VPN container's namespace,
-      whose firewall drops anything not headed into the tunnel. Six tunnel
-      kills, 45 probes while it was down, zero answers.
+      <strong>Egress isolation that fails closed, and is tested.</strong> The
+      workloads that must not leak share the VPN container's namespace, whose
+      firewall drops anything not headed into the tunnel. Six tunnel kills, 45
+      probes while it was down, zero answers.
     </li>
     <li>
-      <strong>TLS terminates at a dedicated reverse proxy.</strong> Services are
-      never exposed directly.
+      <strong>TLS terminates at one hardened proxy.</strong> Services are never
+      exposed directly. <a href="/projects/security/">What guards it</a>.
     </li>
     <li>
-      <strong>systemd recovery units,</strong> so a reboot heals the stack
-      without a human in the loop.
+      <strong>Automation repairs only what is safe to repeat.</strong> Self-heal
+      and the watchdog alert on everything else, and anything destructive waits
+      for a human.
     </li>
     <li>
-      <strong>Netdata monitoring wired into LLM tooling over MCP.</strong> The
-      infrastructure is queryable in plain English.
+      <strong>Updates roll themselves back.</strong> Weekly image updates pass a
+      health gate or return to the previous image; I proved that path by forcing
+      a failed gate on a real service before trusting it.
     </li>
   </ul>
 
+  <script is:inline src="/js/homelab-watchdog.js" defer></script>
   <script is:inline src="/js/homelab-map.js" defer></script>
 </ProjectLayout>

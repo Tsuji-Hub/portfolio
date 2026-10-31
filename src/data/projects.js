@@ -23,9 +23,9 @@ export const projects = [
     slug: 'homelab',
     title: 'Homelab',
     blurb:
-      'A Proxmox node run with production discipline: restore-tested backups, network segmentation, self-healing services.',
+      'A Proxmox node run like production: timed restores, a watchdog for anything that goes quiet, probes that repair what is safe to repeat.',
     tags: ['Proxmox', 'ZFS', 'Linux ops'],
-    demo: 'trace the traffic',
+    demo: 'run the watchdog',
   },
   {
     slug: 'security',

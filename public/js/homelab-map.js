@@ -67,9 +67,9 @@
       ghost: 'ghost-trust',
       blocked: true,
       blockAt: [398, 486],
-      title: 'Public bot → Friday: nothing to travel on',
+      title: 'Public bot → the house: nothing to log in with',
       body:
-        'The Discord bot my friends talk to sits on this host, a few centimetres from an assistant that can read my calendar and drive my house. It cannot reach it. It holds no Home Assistant token and has no code path to one, so this is not a firewall decision that could be misconfigured — the credential and the route simply do not exist in that container. Compromise it completely and it still has nothing worth taking. Absence, not permission.',
+        'The Discord bot my friends talk to runs on the same hypervisor as Home Assistant, which runs my house. It has 18 tools, and none of them touch the house: no Home Assistant credential in its environment, no Home Assistant code in its image. Compromise the bot completely and there is still nothing to log in to the house with. Absence, not permission.',
     },
   };
 

@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "captured": "2026-10-30T22:42:00-05:00",
+  "method": "Read-only checks on the hypervisor over SSH (Proxmox CLI, ZFS, systemd, guest agent), counts only. Nothing changed.",
+  "node": {
+    "hypervisor": "Proxmox VE 9",
+    "cpu_threads": 12,
+    "ram_gib": 62
+  },
+  "guests": { "running": 7, "vms": 3, "lxcs": 4, "containers": 31 },
+  "zfs": [
+    { "role": "guest disks", "layout": "2-disk mirror", "size": "444 GB" },
+    { "role": "media library + weekly backups", "layout": "2-disk mirror", "size": "14.5 TB" },
+    { "role": "nightly backups + scratch", "layout": "single disk", "size": "1.81 TB" }
+  ],
+  "backups": [
+    { "what": "Every running guest", "when": "Daily 04:00", "where": "Separate backup disk", "how": "Snapshot mode, zstd" },
+    { "what": "Every running guest, second copy", "when": "Sunday 05:30", "where": "Media mirror (different disks)", "how": "Snapshot mode, zstd" },
+    { "what": "Hypervisor config and scripts", "when": "Daily 03:17", "where": "Backup disk", "how": "7 rolling + monthly" },
+    { "what": "Archive integrity check", "when": "Sunday 08:41", "where": "Both targets", "how": "Newest archive per guest, alert only on problems" },
+    { "what": "Backup age", "when": "Every 10 min", "where": "Watchdog", "how": "Alert if any guest's newest backup is over 8 days old" }
+  ],
+  "restores": [
+    { "date": "2026-10-22", "what": "SIEM VM", "seconds": 39, "source": "hypervisor task log 19:20:46 to 19:21:25", "check": "Restored with its network unplugged; every SIEM component came up." },
+    { "date": "2026-10-30", "what": "Request-intake container", "seconds": 95, "source": "hypervisor task log 14:15:15 to 14:16:50", "check": "Database integrity ok; users, requests and media rows identical to live (7 / 226 / 611)." }
+  ],
+  "selfheal": { "probes": 72, "every_min": 10, "run_seconds": 27, "boot_guard_s": 600, "max_repairs": 3, "window_h": 6 },
+  "watchdog": { "checks": 168, "fresh": 168, "every_min": 10, "timer_limit": "2 x period + 15 min", "cron_limit": "2 x gap + 10 min", "unknown_default_h": 24, "heal_once_per_h": 6 },
+  "gpu_jobs": ["NVENC transcoding", "speech (Whisper, Kokoro)", "local LLM translation", "image upscaling"],
+  "upscaler": { "pauses_on_nvenc": true, "hot_c": 75, "cool_c": 65 },
+  "atlas": { "watch_every_s": 60 },
+  "jarvis": { "tools": 18, "home_assistant_credentials": 0 }
+}

@@ -3495,3 +3495,18 @@ canvas.field {
 .prose .about-tl li, .prose .work-list li, .prose .wrong-list li, .prose .about-shelf li { margin-bottom: 0; }
 
 .about-shelf li.is-fav { width: 3rem; height: 14.6rem; border-top: 3px solid var(--accent); background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.18), var(--bg-raised) 45%, rgba(var(--accent-rgb), 0.12)); }
+
+/* Homelab page: watchdog demo + restore cards (step 2, 10-31) */
+.wd-clock { margin: 0.25rem 0 0; font-family: var(--font-mono); font-size: 0.8rem; }
+.wd-clock .label { margin-right: 0.5rem; }
+.wd-sum { color: var(--muted); margin-left: 0.75rem; }
+.wd-table { margin-top: 0.75rem; }
+.wd-table td:nth-child(4), .wd-table td:nth-child(5) { font-family: var(--font-mono); font-size: 0.75rem; white-space: nowrap; }
+.wd-table .wd-fresh { color: var(--muted); }
+.wd-table .wd-stale { color: var(--danger); font-weight: 600; }
+.wd-table .wd-gap { color: var(--accent); font-weight: 600; }
+.restores .find h3 { font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) {
+  .wd-table th:nth-child(2), .wd-table td:nth-child(2) { display: none; }
+  .wd-table th, .wd-table td { padding: 0.4rem 0.35rem; }
+}

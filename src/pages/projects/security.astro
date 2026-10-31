@@ -22,12 +22,6 @@ const SHORT: Record<string, string> = {
 };
 const payloads = reqs.filter((r) => r.id !== 'baseline' && r.id !== 'wordpress');
 const blockedPayloads = payloads.filter((r) => r.inband.verdict === 'blocked').length;
-const shown = (r: (typeof reqs)[number]) => {
-  const h = Object.entries(r.request.headers || {})
-    .map(([k, v]) => `${k}: ${v}`)
-    .join('\n');
-  return `${r.request.verb} ${r.request.uri}${h ? '\n' + h : ''}`;
-};
 const ban = ev.ban_enforcement.reps;
 const banMin = Math.min(...ban.map((r) => r.ban_to_drop_s));
 const banMax = Math.max(...ban.map((r) => r.ban_to_drop_s));
@@ -73,79 +67,12 @@ const day = ev.captured.slice(5, 10);
   <p>
     I sent ten requests through the edge's WAF engine, using the same API the
     proxy calls, six times each. Every attack payload was blocked with a 403
-    before it could reach an app, with the same result in all six runs. Pick
-    one and see which rules fired.
+    before it could reach an app, with the same result in all six runs. The
+    table has every request, verdict, score and rule.
+    <a href="/">Watch one go through the layers on the home page</a>.
   </p>
 
   <Panel label="edge · recorded run" status={`captured ${day}`}>
-    <div class="edge-demo" data-edge data-js-only data-ban={`${s1(banMin)} to ${s1(banMax)}`} data-captured={ev.captured}>
-      <div class="map-controls edge-picks" role="group" aria-label="Pick a request">
-        {
-          reqs.map((r) => (
-            <button
-              class="map-btn"
-              type="button"
-              data-req={JSON.stringify({ ...r, shown: shown(r), short: SHORT[r.id] })}
-              aria-pressed={r.id === 'sqli' ? 'true' : 'false'}
-            >
-              {SHORT[r.id]}
-            </button>
-          ))
-        }
-      </div>
-
-      <div class="edge-grid">
-        <ol class="edge-layers" aria-label="Layers the request passes, in order">
-          <li data-layer="geo">
-            <span class="edge-name">geo filter</span>
-            <span class="edge-what">nftables · TCP 443, UDP 443, TCP 80</span>
-            <span class="edge-v" data-v>pass</span>
-          </li>
-          <li data-layer="ban">
-            <span class="edge-name">ban list</span>
-            <span class="edge-what">CrowdSec · firewall + proxy bouncers</span>
-            <span class="edge-v" data-v>pass</span>
-          </li>
-          <li data-layer="waf">
-            <span class="edge-name">WAF</span>
-            <span class="edge-what" data-waf-what>virtual patches + OWASP CRS</span>
-            <span class="edge-v" data-v>pass</span>
-          </li>
-          <li data-layer="app">
-            <span class="edge-name">app</span>
-            <span class="edge-what" data-app-what>forwarded by the proxy</span>
-            <span class="edge-v" data-v>forwarded</span>
-          </li>
-        </ol>
-
-        <div class="edge-after">
-          <p class="label">OWASP CRS · anomaly score</p>
-          <div class="score">
-            <div class="score-bar" aria-hidden="true">
-              <i data-score-fill></i>
-              <span class="score-thresh"></span>
-            </div>
-            <span class="score-num"><span data-score>0</span> <small>/ block at 5</small></span>
-          </div>
-          <ul class="edge-rules" data-rules></ul>
-          <p class="edge-count" data-count></p>
-        </div>
-      </div>
-
-      <p class="edge-out" aria-live="polite" data-out></p>
-
-      <details class="evidence">
-        <summary>Show the evidence</summary>
-        <pre data-ev-pre></pre>
-      </details>
-
-      <div class="map-controls">
-        <button class="map-btn" type="button" data-replay>▶ replay an attacker</button>
-        <span class="ctl-label">the nine requests in order, from one source</span>
-      </div>
-      <ol class="edge-log" data-log aria-live="polite"></ol>
-    </div>
-
     <table class="ev-table">
       <caption>All ten requests, as recorded. Rule IDs are OWASP CRS unless named.</caption>
       <thead>
@@ -334,5 +261,4 @@ const day = ev.captured.slice(5, 10);
   </div>
 
 
-  <script is:inline src="/js/security-edge.js" defer></script>
 </ProjectLayout>

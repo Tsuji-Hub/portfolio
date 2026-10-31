@@ -23,6 +23,7 @@
   var pips = root.querySelectorAll('[data-ah-strikes] i');
   var banOut = root.querySelector('[data-ah-ban]');
   var reset = root.querySelector('[data-ah-reset]');
+  var bannedBox = root.querySelector('[data-ah-banned]');
   var banAfter = +root.getAttribute('data-ban-after') || 4;
   var drop = root.getAttribute('data-drop');
   var layers = {};
@@ -54,10 +55,14 @@
     Array.prototype.forEach.call(pips, function (p, i) { p.classList.toggle('on', i < strikes); });
     var banned = strikes >= banAfter;
     root.classList.toggle('is-banned', banned);
-    reset.hidden = !banned;
+    bannedBox.hidden = !banned;
+    var left = banAfter - strikes;
     banOut.textContent = banned
-      ? 'Banned for 24 h. The firewall now drops you before the WAF sees anything.'
-      : banAfter + ' blocked requests from one address = 24 h ban';
+      ? 'Strikes ' + strikes + ' of ' + banAfter + '. Banned.'
+      : 'Strikes ' + strikes + ' of ' + banAfter + '. ' +
+        (strikes === 0 ? banAfter + ' blocked attacks from one address = 24 h ban.'
+          : left === 1 ? 'One more blocked attack and you are banned for 24 h.'
+          : left + ' more blocked attacks and you are banned for 24 h.');
   }
 
   function run(btn) {
@@ -90,7 +95,7 @@
     if (strikes >= banAfter) {
       later(function () {
         set('rep', 'is-block', 'banned');
-        out.textContent = 'Dropped at the firewall: this address is banned for 24 h. Even a normal visit gets nothing now.';
+        out.textContent = 'Dropped at the firewall. Your ' + banAfter + ' blocked attacks got this address banned for 24 h, so even a normal visit gets nothing. Unban yourself above to keep testing.';
         out.classList.add('is-block');
         S.play('block');
       }, (t += step));
@@ -130,7 +135,7 @@
     paintStrikes();
     ['geo', 'rep', 'waf', 'app'].forEach(function (k) { set(k, '', ''); });
     score(0);
-    out.textContent = 'Unbanned. In real life the ban expires after 24 h; the firewall lets you back in about 10 s after the decision is removed.';
+    out.textContent = 'Unbanned. For real, the ban expires after 24 h, and the firewall lets the address back in about 10 s after the decision is removed.';
     out.className = 'ah-out';
     btns.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
   });

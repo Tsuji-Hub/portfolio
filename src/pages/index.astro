@@ -99,19 +99,19 @@ const ICONS: Record<string, string> = {
         <dl class="hero-stats" data-reveal>
           <div>
             <dt>1,100+</dt>
-            <dd>GCP projects governed</dd>
+            <dd>GCP projects mapped to owners</dd>
           </div>
           <div>
             <dt>21</dt>
-            <dd>releases shipped</dd>
+            <dd>Makimono releases shipped</dd>
           </div>
           <div>
-            <dt>31</dt>
-            <dd>containers, tested restores</dd>
+            <dt>{blockedN}/{payloadN}</dt>
+            <dd>attacks blocked at my edge</dd>
           </div>
           <div>
             <dt>13.7k★</dt>
-            <dd>project, one fix of mine merged</dd>
+            <dd>Mealie: my fix merged upstream</dd>
           </div>
         </dl>
       </div>
@@ -131,6 +131,16 @@ const ICONS: Record<string, string> = {
           ))}
           <button class="ah-btn is-abroad" type="button" data-ah-abroad aria-pressed="false">Visit from abroad</button>
         </div>
+        <div class="ah-foot" data-js-only>
+          <span class="ah-strikes" aria-hidden="true" data-ah-strikes>
+            {Array.from({ length: banAfter }).map(() => <i></i>)}
+          </span>
+          <span class="ah-ban" data-ah-ban aria-live="polite">Strikes 0 of {banAfter}. {banAfter} blocked attacks from one address = 24 h ban.</span>
+        </div>
+        <div class="ah-banned" data-ah-banned hidden>
+          <p><strong>You're banned for 24 h</strong>, exactly as a real attacker would be. The firewall now drops everything from your address, even a normal visit.</p>
+          <button class="ah-reset" type="button" data-ah-reset>Unban me and try again</button>
+        </div>
         <code class="ah-line" data-ah-line data-js-only>choose a request above</code>
         <ol class="ah-layers" data-js-only>
           <li data-l="geo"><span class="ah-n">1</span><span class="ah-name">Country filter<small>firewall, before anything else</small></span><span class="ah-v" data-v></span></li>
@@ -139,14 +149,9 @@ const ICONS: Record<string, string> = {
           <li data-l="app"><span class="ah-n">4</span><span class="ah-name">Proxy → app<small>TLS ends here, logs redacted</small></span><span class="ah-v" data-v></span></li>
         </ol>
         <p class="ah-out" data-ah-out aria-live="polite" data-js-only></p>
-        <div class="ah-foot" data-js-only>
-          <span class="ah-strikes" aria-hidden="true" data-ah-strikes>
-            {Array.from({ length: banAfter }).map(() => <i></i>)}
-          </span>
-          <span class="ah-ban" data-ah-ban>{banAfter} blocked requests from one address = 24 h ban</span>
-          <button class="ah-reset" type="button" data-ah-reset hidden>unban me</button>
-        </div>
-        <p class="ah-static">
+
+        <p class="ah-more" data-js-only><a href="/projects/security/">Every rule and score, and what my own testing caught →</a></p>
+        <p class="ah-static js-required">
           {blockedN} of {payloadN} attack payloads blocked with a 403 by the WAF,
           normal traffic untouched, repeat offenders banned at the firewall in
           {dropRange}. <a href="/projects/security/">The full evidence →</a>
@@ -157,16 +162,15 @@ const ICONS: Record<string, string> = {
     <section class="selftest" id="selftest" data-selftest>
       <h2 class="section-label">this page is the first exhibit</h2>
       <p class="selftest-intro">
-        I could tell you I take this seriously. Instead: attack it. Every button
-        below runs a real attack against this page, in your browser, right now.
-        Nothing is simulated and none of the verdicts are written by me — they
-        are the browser refusing, and reporting why.
+        The hero tests my homelab. This tests the page you are on. Each button
+        runs a real attack against it in your browser, and the verdict is the
+        browser's own: its content security policy refuses the attack and
+        reports why.
       </p>
 
       <p class="js-required">
-        These attacks run in JavaScript, and you have it switched off, so there
-        is nothing here to run. The page still works without it — which is the
-        other half of the same argument.
+        These attacks run in JavaScript, which is off in your browser. The page
+        still works without it, which is part of the same point.
       </p>
 
       <div class="map-controls js-only">
@@ -187,19 +191,6 @@ const ICONS: Record<string, string> = {
         <code data-policy-text></code>
       </div>
 
-      <p class="selftest-intro js-only">
-        And here is everything this page fetched to show you itself. Not a claim
-        in a footer — your browser's own record, counted against this domain.
-      </p>
-
-      <div class="manifest js-only" data-manifest>
-        <div class="manifest-head">
-          <span><b data-mf-count>—</b> requests</span>
-          <span><b data-mf-weight>—</b> transferred</span>
-          <span class="manifest-verdict" data-mf-verdict>counting…</span>
-        </div>
-        <ul class="manifest-list" data-mf-list></ul>
-      </div>
     </section>
 
     <section id="work" class="work">
@@ -276,5 +267,4 @@ const ICONS: Record<string, string> = {
 
   <script is:inline src="/js/attack-hero.js" defer></script>
   <script is:inline src="/js/selftest.js" defer></script>
-  <script is:inline src="/js/manifest.js" defer></script>
 </Base>

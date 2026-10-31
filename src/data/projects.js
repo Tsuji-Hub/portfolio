@@ -7,7 +7,7 @@ export const projects = [
     slug: 'makimono',
     title: 'Makimono',
     blurb:
-      'A feature-driven fork of Mihon, the open-source Android manga reader. 21 releases, real users, updates itself.',
+      'A feature-driven fork of Mihon, the open-source Android manga reader: 21 releases, with in-app updates.',
     tags: ['Kotlin', 'Android', 'Release eng'],
     demo: 'drive the reader',
   },
@@ -15,7 +15,7 @@ export const projects = [
     slug: 'jarvis',
     title: 'Friday & Jarvis',
     blurb:
-      'Two self-hosted voice assistants, architecturally isolated. Friday runs my infrastructure. Jarvis is the one strangers are allowed to talk to.',
+      'Two self-hosted assistants, isolated by design: a private one wired into my infrastructure, and Jarvis, the Discord bot my friends talk to, which holds no Home Assistant credentials.',
     tags: ['LLM tooling', 'Home Assistant', 'Threat modeling'],
     demo: 'try to break it',
   },
@@ -47,7 +47,7 @@ export const projects = [
     slug: 'mealie',
     title: 'Mealie fork',
     blurb:
-      'A fork of Mealie I build, deploy, and extend, plus an upstream fix for the nutrition data it was poisoning into schema.org output.',
+      'A fork of Mealie I build, deploy and extend, plus a fix merged upstream in v3.27.0: recipes with servings but no yield were publishing a yield of 0 in their schema.org data.',
     tags: ['CI/CD', 'Docker', 'Python + Vue'],
     demo: 'see the bug',
   },

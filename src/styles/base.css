@@ -3789,3 +3789,8 @@ canvas.field {
 .ah { gap: 0.6rem; }
 .ah-btn { padding-block: 0.45rem; }
 .ah-layers li { padding-block: 0.36rem; }
+.ah-banned { border: 1px solid var(--danger); background: rgba(var(--danger-rgb), 0.1); border-radius: 10px; padding: 0.6rem 0.7rem; display: grid; gap: 0.5rem; }
+.ah-banned p { margin: 0; font-size: 0.84rem; line-height: 1.45; }
+.ah-banned[hidden] { display: none; }
+.ah-banned .ah-reset { justify-self: start; border-color: var(--danger); background: var(--danger); color: var(--bg); font-weight: 600; padding: 0.35rem 0.8rem; }
+.ah-more { margin: 0; font-size: 0.8rem; }

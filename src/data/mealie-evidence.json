@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "captured": "2026-10-31",
+  "upstream": {
+    "source": "GitHub API, read 2026-10-31",
+    "stars": 13753,
+    "pr": 7881,
+    "pr_title": "fix: fall back to servings for recipe yield display",
+    "merged": "2026-09-16",
+    "released_in": "v3.27.0",
+    "released": "2026-09-17",
+    "credited": true,
+    "latest_upstream": "v3.29.0"
+  },
+  "tls_fix": {
+    "date": "2026-10-23",
+    "commit": "ba565f32",
+    "places": 3,
+    "before": "expired, self-signed, wrong-host and untrusted-root test sites all fetched",
+    "after_pass": 6,
+    "after_total": 6,
+    "tests_added": 4
+  },
+  "image": {
+    "source": "running container + daily Trivy scan, read-only 2026-10-31",
+    "python_packages_before": 147,
+    "python_packages_now": 100,
+    "dev_tools_in_image": 0,
+    "high_before_slim": 52,
+    "high_after_slim": 44,
+    "critical_before_bump": 3,
+    "critical_now": 1,
+    "critical_fixable_now": 0,
+    "running_rev": "7334ca0d",
+    "built": "2026-10-29",
+    "registry": "ghcr.io/tsuji-hub/mealie:nightly (public)"
+  },
+  "library": {
+    "recipes": 274,
+    "multi_category": 77,
+    "categories": 13,
+    "cookbooks": 14
+  }
+}

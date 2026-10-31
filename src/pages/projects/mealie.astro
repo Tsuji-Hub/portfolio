@@ -2,81 +2,178 @@
 import ProjectLayout from '../../layouts/ProjectLayout.astro';
 import SectionHead from '../../components/SectionHead.astro';
 import Panel from '../../components/Panel.astro';
+import ev from '../../data/mealie-evidence.json';
+import '../../styles/mealie.css';
+
+// Every number on this page comes from src/data/mealie-evidence.json: the
+// GitHub API, the running container and its daily Trivy scan, all read 10-31.
+const up = ev.upstream;
+const tls = ev.tls_fix;
+const img = ev.image;
+const lib = ev.library;
+const k = (n: number) => `${(Math.floor(n / 100) / 10).toFixed(1)}k`;
+const md = (d: string) => d.slice(5);
 ---
 
 <ProjectLayout
   title="Mealie fork"
   path="/projects/mealie/"
-  description="A fork of Mealie, the self-hosted recipe manager, that I build, deploy, and extend for a nutrition-tracking pipeline. Plus an upstream fix for poisoned schema.org data."
-  lede="A fork of Mealie, the self-hosted recipe manager (13.7k stars upstream), that I build, deploy, and extend for a nutrition-tracking pipeline. I ship the images, run them in the homelab, and send the generic fixes back upstream."
-  tags={['CI/CD', 'Docker', 'GHCR', 'Python', 'Vue', 'Open source']}
+  description={`My fork of Mealie, the self-hosted recipe manager: a fix merged upstream in ${up.released_in}, a TLS-verification bug found and fixed in my own scraper code, and a runtime image slimmed from ${img.python_packages_before} to ${img.python_packages_now} Python packages.`}
+  lede={`A fork of Mealie, the self-hosted recipe manager (${k(up.stars)} stars upstream). I moved my recipes off a commercial app whose search only read titles and that had no nutrition data. I build the images, run them at home, and send generic fixes upstream: one is merged and credited in ${up.released_in}.`}
+  tags={['Python', 'Vue', 'Docker', 'CI/CD', 'Supply chain', 'Open source']}
   kicker="Open source · fork"
   accent="fork"
   slug="mealie"
   stats={[
-    { n: 'PR #7881', l: 'merged upstream' },
-    { n: '4', l: 'CI fixes to build at all' },
-    { n: 'nightly', l: 'images to my registry' },
-    { n: '1', l: 'upstream contribution' },
+    { n: up.released_in, l: 'my fix merged and credited upstream' },
+    { n: `${tls.after_pass}/${tls.after_total}`, l: 'TLS tests pass after fixing my own scraper' },
+    { n: `${img.python_packages_before} → ${img.python_packages_now}`, l: 'Python packages in my image, no dev tools left in it' },
+    { n: `${lib.multi_category}`, l: `of my ${lib.recipes} recipes in 2+ categories, protected by the fix` },
   ]}
-  demonstrates="CI/CD surgery, Docker and GHCR pipelines, Python and Vue across the full stack, upstream open-source contribution, and the discipline of running what you build."
+  demonstrates="Python and Vue across the stack, upstream contribution through maintainer review, finding and fixing a security bug in my own code with tests, container supply-chain hygiene (slim runtime image, daily Trivy, acceptance by digest with rollback), and CI/CD on a fork."
   links={[
-    { label: 'Merged upstream: PR #7881', href: 'https://github.com/mealie-recipes/mealie/pull/7881' },
+    { label: `Merged upstream: PR #${up.pr}`, href: 'https://github.com/mealie-recipes/mealie/pull/7881' },
   ]}
 >
-  <SectionHead label="The redesign" title="It looked like this" />
+  <SectionHead label="Upstream" title={`The bug behind PR #${up.pr}`} />
   <p>
-    Two rounds of theme work went in and it still looked dated, because I was
-    changing colours and the problem was shape. Flip between them.
+    <strong>In one line:</strong> recipes with servings but no yield published
+    a yield of 0 in their schema.org data, and 0 is the denominator for
+    anything per serving.
+  </p>
+  <p>
+    Mealie emits schema.org JSON-LD for every recipe, which is how search
+    engines, scrapers and nutrition trackers read it. The yield string was built
+    from the yield <em>quantity</em> and <em>text</em>, and a validator turns an
+    unset quantity into zero. So a servings-only recipe emitted a bare
+    <code>"0.0"</code>: not missing, zero.
   </p>
 
-  <Panel label="mealie · recipe card" status="recreated in css">
-    <div class="ui-demo" data-ui>
+  <Panel label="mealie · schema.org output" status="real logic">
+    <div class="jsonld-demo" data-jsonld>
       <div class="map-controls">
-        <span class="ctl-label">recipe card</span>
-        <button class="map-btn" type="button" data-ui-mode="stock" aria-pressed="true">palette only</button>
-        <button class="map-btn" type="button" data-ui-mode="editorial" aria-pressed="false">defaults + rebuild</button>
+        <span class="ctl-label">build</span>
+        <div class="ml-seg" role="group" aria-label="Build">
+          <button class="ml-opt" type="button" data-fix="before" aria-pressed="true">before #{up.pr}</button>
+          <button class="ml-opt" type="button" data-fix="after" aria-pressed="false">after #{up.pr}</button>
+        </div>
+        <span class="ctl-label">yield</span>
+        <div class="ml-seg" role="group" aria-label="Yield type">
+          <button class="ml-opt" type="button" data-ytype="servings" aria-pressed="true">servings only</button>
+          <button class="ml-opt" type="button" data-ytype="text" aria-pressed="false">quantity + text</button>
+        </div>
       </div>
-      <div class="ui-stage stock" data-ui-stage></div>
-      <p class="sample-note" data-ui-note></p>
+
+      <div class="map-controls" data-servings-wrap>
+        <label class="ctl-label" for="servings">count</label>
+        <input id="servings" type="range" data-servings min="1" max="12" step="1" value="4" />
+        <output class="ctl-out" data-servings-out>4</output>
+      </div>
+
+      <pre class="code-out" data-json aria-label="emitted schema.org JSON-LD"></pre>
+      <div class="consumer" data-consumer aria-live="polite"></div>
+
+      <p class="sample-note">
+        With a quantity-and-text yield it was only cosmetic
+        (<code>"8.0 slices"</code>), which is why it survived: the case that
+        broke the math only hit servings-only recipes, in metadata nobody reads
+        by eye. The fix covers both, with parametrized tests over every yield
+        shape. A maintainer tightened the fallback in review so a text-only yield
+        never gets servings put in front of it, merged it on
+        {' '}{md(up.merged)}, and it shipped in {up.released_in} the next day with
+        a first-contributor credit.
+      </p>
     </div>
   </Panel>
 
-  <SectionHead label="Root cause" title="Why recoloring never worked" />
+  <SectionHead label="Security" title="A finding in my own code" />
   <p>
-    The theme plugin set <em>colors</em> and never set <em>component defaults</em>,
-    so every card, button and chip in the app kept rendering stock Material
-    underneath whatever palette I handed it. Elevation shadows, 4px radii, filled
-    chips. You cannot recolor your way out of a shape problem.
+    <strong>In one line:</strong> the recipe scraper my fork carries fetched
+    pages with TLS certificate checks turned off. I found it, fixed it, and
+    proved it with tests before trusting the image.
   </p>
-  <p>
-    Adding defaults in that one file restyled every page in the app: recipes,
-    search, cookbooks, meal planner, settings. Small diff, rebase-safe, because
-    upstream barely touches it. The calories only exist at all because of a
-    separate backend change that put nutrition in the list payload.
-  </p>
+  <article class="find ml-find" data-card>
+    <p class="label">fork scraper · fixed {md(tls.date)}</p>
+    <h3>TLS verification was off in {tls.places} places</h3>
+    <p class="find-tldr">Anyone on the network path could have fed the recipe parser whatever they liked.</p>
+    <dl>
+      <dt>found</dt>
+      <dd>
+        A review of my fork's scraper: page fetch, short-link resolve and an
+        embed lookup all passed <code>verify=False</code>. Upstream Mealie does
+        not have this; it came in with code my fork added.
+      </dd>
+      <dt>before</dt>
+      <dd>Test sites with an expired, self-signed, wrong-host and untrusted-root certificate were all fetched.</dd>
+      <dt>fix</dt>
+      <dd>
+        One transport verifies by default (certifi). The only exception is an
+        exact host list set by the admin, validated at startup, and every skip
+        is logged. A failed check stops the fetch with a clear message instead
+        of retrying without verification.
+      </dd>
+      <dt>proof</dt>
+      <dd>
+        {tls.tests_added} new test files. On the deployed image: all 4 bad
+        certificates refused, a normal site and a plain-HTTP site fetched:
+        {' '}{tls.after_pass}/{tls.after_total} pass, accepted by image digest.
+      </dd>
+    </dl>
+  </article>
 
-  <SectionHead label="Data integrity" title="The one that could quietly destroy the library" />
+  <SectionHead label="Supply chain" title="A smaller image, accepted by digest" />
   <p>
-    Tapping the pill on a card files the recipe into a cookbook. Recipes are
-    multi-membership on purpose: one can live in Dinner and DELICIOUS and
-    Quickies at once. The trap is that the patch endpoint <strong>replaces</strong>
-    the category list with exactly what you send it.
+    <strong>In one line:</strong> the image I run carries only what the app
+    needs, is scanned daily, and is never trusted until a script checks the
+    exact digest that is running.
+  </p>
+  <ul class="ml-facts">
+    <li>
+      <strong>Slimmed:</strong> {img.python_packages_before} Python packages
+      became {img.python_packages_now}, and the running image has no pip, pytest,
+      ruff or mypy in it (checked {md(ev.captured)}). High-severity CVEs went
+      {' '}{img.high_before_slim} → {img.high_after_slim} from that alone.
+    </li>
+    <li>
+      <strong>Patched:</strong> a dependency bump on 10-29 cleared every
+      critical CVE in the image that had a fixed version available, verified by
+      the daily scan.
+    </li>
+    <li>
+      <strong>Accepted, not assumed:</strong> each new image goes through an
+      acceptance script: digest match, health, login, the public page, and the
+      change's own tests. The previous image stays tagged for rollback.
+    </li>
+    <li>
+      <strong>Built in the open:</strong> every push to the fork builds and
+      publishes a public image to GitHub's registry. The one running now was
+      built {md(img.built)} from commit {img.running_rev}.
+    </li>
+  </ul>
+
+  <SectionHead label="Data integrity" title="The one that could quietly empty my cookbooks" />
+  <p>
+    <strong>In one line:</strong> the update call replaces a recipe's whole
+    category list, so sending only the tapped category silently removes all
+    the others. {lib.multi_category} of my {lib.recipes} recipes sit in more
+    than one category.
   </p>
   <p>
-    So the obvious implementation, send the category the user just tapped, is
-    catastrophic and completely silent. Tap a category below and watch the
-    shelf.
+    Tapping the pill on a card files the recipe into a cookbook. The obvious
+    implementation sends the category you tapped. Tap a category below and
+    watch the shelf.
   </p>
 
   <Panel label="mealie · category filing" status="sample data">
     <div class="wipe-demo" data-wipe>
       <div class="map-controls">
         <span class="ctl-label">a toggle sends</span>
-        <button class="map-btn" type="button" data-mode="naive" aria-pressed="true">just the tapped category</button>
-        <button class="map-btn" type="button" data-mode="additive" aria-pressed="false">read, merge, send all</button>
+        <div class="ml-seg" role="group" aria-label="What a toggle sends">
+          <button class="ml-opt" type="button" data-mode="naive" aria-pressed="true">just the tapped category</button>
+          <button class="ml-opt" type="button" data-mode="additive" aria-pressed="false">read, merge, send all</button>
+        </div>
         <span class="sep"></span>
-        <button class="map-btn" type="button" data-reset>reset the recipe</button>
+        <button class="ml-reset" type="button" data-reset>reset the recipe</button>
       </div>
 
       <div class="wipe-grid">
@@ -110,101 +207,63 @@ import Panel from '../../components/Panel.astro';
       <p class="wipe-damage" data-damage></p>
 
       <p class="sample-note">
-        His real cookbook set, minus one whose name I am not putting on a
-        portfolio. The read-modify-write is the whole fix and it is four lines,
-        which is exactly why it is the kind of thing that ships wrong: the naive
-        version works perfectly on any recipe that is only in one folder, and
-        every test you would write by hand starts with a recipe in one folder.
-        Verified on the wire before I trusted it.
+        My real cookbook names, minus one I am not putting on a portfolio. The
+        fix is four lines: read the current list, merge, send all of it. The
+        naive version works on any recipe in one folder, and most hand-written
+        tests start with a recipe in one folder. Checked on the wire before I
+        trusted it.
       </p>
     </div>
   </Panel>
 
-  <SectionHead label="Upstream" title="The bug behind PR #7881" />
+  <SectionHead label="The redesign" title="A shape problem, not a colour problem" />
   <p>
-    Mealie emits schema.org JSON-LD for every recipe, which is how any consumer
-    (search engines, scrapers, nutrition trackers) reads it. The yield string was
-    built from the yield <em>quantity</em> and the yield <em>text</em>, and a
-    validator coerces an unset quantity to zero. So a recipe with servings but no
-    explicit yield emitted a bare <code>"0.0"</code>. Not missing. Zero — and it
-    is the denominator for anything per-serving.
+    <strong>In one line:</strong> the theme set colours but never component
+    defaults, so every card kept stock Material shapes under any palette.
+  </p>
+  <p>
+    Adding defaults in that one file restyled every page: recipes, search,
+    cookbooks, meal planner, settings. Small diff, easy to rebase, because
+    upstream rarely touches it. Calories on the card needed a separate backend
+    change that put nutrition in the list response.
   </p>
 
-  <Panel label="mealie · schema.org output" status="real logic">
-    <div class="jsonld-demo" data-jsonld>
+  <Panel label="mealie · recipe card" status="recreated in css">
+    <div class="ui-demo" data-ui>
       <div class="map-controls">
-        <span class="ctl-label">build</span>
-        <button class="map-btn" type="button" data-fix="before" aria-pressed="true">before #7881</button>
-        <button class="map-btn" type="button" data-fix="after" aria-pressed="false">after #7881</button>
-        <span class="sep"></span>
-        <span class="ctl-label">yield</span>
-        <button class="map-btn" type="button" data-ytype="servings" aria-pressed="true">servings only</button>
-        <button class="map-btn" type="button" data-ytype="text" aria-pressed="false">quantity + text</button>
+        <span class="ctl-label">recipe card</span>
+        <div class="ml-seg" role="group" aria-label="Recipe card">
+          <button class="ml-opt" type="button" data-ui-mode="stock" aria-pressed="true">palette only</button>
+          <button class="ml-opt" type="button" data-ui-mode="editorial" aria-pressed="false">defaults + rebuild</button>
+        </div>
       </div>
-
-      <div class="map-controls" data-servings-wrap>
-        <label class="ctl-label" for="servings">count</label>
-        <input id="servings" type="range" data-servings min="1" max="12" step="1" value="4" />
-        <output class="ctl-out" data-servings-out>4</output>
-      </div>
-
-      <pre class="code-out" data-json aria-label="emitted schema.org JSON-LD"></pre>
-      <div class="consumer" data-consumer aria-live="polite"></div>
-
-      <p class="sample-note">
-        Switch to a quantity-and-text yield and it degrades from destructive to
-        merely wrong: <code>"8.0 slices"</code> instead of <code>"8 slices"</code>.
-        That's why it survived. The visible case looked like a cosmetic trailing
-        zero, and the case that actually poisoned the math only fired for
-        servings-only recipes, in emitted metadata nobody reads by eye. The fix
-        handles both and ships with parametrized tests over every yield shape.
-        A maintainer tightened the fallback in review so a text-only yield never
-        gets servings stuck in front of it, merged it on September 16, and it
-        shipped in Mealie v3.27.0 the next day.
-      </p>
+      <div class="ui-stage stock" data-ui-stage></div>
+      <p class="sample-note" data-ui-note></p>
     </div>
   </Panel>
-
-  <SectionHead label="Motivation" title="Why the fork exists" />
-  <p>
-    I'm moving roughly 300 recipes off a commercial app with two structural
-    problems. Its search indexes the title and nothing else, so searching
-    "Worcestershire" returns zero results for the recipes that call for it. And
-    there is no nutrition field anywhere in its data model, which makes the one
-    thing I actually want impossible rather than merely missing.
-  </p>
-  <p>
-    Same model as my Android fork: own the code so "I wish it had X" becomes
-    something you just do. Upstream the generic, fork-carry the opinionated. The
-    yield fix is broadly useful, so it goes upstream and gets maintained forever
-    at no cost to me. The macro-first UI is mine and upstream would never take
-    it, which is fine — it stays small and rebasable.
-  </p>
 
   <SectionHead label="Release engineering" title="The CI that went green and built nothing" />
   <p>
-    Upstream's pipeline is built for upstream, and none of it works on a fork.
-    Four things had to be fixed; only the first was dangerous.
+    <strong>In one line:</strong> upstream's publish job only runs on
+    upstream's repo, so on a fork it is skipped and the run still shows green.
   </p>
-  <ul>
+  <ul class="ml-facts">
     <li>
-      <strong>The publish job was gated to the upstream repo.</strong>
-      <code>if: github.repository == 'mealie-recipes/mealie'</code>. On a fork
-      that is false, so the job is skipped, the run reports <strong>green</strong>,
-      and no image is ever built. A pipeline that fails loudly costs you ten
-      minutes. One that succeeds while doing nothing costs you however long it
-      takes to notice.
+      <strong>The silent skip:</strong>
+      <code>if: github.repository == 'mealie-recipes/mealie'</code> is false on a
+      fork. The job is skipped, the run reports success, and no image is built.
+      Repointed at the fork.
     </li>
     <li>
-      It built through a paid service I have no token for; swapped for stock
-      buildx with layer caching. It pushed to the maintainer's namespace; I
-      publish to my own. The registry rejects uppercase image names and my
-      username has capitals, so the repo name gets lowercased explicitly.
+      <strong>The rest:</strong> a paid build service I have no token for,
+      swapped for stock buildx with layer caching; publishing to my own
+      namespace; the image name lowercased because the registry rejects
+      capitals.
     </li>
     <li>
-      A related trap: the CLI in that repo defaults to the <em>parent</em>, not
-      the fork. Point every command at the fork explicitly or you're reading
-      upstream's CI and concluding your build never ran.
+      <strong>The trap:</strong> the GitHub CLI in a fork defaults to the
+      parent repo. Unless every command names the fork, you read upstream's CI
+      and conclude your build never ran.
     </li>
   </ul>
 

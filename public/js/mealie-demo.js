@@ -43,7 +43,7 @@
     stock:
       'Palette set, component defaults never set. This is what the app rendered no matter what colors I handed it: elevation shadow, 4px radius, filled chips, stock orange-teal-maroon on one screen. Calories are absent because the list endpoint did not return nutrition at all. Recoloring cannot fix any of this.',
     editorial:
-      'Defaults set alongside the palette, and the card rebuilt: photo-forward, serif title, taxonomy pill and calorie badge over the image, subtle circular actions. The category pill is a dropdown — one tap files the recipe into a cookbook. Recreated here from the real build; the app uses Fraunces for titles and real photography, neither of which I ship on this site.',
+      'Defaults set alongside the palette, and the card rebuilt: photo-forward, serif title, taxonomy pill and calorie badge over the image, subtle circular actions. The category pill is a dropdown: one tap files the recipe into a cookbook. Recreated here from the real build; the app uses Fraunces for titles and real photography, neither of which I ship on this site.',
   };
 
   var M = window.Motion;
@@ -194,7 +194,7 @@
       ' = <span class="res ' +
       (poisoned ? 'bad' : 'good') +
       '">' +
-      (poisoned ? '∞ — every per-serving value it derives is garbage' : per + ' kcal/serving') +
+      (poisoned ? '∞: every per-serving value it derives is garbage' : per + ' kcal/serving') +
       '</span>';
   }
 

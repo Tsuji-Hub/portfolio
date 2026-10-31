@@ -166,7 +166,7 @@
     if (lostTotal === 0) {
       damage.className = 'wipe-damage';
       damage.textContent =
-        'sending only the tapped category. Nothing lost yet — tap one it is NOT already in.';
+        'sending only the tapped category. Nothing lost yet. Tap one it is NOT already in.';
       return;
     }
     damage.className = 'wipe-damage hurt';

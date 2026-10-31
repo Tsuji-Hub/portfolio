@@ -47,8 +47,8 @@ export const projects = [
     slug: 'mealie',
     title: 'Mealie fork',
     blurb:
-      'A fork of Mealie I build, deploy and extend, plus a fix merged upstream in v3.27.0: recipes with servings but no yield were publishing a yield of 0 in their schema.org data.',
-    tags: ['CI/CD', 'Docker', 'Python + Vue'],
+      'A fork of Mealie I build and run: a fix merged upstream in v3.27.0, a TLS bug in my own scraper found and fixed with tests, and a runtime image slimmed from 147 to 100 Python packages.',
+    tags: ['Python + Vue', 'Supply chain', 'Open source'],
     demo: 'see the bug',
   },
   {

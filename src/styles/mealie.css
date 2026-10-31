@@ -1,0 +1,52 @@
+/* Mealie page only. External file (inlineStylesheets: 'never'), CSP-safe. */
+
+/* Segmented control: one choice of two, reads as a switch. */
+.ml-seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-sunken);
+}
+.ml-opt {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.38rem 0.85rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color var(--speed) ease, color var(--speed) ease;
+}
+.ml-opt:hover { color: var(--text); background: rgba(var(--accent-rgb), 0.08); }
+.ml-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ml-opt[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 650;
+}
+.ml-reset {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.38rem 0.85rem;
+  border-radius: 999px;
+  border: 1px dashed var(--border-strong);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.ml-reset:hover { color: var(--text); border-color: var(--accent); }
+.ml-reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.ml-find { margin: 1.25rem 0 0.5rem; max-width: 52rem; }
+.ml-find .find-tldr { margin-top: 0; }
+
+.ml-facts { padding-left: 1.1rem; }
+.ml-facts > li { margin: 0 0 0.6rem; line-height: 1.6; }
+
+@media (max-width: 520px) {
+  .ml-seg { display: flex; width: 100%; }
+  .ml-opt { flex: 1 1 0; text-align: center; }
+}

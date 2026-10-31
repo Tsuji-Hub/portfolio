@@ -1,6 +1,40 @@
 ---
 import Base from '../layouts/Base.astro';
 import { projects } from '../data/projects.js';
+import ev from '../data/security-evidence.json';
+
+// Hero demo: recorded WAF verdicts from src/data/security-evidence.json.
+// The first two layers (country filter, reputation) are the edge's real order
+// of controls; the verdicts shown for them are the scenario (allowed country,
+// clean address) except "Visit from abroad", which the geo filter drops (proven
+// from a phone on cellular, 10-30). Everything from the WAF on is the recording.
+const PICK: [string, string][] = [
+  ['baseline', 'Normal visit'],
+  ['sqli', 'SQL injection'],
+  ['xss', 'Cross-site scripting'],
+  ['traversal', 'Path traversal'],
+  ['log4shell', 'Log4Shell'],
+  ['env', 'Steal the .env file'],
+];
+const dec = (u: string) => { try { return decodeURIComponent(u); } catch { return u; } };
+const atk = PICK.map(([id, label]) => {
+  const r = ev.waf.requests.find((x) => x.id === id)!;
+  const hdr = Object.entries(r.request.headers || {}).map(([k, v]) => `${k}: ${v}`).join('  ');
+  const rule = r.inband.rules.find((x) => !x.id.startsWith('crowdsecurity/')) || r.inband.rules[0];
+  return {
+    id, label,
+    line: `${r.request.verb} ${dec(r.request.uri)}${hdr ? '  ' + hdr : ''}`,
+    blocked: r.inband.verdict === 'blocked',
+    http: r.inband.http,
+    score: r.crs.anomaly_score,
+    rule: rule ? `${rule.id} ${rule.name}` : '',
+  };
+});
+const banAfter = ev.waf.ban.after_blocked_requests;
+const dropS = ev.ban_enforcement.reps.map((r) => r.ban_to_drop_s);
+const dropRange = `${Math.min(...dropS).toFixed(1)}-${Math.max(...dropS).toFixed(1)} s`;
+const blockedN = ev.waf.requests.filter((r) => r.id !== 'baseline' && r.id !== 'wordpress' && r.inband.verdict === 'blocked').length;
+const payloadN = ev.waf.requests.filter((r) => r.id !== 'baseline' && r.id !== 'wordpress').length;
 
 // The bento's feature tile is 2x2 and has to be placed first for auto-flow to
 // land it top-left. Presentation order only; the data file is untouched.
@@ -82,18 +116,41 @@ const ICONS: Record<string, string> = {
         </dl>
       </div>
 
-      <div data-canvas>
-        <div class="hero-canvas">
-          <div class="hero-canvas-head">
-            <span class="label">homelab · live topology</span>
-            <span class="live"><span class="dot" aria-hidden="true"></span>sanitized</span>
-          </div>
-          <canvas
-            data-topology
-            role="img"
-            aria-label="Diagram of a self-hosted homelab: a hypervisor at the centre linked to storage, a GPU media VM, containers, a VPN namespace, a TLS proxy, monitoring and nightly backups."
-          ></canvas>
+      <div class="ah" data-ah data-ban-after={banAfter} data-drop={dropRange}>
+        <div class="ah-head">
+          <span class="label">attack my edge</span>
+          <span class="live"><span class="dot" aria-hidden="true"></span>real verdicts</span>
         </div>
+        <p class="ah-lead">
+          Pick an attack and watch what my homelab's front door did when I sent
+          exactly that from outside.
+        </p>
+        <div class="ah-pick" data-js-only role="group" aria-label="Pick a request">
+          {atk.map((a) => (
+            <button class:list={['ah-btn', a.blocked && 'is-attack']} type="button" data-ah-req={JSON.stringify(a).replace(/</g, "\\u003c")} aria-pressed="false">{a.label}</button>
+          ))}
+          <button class="ah-btn is-abroad" type="button" data-ah-abroad aria-pressed="false">Visit from abroad</button>
+        </div>
+        <code class="ah-line" data-ah-line data-js-only>choose a request above</code>
+        <ol class="ah-layers" data-js-only>
+          <li data-l="geo"><span class="ah-n">1</span><span class="ah-name">Country filter<small>firewall, before anything else</small></span><span class="ah-v" data-v></span></li>
+          <li data-l="rep"><span class="ah-n">2</span><span class="ah-name">Reputation<small>known attackers are dropped</small></span><span class="ah-v" data-v></span></li>
+          <li data-l="waf"><span class="ah-n">3</span><span class="ah-name">WAF · OWASP CRS<small><span class="ah-bar" aria-hidden="true"><i data-ah-fill></i><b></b></span> score <span data-ah-score>0</span> / block at 5</small></span><span class="ah-v" data-v></span></li>
+          <li data-l="app"><span class="ah-n">4</span><span class="ah-name">Proxy → app<small>TLS ends here, logs redacted</small></span><span class="ah-v" data-v></span></li>
+        </ol>
+        <p class="ah-out" data-ah-out aria-live="polite" data-js-only></p>
+        <div class="ah-foot" data-js-only>
+          <span class="ah-strikes" aria-hidden="true" data-ah-strikes>
+            {Array.from({ length: banAfter }).map(() => <i></i>)}
+          </span>
+          <span class="ah-ban" data-ah-ban>{banAfter} blocked requests from one address = 24 h ban</span>
+          <button class="ah-reset" type="button" data-ah-reset hidden>unban me</button>
+        </div>
+        <p class="ah-static">
+          {blockedN} of {payloadN} attack payloads blocked with a 403 by the WAF,
+          normal traffic untouched, repeat offenders banned at the firewall in
+          {dropRange}. <a href="/projects/security/">The full evidence →</a>
+        </p>
       </div>
     </section>
 
@@ -217,6 +274,7 @@ const ICONS: Record<string, string> = {
     </section>
   </div>
 
+  <script is:inline src="/js/attack-hero.js" defer></script>
   <script is:inline src="/js/selftest.js" defer></script>
   <script is:inline src="/js/manifest.js" defer></script>
 </Base>

@@ -203,7 +203,7 @@ const credentials = [
       lede="I'm a cloud security analyst at a Fortune 500 insurer, where I work on GCP governance and security automation. At home I run my own infrastructure like production, and I attack it to see what holds."
       split
     >
-      <figure class="portrait" slot="aside">
+      <figure class="portrait" slot="aside" data-xray>
         <img
           src="/img/ethan-560.webp"
           srcset="/img/ethan-360.webp 360w, /img/ethan-560.webp 560w"
@@ -213,6 +213,8 @@ const credentials = [
           alt="Ethan Justice, smiling, outdoors"
           decoding="async"
         />
+        <span class="xray" aria-hidden="true"></span>
+        <figcaption class="xray-cap" data-js-only>hover or tap: x-ray vision</figcaption>
       </figure>
     </PageHero>
 
@@ -377,4 +379,5 @@ const credentials = [
       <p><a class="back-all" href="/#work">← back to the work</a></p>
     </div>
   </div>
+  <script is:inline src="/js/about-xray.js" defer></script>
 </Base>

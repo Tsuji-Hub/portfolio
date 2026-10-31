@@ -3,6 +3,7 @@
 import '../styles/fonts.css';
 import '../styles/tokens.css';
 import '../styles/base.css';
+import { readFileSync } from 'node:fs';
 
 interface Props {
   title: string;
@@ -37,6 +38,28 @@ const navLinks = [
 ];
 
 const current = path;
+
+// Terminal data, read at build time so the terminal never fetches anything:
+// the response headers this site ships (public/_headers, the /* block) and
+// security.txt, verbatim.
+const headersFile = readFileSync('public/_headers', 'utf8');
+const shippedHeaders = headersFile
+  .split(/\r?\n\r?\n/)[0]
+  .split(/\r?\n/)
+  .slice(1)
+  .map((l) => l.trim())
+  .filter(Boolean)
+  .map((l) => l.replace(/^([^:]+):/, (m, k) => k.toLowerCase() + ':'))
+  .join('\n');
+const securityTxt = readFileSync('public/.well-known/security.txt', 'utf8').trim();
+const termHistory = [
+  '2021  electronics repair technician; 1st place, Lewis Cyber Flyer CTF',
+  '2022  CyberForce: 5th of 160 teams; CCDC',
+  '2023  security advisor intern; CyberForce: 10th',
+  '2024  B.S. Cybersecurity; rotation 1: Security Remediation Management',
+  '2025  rotation 2: Cloud Security; M.S. Cybersecurity; GCP CDL; ISC2 CC',
+  '2026  cloud security analyst; Torq Automation Practitioner',
+].join('\n');
 const year = new Date().getFullYear();
 
 // Brand marks as inline paths: no icon font, no CDN, no extra request.
@@ -157,6 +180,15 @@ const LINKEDIN_PATH =
           <a href="https://github.com/Tsuji-Hub" rel="me noopener noreferrer" target="_blank">github</a>
           <span>© {year} Ethan Justice</span>
         </p>
+        <p class="verify" data-verify data-js-only>
+          <span>This page: <b data-v-req>-</b> requests,
+          <b data-v-3p>-</b> to other sites, <b data-v-kb>-</b>,
+          CSP <b>enforced</b>, <b data-v-viol>0</b> violations blocked.</span>
+          <span class="verify-tools">
+            <button type="button" class="vt-btn" data-term-open>&gt;_ terminal <kbd>`</kbd></button>
+            <button type="button" class="vt-btn" data-sound aria-pressed="false">sound: off</button>
+          </span>
+        </p>
         {buildSha && (
           <p class="footer-build">
             built {buildDate} from
@@ -165,5 +197,16 @@ const LINKEDIN_PATH =
         )}
       </div>
     </footer>
+    <dialog class="term" data-term aria-label="Terminal" data-headers={shippedHeaders} data-sectxt={securityTxt} data-history={termHistory}>
+      <div class="term-head">
+        <span>ethan@justice: ~</span>
+        <button type="button" class="term-x" data-term-close aria-label="Close terminal">×</button>
+      </div>
+      <div class="term-out" data-term-out aria-live="polite"></div>
+      <form class="term-form" autocomplete="off">
+        <label for="term-in" class="term-ps">$</label>
+        <input id="term-in" class="term-in" data-term-in type="text" spellcheck="false" autocapitalize="off" aria-label="Command" />
+      </form>
+    </dialog>
   </body>
 </html>

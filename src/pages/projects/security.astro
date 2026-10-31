@@ -41,7 +41,7 @@ const day = ev.captured.slice(5, 10);
   title="Homelab security"
   path="/projects/security/"
   description="The security stack in front of and inside my homelab, tested by attacking it: layered edge defenses, per-host firewalls, a SIEM and a scanned supply chain, plus four weaknesses my own testing caught and fixed."
-  lede="The security stack in front of and inside my homelab, and how I test it: by attacking it. My own testing caught four controls that were not doing their job, and each one was fixed and re-tested. Every number below comes from a recorded run, with the date next to it."
+  lede="The controls in front of and inside my homelab, tested by attacking them from outside. That testing caught four controls that were not doing their job; all four are fixed and re-tested. Every number on this page comes from a recorded, dated run."
   tags={['CrowdSec', 'OWASP CRS', 'Wazuh', 'nftables', 'Trivy', 'gitleaks']}
   kicker="Security · tested, not assumed"
   headline="Every control, attacked"
@@ -53,9 +53,13 @@ const day = ev.captured.slice(5, 10);
     { n: `${s1(banMin)}-${s1(banMax)} s`, l: 'from ban decision to firewall drop' },
     { n: `${sec.findings_in_those_commits}`, l: `secrets in ${sec.commits_by_ethan_or_claude} of my commits` },
   ]}
-  demonstrates="Defense in depth that is measured instead of assumed: edge filtering, a blocking WAF in front of every public app, detection that turns into bans, host firewalls on every guest, a SIEM, and a supply chain that is scanned and rolled back automatically. Plus the habit that found the bugs: attack your own controls and write down what actually happened."
+  demonstrates="WAF tuning (OWASP CRS, detect then enforce), intrusion prevention with CrowdSec, host firewalls in nftables for IPv4 and IPv6, SIEM rules written and tested with planted events (Wazuh), CIS hardening, container vulnerability management (Trivy), secrets scanning (gitleaks), and controls mapped to CIS v8 and MITRE ATT&CK."
 >
   <SectionHead label="The edge" title="Ten requests, one edge" />
+  <p>
+    <strong>In one line:</strong> four layers stand between the internet and
+    any app, and each was tested from outside.
+  </p>
   <p>
     Everything public sits behind one reverse proxy VM. A request has to clear
     four layers before it reaches an app: a geo filter in nftables covering
@@ -128,6 +132,7 @@ const day = ev.captured.slice(5, 10);
     <article class="find" data-card>
       <p class="label">fail2ban · edge</p>
       <h3>The ban that never was</h3>
+      <p class="find-tldr">fail2ban logged bans and enforced none of them.</p>
       <dl>
         <dt>Wrong</dt>
         <dd>The edge VM is nftables-only. fail2ban's default action calls iptables, exited with code 127, and logged "Ban" anyway. No ban on that VM had ever been enforced.</dd>
@@ -143,6 +148,7 @@ const day = ev.captured.slice(5, 10);
     <article class="find" data-card>
       <p class="label">host firewall · every guest</p>
       <h3>IPv6 walked around the admin allowlist</h3>
+      <p class="find-tldr">The IPv4 allowlist was right. IPv6 skipped it.</p>
       <dl>
         <dt>Wrong</dt>
         <dd>Admin ports were pinned to three hosts over IPv4. The generator put the same ports in the IPv6 LAN rule, so any phone or TV could reach SSH and the hypervisor UI over link-local IPv6.</dd>
@@ -161,6 +167,7 @@ const day = ev.captured.slice(5, 10);
     <article class="find" data-card>
       <p class="label">reverse proxy · logs</p>
       <h3>The proxy was logging the keys</h3>
+      <p class="find-tldr">Credentials sat in world-readable logs. Now they are hashed or dropped before anything is written.</p>
       <dl>
         <dt>Wrong</dt>
         <dd>Media clients send API keys in query strings and headers. The access log kept them verbatim in world-readable files: 1,136 media-server keys, 141 auth tokens and 4,468 admin API keys.</dd>
@@ -179,6 +186,7 @@ const day = ev.captured.slice(5, 10);
     <article class="find" data-card>
       <p class="label">geo filter · edge</p>
       <h3>HTTP/3 walked past the geo filter</h3>
+      <p class="find-tldr">The country filter covered TCP only. HTTP/3 runs over UDP.</p>
       <dl>
         <dt>Wrong</dt>
         <dd>The rule matched TCP 443. The proxy also speaks HTTP/3 over UDP 443, so a client outside the allowed countries could still connect.</dd>
@@ -194,6 +202,10 @@ const day = ev.captured.slice(5, 10);
 
 
   <SectionHead label="Inside the perimeter" title="Assume the edge fails" />
+  <p>
+    <strong>In one line:</strong> if something gets past the edge, every host
+    still denies by default, is hardened, and reports to a SIEM.
+  </p>
   <p>
     Every guest runs its own default-deny nftables table, loaded by its own
     service, so the hypervisor is not the only thing between a service and the
@@ -222,9 +234,8 @@ const day = ev.captured.slice(5, 10);
     Trivy scans every container image daily. Most critical CVEs in public
     images need the upstream project to rebuild, so a weekly reminder became
     noise. The alert is now keyed to the exact image and CVE pairs: fewer CVEs
-    stay quiet, a new one alerts at once. A weekly updater pulls new images,
-    health-checks them and rolls back on failure. Its first real run updated
-    six images with zero rollbacks.
+    stay quiet, a new one alerts at once. Updates and automatic rollbacks are on
+    the <a href="/projects/homelab/">homelab page</a>.
   </p>
   <p>
     I scanned every commit of my four public repositories with gitleaks
@@ -253,7 +264,7 @@ const day = ev.captured.slice(5, 10);
         <tr><th scope="row">CIS hardening</th><td>4.1</td><td>T1110, T1548.003</td><td>10-22 to 10-25, Wazuh SCA</td></tr>
         <tr><th scope="row">Wazuh SIEM</th><td>8.2, 8.9, 13.1</td><td>T1548.003, T1105</td><td>10-30, planted events</td></tr>
         <tr><th scope="row">Log redaction + permissions</th><td>3.3</td><td>T1552.001</td><td>{day}, x3 from outside</td></tr>
-        <tr><th scope="row">Trivy + weekly updater</th><td>7.4, 7.5</td><td>T1190</td><td>configured; first run 10-25</td></tr>
+        <tr><th scope="row">Trivy + weekly updater</th><td>7.4, 7.5</td><td>T1190</td><td>daily scans; rollback forced 10-22</td></tr>
         <tr><th scope="row">Secrets scan + site gate</th><td>16.12</td><td>T1552.001</td><td>{sec.captured.slice(5, 10)}, every commit</td></tr>
         <tr><th scope="row">Backups, restore drills</th><td>11.5</td><td>T1485, T1486</td><td>10-22 and 10-30, timed restores</td></tr>
       </tbody>

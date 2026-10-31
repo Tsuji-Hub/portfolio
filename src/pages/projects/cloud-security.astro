@@ -2,36 +2,56 @@
 import ProjectLayout from '../../layouts/ProjectLayout.astro';
 import SectionHead from '../../components/SectionHead.astro';
 import Panel from '../../components/Panel.astro';
+import '../../styles/cloud.css';
+// Day-job facts come from the résumé (web PDF, 2026-09-08), sanitized: no
+// employer name, no environment details beyond tool names. The three demos are
+// illustrative of the mechanics; each one says so.
 ---
 
 <ProjectLayout
   title="Cloud security"
   path="/projects/cloud-security/"
-  description="Sanitized case studies from cloud security work at a Fortune 500 insurer. No employer name, no environment details beyond the tool names."
-  lede="Case studies from cloud security work at a Fortune 500 insurer. Sanitized: no employer name, and no environment details beyond the tool names."
-  tags={['GCP', 'CSPM', 'SOAR', 'Governance', 'Wiz', 'Torq / Tines']}
+  description="Cloud security case studies from a Fortune 500 insurer: 1,100+ GCP projects mapped to owners, a 46-control container security RACI, Wiz findings routed into ServiceNow, a SOAR proof of concept, and prevention through Organization Policy."
+  lede="Cloud Security Analyst at a Fortune 500 insurer since April 2026, after its IT security rotational program (June 2024 to April 2026). Sanitized case studies: no employer name, and no environment details beyond the tool names."
+  tags={['GCP', 'Wiz (CSPM)', 'ServiceNow', 'Torq / Tines', 'Org Policy', 'GRC']}
   kicker="Day job · sanitized"
   headline="Cloud security, at scale"
   accent="at scale"
   slug="cloud-security"
   stats={[
-    { n: '1,100+', l: 'GCP projects governed' },
-    { n: '46', l: 'controls mapped' },
-    { n: '8', l: 'service entries triaged' },
-    { n: 'minutes', l: 'exposure window, was hours' },
+    { n: '1,100+', l: 'GCP projects mapped to their owning application' },
+    { n: '46', l: 'container controls in a RACI agreed with 3 teams' },
+    { n: '8', l: 'missing service entries created so every project had an owner' },
+    { n: 'hours → minutes', l: 'weekly security metrics reporting' },
   ]}
-  demonstrates="Cloud governance at scale, security automation, and a bias toward prevention: closing gaps at the source and turning findings into policy instead of an endless ticket queue."
+  demonstrates="GCP governance at scale (CMDB ownership for 1,100+ projects), CSPM operations (Wiz findings routed into ServiceNow with owner and context), SOAR evaluation (Torq, Tines), preventive controls (GCP Organization Policy), container security operating models (RACI), GRC and audit readiness, and reporting automation."
 >
   <SectionHead label="Case study 01" title="Container supply chain" />
   <p>
-    Unapproved, unhardened images were making their way toward production, with
-    no gate to stop them. I coordinated between vendors and internal teams and
-    stood up a formal image approval process, so images are vetted before they
-    can ship rather than caught afterward. The gap got closed at the source
-    instead of being patched downstream every time it recurred.
+    <strong>In one line:</strong> unapproved Docker images were moving toward
+    production with no gate; now images go through a formal approval process
+    before they can ship.
   </p>
+  <ul class="cs-facts">
+    <li>
+      <strong>The gap:</strong> I caught unapproved images on their way to
+      production and coordinated vendors and internal teams to stand up the
+      approval process, closing it at the source instead of chasing each image
+      afterward.
+    </li>
+    <li>
+      <strong>The operating model:</strong> I defined who owns what for
+      container security: a RACI across 46 controls, agreed with Cloud
+      Engineering, Networking and AppSec.
+    </li>
+  </ul>
 
   <SectionHead label="Case study 02" title="Cloud asset governance" />
+  <p>
+    <strong>In one line:</strong> a finding is only actionable if it can reach
+    an owner, so I validated 1,100+ GCP projects and linked each one to its
+    business application in the ServiceNow CMDB.
+  </p>
   <p>
     Every cell below is one GCP project that existed with no reliable link to
     the business application it belonged to. Not a rounding error, not a
@@ -58,41 +78,58 @@ import Panel from '../../components/Panel.astro';
           validated and mapped to an owning application
         </span>
         <span class="sep"></span>
-        <button class="map-btn" type="button" data-field-run>▶ map the estate</button>
+        <button class="cs-run" type="button" data-field-run>▶ map the estate</button>
       </div>
 
       <p class="field-note" data-field-note hidden>
-        The eight lighter cells are Technical Service entries that did not exist
-        and had to be created before their projects had anything to point at. This
-        is the least glamorous work I have ever done and it is the reason the
-        timeline further down reads two days instead of three weeks: a finding
-        cannot route to an owner that was never written down.
+        The eight lighter cells stand for the 8 Technical Service entries that
+        did not exist and had to be created before their projects had an owner
+        to point at. Unglamorous work, and everything below depends on it: a
+        finding cannot route to an owner that was never written down.
       </p>
     </div>
   </Panel>
 
-  <SectionHead label="Case study 03" title="SOAR proof of concept" />
+  <SectionHead label="Case study 03" title="Findings that arrive routed" />
   <p>
-    A cloud vulnerability alert arrives knowing almost nothing: something is
-    wrong, somewhere, in a project named after a number. Everything that makes
-    it actionable — who owns it, how bad it is, whether we already know — is
-    research a human does before the real work starts. So I evaluated no-code
-    automation platforms (Torq, Tines) and built workflows that do the research
-    on arrival, then took the results to leadership with an adoption roadmap.
+    <strong>In one line:</strong> Wiz CSPM findings now open ServiceNow tickets
+    that already name the asset's owner and carry its context.
+  </p>
+  <ul class="cs-facts">
+    <li>
+      <strong>Integration:</strong> Wiz findings flow into ServiceNow
+      vulnerability ticketing, pre-filled with asset ownership and context, so
+      remediation is tracked from the moment a finding exists.
+    </li>
+    <li>
+      <strong>Intake:</strong> I co-built the ServiceNow intake process for
+      cloud security requests, so asks reach the team in one tracked queue.
+    </li>
+  </ul>
+
+  <SectionHead label="Case study 04" title="SOAR proof of concept" />
+  <p>
+    <strong>In one line:</strong> I evaluated two no-code SOAR platforms (Torq,
+    Tines), built workflows that enrich a cloud vulnerability alert the moment it
+    arrives, and presented them to leadership with an adoption roadmap.
   </p>
   <p>
-    Fire one and watch the right-hand side. The graph is the boring half; the
-    argument is the payload getting fatter at every hop.
+    An alert on its own says something is wrong in a project named after a
+    number. Who owns it, how bad it is and whether it is already open is
+    research someone does before the real work starts. Fire one and watch the
+    payload on the right grow at every step.
   </p>
 
   <Panel label="torq · automation run" status="step through it">
     <div class="flow-demo" data-flow>
       <div class="map-controls">
         <span class="ctl-label">run it</span>
-        <button class="map-btn" type="button" data-flow-mode="auto" aria-pressed="true">automated · Torq</button>
-        <button class="map-btn" type="button" data-flow-mode="manual" aria-pressed="false">by hand · an analyst</button>
+        <div class="cs-seg" role="group" aria-label="Who handles the alert">
+          <button class="cs-opt" type="button" data-flow-mode="auto" aria-pressed="true">automated · Torq</button>
+          <button class="cs-opt" type="button" data-flow-mode="manual" aria-pressed="false">by hand · an analyst</button>
+        </div>
         <span class="sep"></span>
-        <button class="map-btn" type="button" data-flow-run>▶ raise a finding</button>
+        <button class="cs-run" type="button" data-flow-run>▶ raise a finding</button>
       </div>
 
       <svg viewBox="0 0 900 120" data-flow-svg role="img" aria-label="A five step enrichment workflow: Wiz finding, CMDB lookup, context enrichment, deduplication, case creation">
@@ -133,7 +170,7 @@ import Panel from '../../components/Panel.astro';
       <div class="flow-grid">
         <div>
           <p class="possess-label">what it cost</p>
-          <div class="flow-clock" data-flow-clock>—</div>
+          <div class="flow-clock" data-flow-clock>·</div>
           <p class="flow-cost" data-flow-cost></p>
           <ol class="flow-steps" data-flow-steps>
             <li><span class="t"></span><span class="n"></span></li>
@@ -161,46 +198,43 @@ import Panel from '../../components/Panel.astro';
           </div>
         </div>
         <p class="flow-verdict">
-          <span class="flow-vt" data-cmp-auto-t>&mdash;</span>
+          <span class="flow-vt" data-cmp-auto-t>·</span>
           <span class="flow-vs">vs</span>
-          <span class="flow-vt slow" data-cmp-manual-t>&mdash;</span>
+          <span class="flow-vt slow" data-cmp-manual-t>·</span>
           <span class="flow-ratio" data-cmp-ratio></span>
         </p>
       </div>
 
       <p class="sample-note">
-        Both runs end with the identical payload, deliberately. The workflow does
-        nothing an analyst couldn't do by hand — it does it in seconds, at 3am,
-        for every alert, without getting bored, and it never mistypes the project
-        id. Note the second step: it can only resolve an owner because of the
-        mapping work above it. Automation cannot look up a fact nobody wrote down.
-        Illustrative timings and a redacted resource; the shape of the workflow is
-        the real one.
+        Illustrative timings and a redacted resource; the shape of the workflow
+        is the real one. Both runs end with the same payload on purpose: the
+        workflow does nothing an analyst could not do by hand. It does it in
+        seconds, at 3 am, for every alert, without mistyping the project id. The
+        owner lookup in step two only works because of the mapping in case study
+        02.
       </p>
     </div>
   </Panel>
 
-  <SectionHead label="The argument" title="Prevention over reaction" />
+  <SectionHead label="Case study 05" title="Prevention over reaction" />
   <p>
-    CSPM findings (Wiz) told us what was already misconfigured, which is useful
-    but always after the fact. I turned recurring findings into GCP Organization
-    Policy constraints that block the risky configurations before they can be
-    created, and automated the weekly metrics reporting that used to take hours
-    down to minutes. Less cleanup, fewer bad configs reaching the environment at
-    all.
+    <strong>In one line:</strong> I recommended GCP Organization Policy
+    constraints that block risky configurations at creation, moving recurring
+    misconfigurations from fix-after-detection to never-created.
   </p>
   <p>
-    Two levers decide how much a single bad config costs you. Try to deploy one
-    and watch the exposure window change.
+    CSPM tells you what is already misconfigured: useful, but always after the
+    fact. Two levers decide what one bad config costs: whether it can be created
+    at all, and whether its finding can reach an owner. Toggle them and deploy.
   </p>
 
-  <Panel label="exposure window · detect vs prevent" status="run it">
+  <Panel label="exposure window · detect vs prevent" status="illustrative">
     <div class="prevent-demo" data-clock>
       <div class="map-controls">
-        <button class="map-btn" type="button" data-policy aria-pressed="false">org policy: not enforced</button>
-        <button class="map-btn" type="button" data-cmdb aria-pressed="true">cmdb owner: mapped</button>
+        <button class="cs-switch" type="button" data-policy aria-pressed="false">org policy: not enforced</button>
+        <button class="cs-switch" type="button" data-cmdb aria-pressed="true">cmdb owner: mapped</button>
         <span class="sep"></span>
-        <button class="map-btn" type="button" data-deploy>▶ deploy a public bucket</button>
+        <button class="cs-run" type="button" data-deploy>▶ deploy a public bucket</button>
       </div>
 
       <div class="clock-wrap">
@@ -227,7 +261,7 @@ import Panel from '../../components/Panel.astro';
           <g data-events></g>
 
           <g class="exp-denied">
-            <text x="40" y="66">DENIED at creation — nothing exists to be exposed</text>
+            <text x="40" y="66">DENIED at creation: nothing exists to be exposed</text>
           </g>
 
           <g id="exp-head">
@@ -238,19 +272,38 @@ import Panel from '../../components/Panel.astro';
       </div>
 
       <div class="exp-readout">
-        <span class="exp-window" data-exp-window>—</span>
+        <span class="exp-window" data-exp-window>·</span>
         <span class="exp-sub" data-exp-sub></span>
       </div>
 
       <p class="sample-note">
-        One fixed three-week scale for every scenario, so the bars are actually
-        comparable instead of each being rescaled to look the same size. Timings
-        are illustrative; the mechanics are real. The constraint evaluates at
-        creation, which is why the prevented case has no bar at all rather than a
-        short one.
+        Timings are illustrative; the mechanics are real. One fixed three-week
+        scale for every scenario, so the bars compare honestly. The constraint
+        is evaluated at creation, which is why the prevented case has no bar at
+        all rather than a short one.
       </p>
     </div>
   </Panel>
+
+  <SectionHead label="Also" title="GRC, audit and reporting" />
+  <ul class="cs-facts">
+    <li>
+      <strong>Reporting:</strong> automated the weekly security metrics report
+      with scripts and macros, from a multi-hour manual process to minutes.
+    </li>
+    <li>
+      <strong>Audit readiness:</strong> I facilitate the annual cloud control
+      reviews; governance docs stay audit-ready through CI/CD-driven updates.
+    </li>
+    <li>
+      <strong>First rotation (8 months):</strong> security risk remediation and
+      issue tracking in ServiceNow GRC.
+    </li>
+    <li>
+      <strong>Internship (2023):</strong> browser extension governance with
+      Active Directory; risk exceptions in ServiceNow and ZenGRC.
+    </li>
+  </ul>
 
   <script is:inline src="/js/field.js" defer></script>
   <script is:inline src="/js/soar-flow.js" defer></script>

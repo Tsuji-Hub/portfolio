@@ -156,7 +156,7 @@
         'the constraint evaluates at creation, so there is no window to measure. no finding, no ticket, nothing to remediate.';
     } else {
       windowOut.className = 'exp-window';
-      windowOut.textContent = '—';
+      windowOut.textContent = '·';
       subOut.textContent = 'press deploy.';
     }
   }

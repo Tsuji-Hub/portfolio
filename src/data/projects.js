@@ -55,17 +55,17 @@ export const projects = [
     slug: 'cloud-security',
     title: 'Cloud security',
     blurb:
-      'Sanitized case studies from cloud security work at a Fortune 500 insurer.',
+      'Cloud security at a Fortune 500 insurer: GCP governance, Wiz findings routed to owners, SOAR, and prevention through policy.',
     tags: ['GCP', 'CSPM', 'SOAR'],
-    demo: 'run the timeline',
+    demo: 'map the estate',
     // Shown only on the home page's feature tile, which is twice the size of
     // the others and needs more than a one-line blurb. These are the case
     // studies that page actually contains, not new claims.
     highlights: [
-      'A container supply chain gap closed at the source, not patched downstream',
+      'Unapproved container images stopped by a formal approval process; a 46-control RACI',
       '1,100+ GCP projects validated and mapped to an owning application',
-      'Alert enrichment automated, so a finding arrives actionable',
-      'Recurring misconfigurations turned into policy that denies them at creation',
+      'Wiz findings open ServiceNow tickets that already name the owner',
+      'Organization Policy recommended to block risky configs at creation',
     ],
   },
 ];

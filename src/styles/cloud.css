@@ -1,0 +1,83 @@
+/* Cloud security page only. External file, CSP-safe. */
+
+.cs-facts { padding-left: 1.1rem; }
+.cs-facts > li { margin: 0 0 0.6rem; line-height: 1.6; }
+
+/* Primary action: starts a demo. */
+.cs-run {
+  font: inherit;
+  font-weight: 650;
+  font-size: 0.85rem;
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  cursor: pointer;
+  transition: transform var(--speed) ease, box-shadow var(--speed) ease;
+}
+.cs-run:hover { transform: translateY(-1px); box-shadow: 0 6px 18px -10px rgba(var(--accent-rgb), 0.8); }
+.cs-run:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* One of two choices. */
+.cs-seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-sunken);
+}
+.cs-opt {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.38rem 0.85rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.cs-opt:hover { color: var(--text); background: rgba(var(--accent-rgb), 0.08); }
+.cs-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cs-opt[aria-pressed='true'] { background: var(--accent); color: var(--accent-ink); font-weight: 650; }
+
+/* On/off switch with a knob, label text set by the script. */
+.cs-switch {
+  font: inherit;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.38rem 0.85rem 0.38rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-raised);
+  color: var(--muted);
+  cursor: pointer;
+}
+.cs-switch::before {
+  content: '';
+  width: 1.9rem;
+  height: 1.05rem;
+  border-radius: 999px;
+  background: var(--border-strong);
+  background-image: radial-gradient(circle at 0.55rem 50%, var(--text) 0.36rem, transparent 0.4rem);
+  transition: background-color var(--speed) ease;
+}
+.cs-switch[aria-pressed='true'] { color: var(--text); border-color: var(--accent); }
+.cs-switch[aria-pressed='true']::before {
+  background-color: var(--accent);
+  background-image: radial-gradient(circle at 1.35rem 50%, var(--accent-ink) 0.36rem, transparent 0.4rem);
+}
+.cs-switch:disabled { opacity: 0.45; cursor: not-allowed; }
+.cs-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media (max-width: 520px) {
+  .cs-seg { display: flex; width: 100%; }
+  .cs-opt { flex: 1 1 0; text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cs-run { transition: none; }
+  .cs-run:hover { transform: none; }
+}

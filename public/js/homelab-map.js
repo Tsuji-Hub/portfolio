@@ -229,6 +229,7 @@
 
   traceBtns.forEach(function (b) {
     b.addEventListener('click', function () {
+      root.querySelectorAll('.is-hint').forEach(function (h) { h.classList.remove('is-hint'); });
       runTrace(b.dataset.trace);
     });
   });
@@ -236,7 +237,9 @@
   tunnelBtn.addEventListener('click', function () {
     tunnelUp = !tunnelUp;
     tunnelBtn.setAttribute('aria-pressed', String(!tunnelUp));
-    tunnelBtn.textContent = tunnelUp ? 'tunnel: up' : 'tunnel: down';
+    var st = tunnelBtn.querySelector('[data-tunnel-state]');
+    if (st) st.textContent = tunnelUp ? 'up' : 'down';
+    else tunnelBtn.textContent = tunnelUp ? 'tunnel: up' : 'tunnel: down';
     tunnelNode.classList.toggle('down', !tunnelUp);
     if (lastTraceKey === 'isolated') runTrace('isolated');
   });

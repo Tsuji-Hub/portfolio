@@ -3421,8 +3421,8 @@ canvas.field {
   background: linear-gradient(var(--accent), rgba(var(--accent-rgb), 0.25));
   transform-origin: top;
 }
-.about-tl li { position: relative; display: grid; grid-template-columns: 3.4rem minmax(0, 1fr); gap: 0.75rem; align-items: baseline; }
-.about-tl li::before {
+.about-tl > li { position: relative; display: grid; grid-template-columns: 3.4rem minmax(0, 1fr); gap: 0.75rem; align-items: baseline; }
+.about-tl > li::before {
   content: '';
   position: absolute;
   left: calc(-1.5rem + 0.3rem - 4px);
@@ -3442,7 +3442,7 @@ canvas.field {
       animation-timeline: view();
       animation-range: entry 10% cover 55%;
     }
-    .about-tl li {
+    .about-tl > li {
       animation: tl-in linear both;
       animation-timeline: view();
       animation-range: entry 0% entry 60%;
@@ -3510,3 +3510,111 @@ canvas.field {
   .wd-table th:nth-child(2), .wd-table td:nth-child(2) { display: none; }
   .wd-table th, .wd-table td { padding: 0.4rem 0.35rem; }
 }
+
+/* Homelab map: scenario buttons that read as buttons (10-31, Ethan: pills did not say "click me") */
+.scn-lead { margin: 0 0 0.6rem; font-weight: 600; }
+.scn-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+@media (min-width: 900px) { .scn-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.scn {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 0.6rem;
+  align-items: center;
+  text-align: left;
+  padding: 0.75rem 0.8rem;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--accent-rgb), 0.45);
+  background: rgba(var(--accent-rgb), 0.07);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: transform var(--speed) ease, background-color var(--speed) ease,
+    border-color var(--speed) ease, box-shadow var(--speed) ease;
+}
+.scn:hover { background: rgba(var(--accent-rgb), 0.14); border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 18px -10px rgba(var(--accent-rgb), 0.7); }
+.scn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.scn-play {
+  grid-row: 1 / 3;
+  width: 2rem; height: 2rem;
+  border-radius: 50%;
+  background: var(--accent);
+  position: relative;
+  flex: none;
+}
+.scn-play::after {
+  content: '';
+  position: absolute;
+  left: 0.78rem; top: 0.6rem;
+  border-style: solid;
+  border-width: 0.4rem 0 0.4rem 0.62rem;
+  border-color: transparent transparent transparent var(--bg);
+}
+.scn-t { font-weight: 650; font-size: 0.92rem; line-height: 1.25; }
+.scn-d { font-size: 0.74rem; color: var(--muted); line-height: 1.3; }
+.scn-red { border-color: rgba(var(--danger-rgb), 0.45); background: rgba(var(--danger-rgb), 0.06); }
+.scn-red .scn-play { background: var(--danger); }
+.scn-red:hover { background: rgba(var(--danger-rgb), 0.13); border-color: var(--danger); box-shadow: 0 6px 18px -10px rgba(var(--danger-rgb), 0.7); }
+.scn[aria-pressed='true'] { box-shadow: inset 0 0 0 2px var(--accent); background: rgba(var(--accent-rgb), 0.18); }
+.scn-red[aria-pressed='true'] { box-shadow: inset 0 0 0 2px var(--danger); background: rgba(var(--danger-rgb), 0.16); }
+.scn.is-hint::before {
+  content: 'start here';
+  position: absolute;
+  top: -0.55rem; right: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--bg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .scn.is-hint .scn-play { animation: scn-pulse 1.8s ease-out infinite; }
+}
+@keyframes scn-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.55); }
+  70% { box-shadow: 0 0 0 0.6rem rgba(var(--accent-rgb), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0); }
+}
+.scn-switch-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.9rem; margin: 0.7rem 0 0.9rem; }
+.scn-switch {
+  display: inline-flex; align-items: center; gap: 0.55rem;
+  font: inherit; font-size: 0.85rem;
+  padding: 0.4rem 0.8rem 0.4rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+  color: var(--text);
+  cursor: pointer;
+}
+.scn-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.scn-knob { width: 2.1rem; height: 1.2rem; border-radius: 999px; background: var(--accent); position: relative; transition: background-color var(--speed) ease; }
+.scn-knob::after { content: ''; position: absolute; top: 0.15rem; left: 1.05rem; width: 0.9rem; height: 0.9rem; border-radius: 50%; background: var(--bg); transition: left var(--speed) ease; }
+.scn-switch[aria-pressed='true'] .scn-knob { background: var(--danger); }
+.scn-switch[aria-pressed='true'] .scn-knob::after { left: 0.15rem; }
+.scn-switch[aria-pressed='true'] strong { color: var(--danger); }
+.scn-hint { font-size: 0.78rem; color: var(--muted); }
+.find-tldr { margin: 0.1rem 0 0.8rem; font-weight: 600; line-height: 1.45; }
+
+/* About timeline v2: cards per milestone (10-31) */
+.about-tl .tl-body { min-width: 0; }
+.prose .about-tl .tl-title { margin: 0; font-weight: 650; line-height: 1.35; }
+.prose .about-tl .tl-when { margin: 0.15rem 0 0; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); }
+.prose .about-tl .tl-pts { margin: 0.45rem 0 0; padding-left: 1.1rem; display: grid; gap: 0.25rem; }
+.prose .about-tl .tl-pts li { display: list-item; font-size: 0.92rem; line-height: 1.5; color: var(--text); }
+.prose .about-tl .tl-pts li::before { content: none; }
+.about-tl > li.tl-comp::before { border-color: var(--danger); }
+.about-tl > li.tl-school::before, .about-tl > li.tl-cert::before { border-color: var(--muted); }
+.about-tl > li.tl-home::before { background: var(--accent); }
+.tl-legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin: 1rem 0 0 !important; font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); }
+.tl-legend span::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--accent); margin-right: 0.35rem; vertical-align: -1px; }
+.tl-legend .tl-comp::before { border-color: var(--danger); }
+.tl-legend .tl-school::before, .tl-legend .tl-cert::before { border-color: var(--muted); }
+.tl-legend .tl-home::before { background: var(--accent); }

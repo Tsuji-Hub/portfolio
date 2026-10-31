@@ -50,13 +50,75 @@ const wrong = [
   },
 ];
 
+// Timeline: dates and bullets from LinkedIn (read 10-31) and the résumé.
+// kind drives the dot colour: work, school, comp(etition), cert, home.
 const timeline = [
-  { y: '2021', t: 'Department of Energy CyberForce: 10th of 120 teams. Lewis University CTF: 1st.' },
-  { y: '2022', t: 'CyberForce again: 5th of 160 teams. Collegiate Cyber Defense Competition (CCDC).' },
-  { y: '2023', t: 'Security advisor intern: browser extension governance and risk exceptions.' },
-  { y: '2024', t: 'B.S. Cybersecurity, Lewis University. Joined an IT security rotational program at a Fortune 500 insurer.' },
-  { y: '2025', t: 'M.S. Cybersecurity, Lewis University (4+1 program).' },
-  { y: '2026', t: 'Cloud security analyst at the same insurer. At home: a homelab run like production, a manga reader fork at 21 releases, a fix merged into Mealie.' },
+  {
+    y: '2021', kind: 'work', t: 'Electronics repair technician', when: 'Oct 2021 to Jul 2023 · Batteries Plus',
+    pts: [
+      'Diagnosed and repaired devices with visual, hands-on and computer-assisted testing.',
+      'Wrote the estimates and work orders: parts, labor, and what was actually wrong.',
+    ],
+  },
+  {
+    y: '2021', kind: 'comp', t: 'First place, Lewis Cyber Flyer CTF', when: 'Capture the flag · Lewis University',
+    pts: [],
+  },
+  {
+    y: '2022', kind: 'comp', t: 'CyberForce: 5th of 160 teams', when: 'Department of Energy · defend a live network against a red team',
+    pts: ['Also competed in the Collegiate Cyber Defense Competition (CCDC).'],
+  },
+  {
+    y: '2023', kind: 'work', t: 'Security advisor intern', when: 'Summer 2023 · Fortune 500 insurer',
+    pts: [
+      'Worked with security leadership to find and reduce risk.',
+      'Owned a project on governing browser extensions across the company.',
+    ],
+  },
+  {
+    y: '2023', kind: 'comp', t: 'CyberForce again: 10th', when: 'Three weeks, hosted by Argonne National Laboratory',
+    pts: ['Aimed higher than the year before. Our defenses held, and I came out much stronger at Active Directory hardening through group policy.'],
+  },
+  {
+    y: '2024', kind: 'school', t: 'B.S. Cybersecurity, Lewis University', when: '4+1 program, straight into the master\'s',
+    pts: [],
+  },
+  {
+    y: '2024', kind: 'work', t: 'IT security rotational program, rotation 1: Security Remediation Management', when: 'Jun 2024 to Jan 2025',
+    pts: [
+      'Ran security risk remediation in ServiceNow GRC: tracking, routing each issue to an owner, and getting vulnerabilities closed on time.',
+      'Co-built the cloud security request intake in ServiceNow, replacing ad-hoc email with structured, trackable requests.',
+      'With vulnerability management, routed Wiz cloud misconfiguration findings into the ticketing system.',
+    ],
+  },
+  {
+    y: '2025', kind: 'work', t: 'Rotation 2: Cloud Security', when: 'Jan 2025 to Apr 2026',
+    pts: [
+      'Validated metadata for 1,100+ GCP projects and linked each one to its business application in the CMDB.',
+      'Defined the container security operating model: a RACI across 46 controls, agreed with cloud engineering, networking and AppSec.',
+      'Recommended GCP organization policy constraints that block risky configurations at the source, moving from fixing to preventing.',
+      'Automated the weekly security metrics report: a multi-hour manual job now takes minutes.',
+    ],
+  },
+  {
+    y: '2025', kind: 'cert', t: 'M.S. Cybersecurity, plus two certifications', when: 'Google Cloud Digital Leader (Feb) · M.S. (May) · ISC2 CC (Jul)',
+    pts: [],
+  },
+  {
+    y: '2026', kind: 'work', t: 'Cloud security analyst', when: 'Apr 2026 to now',
+    pts: [
+      'Caught unapproved hardened container images heading toward production, then worked with vendors and internal teams to stand up a formal approval process.',
+      'Led a proof of concept of no-code SOAR platforms (Torq, Tines): workflows that enrich cloud vulnerability alerts automatically, demoed to leadership with an adoption roadmap.',
+      'Wired Wiz findings into ServiceNow so tickets arrive with the asset owner and context already filled in.',
+    ],
+  },
+  {
+    y: '2026', kind: 'home', t: 'At home: a homelab run like production', when: 'Torq Automation Practitioner (Aug) · and still building',
+    pts: [
+      'Every security control attacked from outside and the results published.',
+      'A manga reader fork at 21 releases, and a fix merged into Mealie.',
+    ],
+  },
 ];
 
 const shelf = [
@@ -240,13 +302,24 @@ const credentials = [
 
       <SectionHead label="Timeline" title="How I got here" />
       <ol class="about-tl">
-        {timeline.map((e) => (
-          <li>
-            <span class="tl-year">{e.y}</span>
-            <span class="tl-text">{e.t}</span>
+        {timeline.map((e, i) => (
+          <li class={`tl-${e.kind}`}>
+            <span class="tl-year">{i === 0 || timeline[i - 1].y !== e.y ? e.y : ''}</span>
+            <div class="tl-body">
+              <p class="tl-title">{e.t}</p>
+              <p class="tl-when">{e.when}</p>
+              {e.pts.length > 0 && (
+                <ul class="tl-pts">
+                  {e.pts.map((x) => <li>{x}</li>)}
+                </ul>
+              )}
+            </div>
           </li>
         ))}
       </ol>
+      <p class="tl-legend" aria-hidden="true">
+        <span class="tl-work">work</span><span class="tl-comp">competition</span><span class="tl-school">school</span><span class="tl-cert">certification</span><span class="tl-home">homelab</span>
+      </p>
 
       <SectionHead label="Beyond work" title="The rest of it" />
       <p>

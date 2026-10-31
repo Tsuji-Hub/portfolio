@@ -146,7 +146,7 @@ import Panel from '../../components/Panel.astro';
     <li>The wake word runs locally on each person's audio. Without it, audio is dropped.</li>
     <li>After a reply it keeps listening to that one person for 8 seconds, up to 4 follow-ups, so they can answer without the wake word.</li>
     <li>It holds the last 6 exchanges in memory to follow a conversation; a restart forgets them.</li>
-    <li>On disk it keeps preferences people explicitly ask it to remember, when each person last spoke (a time, never the words), and a debug log of commands and replies capped at 30 MB that rotates out.</li>
+    <li>On disk it keeps preferences people explicitly ask it to remember, when each person last spoke (a time, never the words), and a log capped at 30 MB that rotates out. Since 10-31 that log records who spoke, timings, lengths and every tool call with its arguments as an audit trail, but not what anyone said or what Jarvis answered.</li>
   </ul>
   <p>
     On 10-31 I turned off the one feature that broke this rule: it transcribed

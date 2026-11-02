@@ -251,6 +251,58 @@ const day = ev.captured.slice(5, 10);
     script reaches the output.
   </p>
 
+  <SectionHead label="Seeing it" title="Alerts I can live with" />
+  <p>
+    <strong>In one line:</strong> every control above reports to one place,
+    and only what needs me reaches me.
+  </p>
+  <p>
+    A read-only collector pulls from CrowdSec, the WAF, Wazuh and the image
+    scanner every five minutes. What it finds is shown in levels, the way
+    plant control rooms do it (ISA-101): a phone widget that answers "is
+    anything wrong", a dashboard with one-line verdicts and a short "needs
+    attention" list, the SIEM's own dashboard for level 10 and up, then the raw
+    events. Each item carries a signed link to acknowledge it, undo that, or ban
+    the source. An acknowledged item still counts in the totals; it just stops
+    turning the tiles red. Test events get acknowledged only after the audit
+    trail proves where they came from.
+  </p>
+
+  <Panel label="alert routing" status="as of 11-02">
+    <table class="ev-table">
+      <caption>Where each kind of event goes. "Spoken" means my voice assistant says it on the PC speaker if I am at the desk, otherwise on my phone.</caption>
+      <thead>
+        <tr><th scope="col">Event</th><th scope="col">Goes to</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">Blocked attacks, low-volume probes</th><td>Dashboard only</td></tr>
+        <tr><th scope="row">SIEM high-severity alert</th><td>Dashboard + spoken, also overnight</td></tr>
+        <tr><th scope="row">Service down, or fixed by self-heal</th><td>Dashboard + spoken, daytime</td></tr>
+        <tr><th scope="row">Daily outside-in geo check fails</th><td>Spoken</td></tr>
+        <tr><th scope="row">A data feed goes stale</th><td>Dashboard + Discord</td></tr>
+      </tbody>
+    </table>
+  </Panel>
+
+  <p>
+    That routing came from getting it wrong. On 10-27 at 00:51 the assistant
+    woke me through Do Not Disturb to report a single probe hit. Over the next
+    three days: low-hit probes became visual only, speech got a quiet window
+    overnight unless the alert is loud, it speaks where I am (a presence
+    heartbeat from the PC decides desk or phone), and the phone checks Do Not
+    Disturb live instead of trusting a sensor that could be minutes stale.
+  </p>
+  <p>
+    The edge also gets tested from outside every day, not only when I think of
+    it. A scheduled job asks Globalping, a public network of probes, to load the
+    site from probes inside the allowed region (the control) and from probes
+    outside it. Outside probes must time out at the firewall; inside probes
+    must get an answer; any outside answer is spoken as a failure. First run,
+    11-02: 3 of 3 inside probes answered, 8 of 8 outside probes in eight
+    countries timed out, on HTTPS and on port 80. The probe network cannot test
+    HTTP/3, so that part still rests on the 10-30 phone test.
+  </p>
+
   <SectionHead label="Mapped" title="Control by control" />
   <div class="map-table-wrap">
     <table class="ev-table map-table">
@@ -259,7 +311,7 @@ const day = ev.captured.slice(5, 10);
         <tr><th scope="col">Control</th><th scope="col">CIS v8</th><th scope="col">ATT&CK</th><th scope="col">Tested</th></tr>
       </thead>
       <tbody>
-        <tr><th scope="row">Geo filter, TCP + UDP</th><td>4.4</td><td>T1595</td><td>10-30, phone on cellular</td></tr>
+        <tr><th scope="row">Geo filter, TCP + UDP</th><td>4.4</td><td>T1595</td><td>daily probes since 11-02; phone 10-30</td></tr>
         <tr><th scope="row">CrowdSec + bouncers</th><td>13.3, 13.8</td><td>T1595.002, T1190</td><td>{day}, ban timing x3</td></tr>
         <tr><th scope="row">WAF: virtual patches + OWASP CRS</th><td>13.10</td><td>T1190</td><td>{day}, 10 requests x6</td></tr>
         <tr><th scope="row">fail2ban</th><td>13.8</td><td>T1110</td><td>10-30, phone on cellular</td></tr>

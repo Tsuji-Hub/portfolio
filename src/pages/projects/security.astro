@@ -120,8 +120,22 @@ const day = ev.captured.slice(5, 10);
     How the WAF got to blocking: the Core Rule Set ran in detection-only mode
     first, scoring real traffic without blocking it. It flagged none of about
     5,300 real requests, so on {ev.waf.tuning.switched_in_band.slice(5, 10)} it
-    moved to blocking. Normal requests to every public site afterwards: none
-    blocked. Detect, tune, then enforce is the order I would want at work too.
+    moved to blocking. Detect, tune, then enforce is the order I would want at
+    work too.
+  </p>
+  <p>
+    The tuning was not finished. Three days after the switch, the media app on
+    my phone crashed every time I changed video quality. Its crash log showed
+    an unhandled 403: the app stops the old stream with an HTTP DELETE, and the
+    Core Rule Set rejects DELETE, PUT and PATCH by default. The same rule was
+    blocking recipe edits and request changes from outside the house. My 48-hour
+    false-positive check had only counted blocks in the logs, and nobody had
+    edited or deleted anything from outside in that window, so it found
+    nothing. The fix exempts that one method rule for those three methods; every
+    injection rule still inspects them, which the re-test confirmed (an SQL
+    injection sent as a DELETE is still blocked). The lesson: a false-positive
+    check has to send each app's write calls itself, not wait for real traffic
+    to find them.
   </p>
 
   <SectionHead label="Found by attacking it" title="Four weaknesses my own testing caught" />
@@ -313,7 +327,7 @@ const day = ev.captured.slice(5, 10);
       <tbody>
         <tr><th scope="row">Geo filter, TCP + UDP</th><td>4.4</td><td>T1595</td><td>daily probes since 11-02; phone 10-30</td></tr>
         <tr><th scope="row">CrowdSec + bouncers</th><td>13.3, 13.8</td><td>T1595.002, T1190</td><td>{day}, ban timing x3</td></tr>
-        <tr><th scope="row">WAF: virtual patches + OWASP CRS</th><td>13.10</td><td>T1190</td><td>{day}, 10 requests x6</td></tr>
+        <tr><th scope="row">WAF: virtual patches + OWASP CRS</th><td>13.10</td><td>T1190</td><td>{day}, 10 requests x6; write methods 11-02</td></tr>
         <tr><th scope="row">fail2ban</th><td>13.8</td><td>T1110</td><td>10-30, phone on cellular</td></tr>
         <tr><th scope="row">Per-guest firewall, IPv4 + IPv6</th><td>4.4, 13.4</td><td>T1021.004</td><td>{day}, x3</td></tr>
         <tr><th scope="row">VPN egress, default drop</th><td>13.4</td><td>none</td><td>{kill.captured.slice(5, 10)}, 6 tunnel kills</td></tr>
